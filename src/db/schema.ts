@@ -277,9 +277,9 @@ export const assets = pgTable(
     approvalStatus: approvalStatusEnum("approval_status")
       .default("pending_review")
       .notNull(),
-    // PRD §6.4: Auto-approve after N business days if no action taken.
-    // The Inngest cron job checks this column. null = auto-approve disabled.
-    autoApproveDays: integer("auto_approve_days"),
+    // Inngest cron checks this column to auto-approve files with no action taken.
+    // null means auto-approve is disabled for this asset.
+    autoApproveAt: timestamp("auto_approve_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }), // Soft delete
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -289,7 +289,8 @@ export const assets = pgTable(
       .notNull(),
   },
   (t) => [
-    index("assets_org_project_idx").on(t.orgId, t.projectId), // Composite per PRD §11
+    index("assets_org_project_idx").on(t.orgId, t.projectId),
+    index("assets_auto_approve_idx").on(t.autoApproveAt), // Inngest cron hot path
   ],
 ).enableRLS();
 
@@ -485,10 +486,17 @@ export const shareLinks = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (t) => [
-    index("share_entity_idx").on(t.entityId, t.entityType), // Share link lookup
-  ],
+  (t) => [index("share_entity_idx").on(t.entityId, t.entityType)],
 ).enableRLS();
+
+// Plan Limits
+export const planLimits = pgTable("plan_limits", {
+  plan: planEnum("plan").primaryKey(),
+  maxProjects: integer("max_projects").notNull(),
+  maxClients: integer("max_clients").notNull(),
+  maxStorageGb: integer("max_storage_gb").notNull(),
+  maxMembers: integer("max_members").notNull(),
+});
 
 // ─── Phase 2 Stub Tables ─────────────────────────────────────────────────────
 // Included now to prevent destructive migrations later.
