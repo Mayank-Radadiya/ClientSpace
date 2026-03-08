@@ -7,7 +7,7 @@ import {
   signupSchema,
   resetPasswordSchema,
   updatePasswordSchema,
-  type LoginInput,
+  type LoginFormType,
   type SignupInput,
   type ResetPasswordInput,
   type UpdatePasswordInput,
@@ -22,15 +22,15 @@ export type AuthState<T> = {
 };
 
 export async function loginAction(
-  _prevState: AuthState<LoginInput>,
+  _prevState: AuthState<LoginFormType>,
   formData: FormData,
-): Promise<AuthState<LoginInput>> {
+): Promise<AuthState<LoginFormType>> {
   const parsed = loginSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
     return {
       fieldErrors: parsed.error.flatten()
-        .fieldErrors as AuthState<LoginInput>["fieldErrors"],
+        .fieldErrors as AuthState<LoginFormType>["fieldErrors"],
     };
   }
 
