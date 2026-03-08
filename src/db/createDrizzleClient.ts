@@ -23,7 +23,6 @@
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import type { PgTransaction } from "drizzle-orm/pg-core";
 import postgres from "postgres";
 import * as schema from "./schema";
 import * as relations from "./relations";
@@ -40,8 +39,8 @@ type SessionContext = {
   orgId: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TransactionScope = PgTransaction<any, any, any>;
+type DbType = typeof db;
+type TransactionScope = Parameters<Parameters<DbType["transaction"]>[0]>[0];
 
 /**
  * Execute database operations within an RLS-scoped transaction.

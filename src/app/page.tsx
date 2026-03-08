@@ -2,6 +2,7 @@
 import { useTheme } from "next-themes";
 import { useState, useTransition } from "react";
 import { createTestUser } from "./actions";
+import Link from "next/link";
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
@@ -66,6 +67,40 @@ export default function Home() {
             <pre className="whitespace-pre-wrap">{result}</pre>
           </div>
         )}
+      </div>
+
+      <p> Basic route for navigation and testing</p>
+      <div className="flex w-full items-center gap-4">
+        <Link
+          className="rounded-md border border-gray-200 px-4 py-2 font-medium dark:border-gray-800 dark:bg-gray-800"
+          href="/login"
+        >
+          Login
+        </Link>
+        <Link
+          className="rounded-md border border-gray-200 px-4 py-2 font-medium dark:border-gray-800 dark:bg-gray-800"
+          href="/signup"
+        >
+          Signup
+        </Link>
+        <Link
+          className="rounded-md border border-gray-200 px-4 py-2 font-medium dark:border-gray-800 dark:bg-gray-800"
+          href="/reset-password"
+        >
+          Reset Password
+        </Link>
+        <Link
+          className="rounded-md border border-gray-200 px-4 py-2 font-medium dark:border-gray-800 dark:bg-gray-800"
+          href="/dashboard"
+        >
+          Dashboard
+        </Link>
+        <Link
+          className="rounded-md border border-gray-200 px-4 py-2 font-medium dark:border-gray-800 dark:bg-gray-800"
+          href="/settings"
+        >
+          Settings
+        </Link>
       </div>
     </div>
   );

@@ -49,8 +49,12 @@ export async function updateSession(request: NextRequest): Promise<{
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 1. Protect Dashboard Routes — redirect unauthenticated users to login
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
+  // 1. Protect Dashboard & Settings Routes — redirect unauthenticated users to login
+  if (
+    (request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/update-password")) &&
+    !user
+  ) {
     return {
       response: NextResponse.redirect(new URL("/login", request.url)),
       user: null,
@@ -60,7 +64,9 @@ export async function updateSession(request: NextRequest): Promise<{
   // 2. Protect Auth Routes — redirect authenticated users to dashboard
   if (
     (request.nextUrl.pathname.startsWith("/login") ||
-      request.nextUrl.pathname.startsWith("/signup")) &&
+      request.nextUrl.pathname.startsWith("/signup") ||
+      request.nextUrl.pathname.startsWith("/reset-password") ||
+      request.nextUrl.pathname.startsWith("/verify")) &&
     user
   ) {
     return {

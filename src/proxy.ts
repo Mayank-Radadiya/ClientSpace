@@ -50,10 +50,10 @@ async function getRateLimiters() {
 }
 
 // ---------------------------------------------------------------------------
-// Middleware
+// Proxy
 // ---------------------------------------------------------------------------
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
