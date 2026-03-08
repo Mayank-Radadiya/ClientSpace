@@ -213,13 +213,5 @@
   z-index: 1;
 }
 ::view-transition-new(root) {
-  z-index: 2;
-}
-
-/* Force stacking context based on the current HTML class */
-html.dark::view-transition-old(root) {
-  z-index: 2;
-}
-html.dark::view-transition-new(root) {
-  z-index: 1;
+  z-index: 2147483646;
 }

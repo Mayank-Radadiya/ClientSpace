@@ -45,12 +45,24 @@ export const ThemeToggleButton = ({ className }: ThemeToggleButtonProps) => {
     );
 
     const transition = document.startViewTransition(() => {
+      // Force Tailwind DOM class to prevent race conditions where view transition
+      // snapshots the DOM before next-themes asynchronous update can occur.
+      if (newTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
       flushSync(() => {
         setTheme(newTheme);
       });
     });
 
     transition.ready.then(() => {
+      const clipPath = [
+        `circle(0px at ${centerX}px ${centerY}px)`,
+        `circle(${maxDistance}px at ${centerX}px ${centerY}px)`,
+      ];
+
       document.documentElement.animate(
         {
           clipPath: [
