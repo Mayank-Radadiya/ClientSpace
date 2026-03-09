@@ -4,6 +4,8 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 // ---------------------------------------------------------------------------
 // Rate Limiting (Upstash)
@@ -17,17 +19,15 @@ let authRateLimit: {
 let apiRateLimit: {
   limit: (key: string) => Promise<{ success: boolean }>;
 } | null = null;
+let isInitialized = false;
 
-async function getRateLimiters() {
-  if (authRateLimit && apiRateLimit) return { authRateLimit, apiRateLimit };
+function getRateLimiters() {
+  if (isInitialized) return { authRateLimit, apiRateLimit };
 
   if (
     process.env.UPSTASH_REDIS_REST_URL &&
     process.env.UPSTASH_REDIS_REST_TOKEN
   ) {
-    const { Ratelimit } = await import("@upstash/ratelimit");
-    const { Redis } = await import("@upstash/redis");
-
     const redis = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -46,6 +46,7 @@ async function getRateLimiters() {
     });
   }
 
+  isInitialized = true;
   return { authRateLimit, apiRateLimit };
 }
 
@@ -66,7 +67,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api/auth");
 
   if (isAuthEndpoint) {
-    const { authRateLimit: limiter } = await getRateLimiters();
+    const { authRateLimit: limiter } = getRateLimiters();
     if (limiter) {
       const { success } = await limiter.limit(`auth_${ip}`);
       if (!success) {
@@ -90,7 +91,7 @@ export async function proxy(request: NextRequest) {
     user &&
     (pathname.startsWith("/dashboard") || pathname.startsWith("/api/trpc"))
   ) {
-    const { apiRateLimit: limiter } = await getRateLimiters();
+    const { apiRateLimit: limiter } = getRateLimiters();
     if (limiter) {
       const { success } = await limiter.limit(`user_${user.id}`);
       if (!success) {
