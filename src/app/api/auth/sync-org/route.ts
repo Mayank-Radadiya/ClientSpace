@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { orgMemberships } from "@/db/schema";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+// const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
