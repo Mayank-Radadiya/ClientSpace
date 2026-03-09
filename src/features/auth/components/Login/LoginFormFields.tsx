@@ -3,11 +3,11 @@ import { Input } from "@/components/ui/input";
 import useLoginForm from "./useLoginForm";
 import { Loader } from "lucide-react";
 import { PasswordField } from "../PasswordField";
-import toast from "react-hot-toast";
 import { useEffect } from "react";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
+import { gooeyToast } from "@/components/ui/goey-toaster";
 
 function LoginFormFields() {
   const {
@@ -21,7 +21,7 @@ function LoginFormFields() {
 
   useEffect(() => {
     if (state?.error) {
-      toast.error(state.error);
+      gooeyToast.error(state.error);
     }
   }, [state?.error]);
   return (

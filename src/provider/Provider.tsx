@@ -1,6 +1,6 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "react-hot-toast";
+import { GoeyToaster } from "@/components/ui/goey-toaster";
 
 interface ProviderProps {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ function Provider({ children }: ProviderProps) {
   return (
     <>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <Toaster />
+        <GoeyToaster />
         <TooltipProvider>{children}</TooltipProvider>
       </ThemeProvider>
     </>

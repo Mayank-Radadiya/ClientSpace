@@ -3,6 +3,7 @@ import { useTheme } from "next-themes";
 import { useState, useTransition } from "react";
 import { createTestUser } from "./actions";
 import Link from "next/link";
+import { gooeyToast } from "@/components/ui/goey-toaster";
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
@@ -11,7 +12,40 @@ export default function Home() {
 
   const handleTestDatabase = () => {
     startTransition(async () => {
-      const response = await createTestUser();
+      const promise = createTestUser();
+
+      gooeyToast.promise(promise, {
+        loading: "Creating test user...",
+        success: "Test user created successfully!",
+        error: "Failed to create test user.",
+        description: {
+          loading: "Creating test user...",
+          success: "Test user created successfully!",
+          error: "Failed to create test user.",
+        },
+        action: {
+          success: {
+            label: "View User",
+            onClick: () => {
+              console.log("View User");
+            },
+          },
+          error: {
+            label: "Retry",
+            onClick: () => {
+              console.log("Retry");
+            },
+          },
+        },
+        spring: false,
+        bounce: 0.01,
+        timing: {
+          displayDuration: 6000,
+        },
+      });
+
+      const response = await promise;
+
       if (response.success) {
         setResult(`Success! Created user with email: ${response.email}`);
       } else {
@@ -102,6 +136,32 @@ export default function Home() {
           Settings
         </Link>
       </div>
+
+      <button
+        onClick={() =>
+          gooeyToast.success("Success! This is a gooey toast.", {
+            description: "This is a description",
+            bounce: 0.05,
+            spring: false,
+          })
+        }
+        className="rounded-md bg-green-600 px-6 py-3 font-medium text-white transition-colors hover:bg-green-700"
+      >
+        Show Gooey Toast
+      </button>
+
+      <button
+        onClick={() =>
+          gooeyToast.promise(createTestUser(), {
+            loading: "Loading...",
+            success: "Success!",
+            error: "Error!",
+          })
+        }
+        className="rounded-md bg-green-600 px-6 py-3 font-medium text-white transition-colors hover:bg-green-700"
+      >
+        Show Gooey Error Toast
+      </button>
     </div>
   );
 }
