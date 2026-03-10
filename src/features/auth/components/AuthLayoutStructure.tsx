@@ -88,6 +88,11 @@ const AuthLayoutStructure = ({ children }: AuthLayoutProps) => {
 
       {/* Main Content Area */}
       <div className="relative z-10 mx-auto w-full max-w-[450px]">
+        {/* Ambient Form Glow */}
+        {/* <div className="pointer-events-none absolute top-1/2 left-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 opacity-50">
+          <div className="bg-primary/20 dark:bg-primary/30 h-[300px] w-[300px] rounded-full blur-[100px] sm:h-[400px] sm:w-[400px]" />
+        </div> */}
+
         {/* The Auth form injected here */}
         {children}
 

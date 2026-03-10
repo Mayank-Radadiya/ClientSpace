@@ -35,40 +35,31 @@ const AuthCard = ({ children, formType }: AuthCardProps) => {
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-background border-border/40 w-full overflow-hidden rounded-2xl border shadow-xl shadow-black/5"
+      className="bg-background border-border/40 w-full overflow-hidden rounded-2xl border border-2 border-white/10 bg-transparent shadow-xl shadow-black/5 backdrop-blur-md transition-colors duration-300 hover:border-white/30"
     >
-      <div className="flex flex-col space-y-8 p-8 sm:p-10">
+      <div className="flex flex-col p-6 sm:p-8">
         {/* Header section */}
-        <div className="mb-8 flex flex-col items-center space-y-2 text-center">
-          <div className="bg-primary/5 ring-primary/10 mb-2 rounded-2xl p-3 ring-1">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="bg-primary/5 ring-primary/10 mb-4 rounded-xl p-2.5 ring-1">
             <Image
               src="/logo.svg"
               alt="Logo"
-              width={32}
-              height={32}
+              width={28}
+              height={28}
               className="drop-shadow-sm"
             />
           </div>
           <h1 className="text-foreground text-2xl font-semibold tracking-tight">
             {heading}
           </h1>
-          <p className="text-muted-foreground text-sm">{description}</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="bg-border/60 h-px flex-1" />
+          <p className="text-muted-foreground mt-2 text-sm">{description}</p>
         </div>
 
         {/* Form content injected from parent */}
-        <div className="w-full">{children}</div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="bg-border/60 flex h-px w-full" />
-        </div>
+        <div className="mb-6 w-full">{children}</div>
 
         {/* Footer */}
-        <div className="text-muted-foreground pt-2 text-center text-sm font-medium">
+        <div className="text-muted-foreground text-center text-sm font-medium">
           {footerText}{" "}
           <Link
             href={footerHref}
