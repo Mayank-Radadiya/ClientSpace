@@ -93,7 +93,13 @@ export const resetPasswordSchema = z.object({
  */
 export const updatePasswordSchema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters."),
+    password: z
+      .string()
+      .regex(
+        passwordRegex,
+        "Password must contain uppercase, lowercase, number, and special character.",
+      )
+      .min(8, "Password must be at least 8 characters."),
     confirmPassword: z.string().min(1, "Please confirm your password."),
   })
   .refine((data) => data.password === data.confirmPassword, {
