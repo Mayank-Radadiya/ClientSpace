@@ -23,15 +23,10 @@
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import postgres from "postgres";
+import { pool } from "./pool";
 import * as schema from "./schema";
 import * as relations from "./relations";
 
-// ─── Shared connection pool ──────────────────────────────────────────────────
-// This is the SAME pool used by src/db/index.ts.
-// We instantiate it here to avoid a circular import:
-//   createDrizzleClient.ts → @/db (index.ts) → createDrizzleClient.ts
-const pool = postgres(process.env.DATABASE_URL!, { prepare: false });
 const db = drizzle(pool, { schema: { ...schema, ...relations } });
 
 type SessionContext = {

@@ -1,14 +1,8 @@
 import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import * as schema from "./schema";
+import { pool } from "./pool";
 
-const connectionString = process.env.DATABASE_URL!;
-
-// prepare: false is required for Supabase Transaction Pooler (port 6543).
-// If you switch to Session Pooler (port 5432), you can remove this option.
-const client = postgres(connectionString, { prepare: false });
-
-export const db = drizzle(client, { schema });
+export const db = drizzle(pool, { schema });
 
 // ⚠️ WARNING: This `db` export bypasses Row Level Security.
 // It is ONLY for use in seed scripts and drizzle-kit migrations.

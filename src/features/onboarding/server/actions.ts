@@ -7,6 +7,11 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { organizations, orgMemberships } from "@/db/schema";
 import { createOrgSchema, type CreateOrgInput } from "../schemas";
 import { generateSlug } from "../utils/slug";
+import { revalidatePath } from "next/cache";
+import { onboardClientSchema, type OnboardClientInput } from "../schemas";
+import { createClientInDb, createOrganizationInDb } from "./mutations";
+import { getUserExistingMembership } from "./queries";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type CreateOrgState = {
   error?: string;
@@ -28,64 +33,45 @@ export async function createOrganizationAction(
   }
 
   // Step 2: Validate
-  const parsed = createOrgSchema.safeParse({
+  const validationResult = createOrgSchema.safeParse({
     name: formData.get("name"),
     type: formData.get("type"),
   });
 
-  if (!parsed.success) {
+  if (!validationResult.success) {
     return {
-      fieldErrors: parsed.error.flatten()
-        .fieldErrors as CreateOrgState["fieldErrors"],
+      fieldErrors: validationResult.error.flatten().fieldErrors,
     };
   }
 
-  const { name, type } = parsed.data;
-  const slug = generateSlug(name);
+  const { name, type } = validationResult.data;
 
-  // Step 3: Transactional INSERT — org + owner membership
-  // orgId: "SYSTEM" is the only legitimate sentinel use.
-  // No RLS-gated data is queried — only new rows are inserted.
+  // Step 3: Execute DB Mutation
   try {
-    await withRLS({ userId: user.id, orgId: "SYSTEM" }, async (tx) => {
-      const [org] = await tx
-        .insert(organizations)
-        .values({
-          name,
-          slug,
-          ownerId: user.id,
-          plan: "starter",
-          nextInvoiceNumber: 1001,
-        })
-        .returning({ id: organizations.id });
-
-      if (!org) throw new Error("Organization insert returned no row");
-
-      await tx.insert(orgMemberships).values({
-        userId: user.id,
-        orgId: org.id,
-        role: "owner",
-      });
-    });
-  } catch (err) {
-    // Unique constraint violation on slug — random suffix collision (rare)
-    if (
-      err instanceof Error &&
-      "code" in err &&
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (err as any).code === "23505"
-    ) {
-      return { error: "Name conflict — please try again." };
+    await createOrganizationInDb(user.id, name);
+  } catch (error) {
+    if (error instanceof Error && error.message === "NAME_CONFLICT") {
+      return {
+        error:
+          "That organization name is taken or invalid. Please try another.",
+      };
     }
-    console.error("createOrganizationAction error:", err);
-    return { error: "Something went wrong. Please try again." };
+    console.error("createOrganizationAction error:", error);
+    return {
+      error: "Something went wrong creating your workspace. Please try again.",
+    };
   }
 
-  // Step 4: Persist org type in Supabase app_metadata for personalization
-  // app_metadata is server-controlled (unlike user_metadata which users can write)
-  await supabase.auth.updateUser({
-    data: { org_type: type },
-  });
+  // Step 4: Securely persist org type in Supabase app_metadata
+  try {
+    const supabaseAdmin = createAdminClient();
+    await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      app_metadata: { org_type: type }, // Safely updating server-controlled metadata
+    });
+  } catch (error) {
+    console.error("Failed to update app_metadata:", error);
+    // Non-fatal error: We don't want to block the user if just the metadata fails
+  }
 
   // Step 5: Set middleware cookie flag
   const cookieStore = await cookies();
@@ -97,7 +83,62 @@ export async function createOrganizationAction(
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
 
-  // Step 6: Redirect to guided setup step 2 (add first client)
-  // /onboarding/add-client is built in Task 08
+  // Step 6: Redirect
   redirect("/onboarding/add-client");
+}
+
+export type OnboardClientState = {
+  error?: string;
+  fieldErrors?: Partial<Record<keyof OnboardClientInput, string[]>>;
+};
+
+export async function onboardClientAction(
+  _prevState: OnboardClientState,
+  formData: FormData,
+): Promise<OnboardClientState> {
+  // 1. Authenticate
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be logged in to complete this action." };
+  }
+
+  // 2. Validate input
+  const validationResult = onboardClientSchema.safeParse({
+    companyName: formData.get("companyName"),
+    contactName: formData.get("contactName"),
+    email: formData.get("email"),
+  });
+
+  if (!validationResult.success) {
+    return {
+      fieldErrors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
+  // 3. Execute Business Logic
+  try {
+    // Re-use our centralized query
+    const membership = await getUserExistingMembership(user.id);
+
+    if (!membership) {
+      return { error: "No organization found for this account." };
+    }
+
+    // Call our abstracted mutation
+    await createClientInDb(user.id, membership.orgId, validationResult.data);
+  } catch (err) {
+    console.error("onboardClientAction error:", err);
+    return {
+      error: "Something went wrong creating the client. Please try again.",
+    };
+  }
+
+  // 4. Invalidate Cache & Redirect
+  // Crucial: Clear the dashboard cache so the newly added client appears instantly
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
