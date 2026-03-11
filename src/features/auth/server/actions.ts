@@ -7,10 +7,14 @@ import {
   signupSchema,
   resetPasswordSchema,
   updatePasswordSchema,
+  verifyOtpSchema,
+  resendOtpSchema,
   type LoginFormType,
   type SignupInput,
   type ResetPasswordInput,
   type UpdatePasswordInput,
+  type VerifyOtpInput,
+  type ResendOtpInput,
 } from "../schemas";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -44,7 +48,7 @@ export async function loginAction(
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  return redirect("/dashboard");
 }
 
 export async function signupAction(
@@ -75,7 +79,7 @@ export async function signupAction(
     return { error: error.message };
   }
 
-  redirect(
+  return redirect(
     "/verify?type=signup&email=" + encodeURIComponent(parsed.data.email),
   );
 }
@@ -96,16 +100,15 @@ export async function resetPasswordAction(
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(
     parsed.data.email,
-    {
-      redirectTo: `${APP_URL}/api/auth/callback?next=/update-password`,
-    },
   );
 
   if (error) {
     return { error: error.message };
   }
 
-  redirect("/verify?type=reset&email=" + encodeURIComponent(parsed.data.email));
+  return redirect(
+    "/verify?type=recovery&email=" + encodeURIComponent(parsed.data.email),
+  );
 }
 
 export async function updatePasswordAction(
@@ -130,5 +133,71 @@ export async function updatePasswordAction(
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  return redirect("/dashboard");
+}
+
+export async function verifyOtpAction(
+  _prevState: AuthState<VerifyOtpInput>,
+  formData: FormData,
+): Promise<AuthState<VerifyOtpInput>> {
+  const parsed = verifyOtpSchema.safeParse(Object.fromEntries(formData));
+
+  if (!parsed.success) {
+    return {
+      fieldErrors: parsed.error.flatten()
+        .fieldErrors as AuthState<VerifyOtpInput>["fieldErrors"],
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({
+    email: parsed.data.email,
+    token: parsed.data.token,
+    type: parsed.data.type,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (parsed.data.type === "recovery") {
+    return redirect("/update-password");
+  } else {
+    return redirect("/dashboard");
+  }
+}
+
+export async function resendOtpAction(
+  _prevState: AuthState<ResendOtpInput>,
+  formData: FormData,
+): Promise<AuthState<ResendOtpInput>> {
+  const parsed = resendOtpSchema.safeParse(Object.fromEntries(formData));
+
+  if (!parsed.success) {
+    return {
+      fieldErrors: parsed.error.flatten()
+        .fieldErrors as AuthState<ResendOtpInput>["fieldErrors"],
+    };
+  }
+
+  const supabase = await createClient();
+
+  if (parsed.data.type === "recovery") {
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      parsed.data.email,
+    );
+    if (error) {
+      return { error: error.message };
+    }
+  } else {
+    const { error } = await supabase.auth.resend({
+      email: parsed.data.email,
+      type: "signup",
+    });
+    if (error) {
+      return { error: error.message };
+    }
+  }
+
+  return { success: true };
 }

@@ -102,6 +102,30 @@ export const updatePasswordSchema = z
   });
 
 /**
+ * verifyOtpSchema
+ * ----------------
+ * Validation rules for the OTP verification form.
+ *
+ * Rules:
+ *  - Token must be exactly 8 characters long
+ */
+export const verifyOtpSchema = z.object({
+  token: z.string().length(8, "OTP must be exactly 8 digits."),
+  email: z.email(),
+  type: z.enum(["signup", "recovery"]),
+});
+
+/**
+ * resendOtpSchema
+ * ----------------
+ * Validation rules for resending OTPs.
+ */
+export const resendOtpSchema = z.object({
+  email: z.email(),
+  type: z.enum(["signup", "recovery"]),
+});
+
+/**
  * Type Aliases
  * ----------------
  * TypeScript types inferred from Zod schemas.
@@ -110,3 +134,5 @@ export type LoginFormType = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
+export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
+export type ResendOtpInput = z.infer<typeof resendOtpSchema>;

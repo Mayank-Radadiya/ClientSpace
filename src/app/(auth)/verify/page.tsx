@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import VerifyForm from "@/features/auth/components/verify/VerifyForm";
+import VerifyOtpForm from "@/features/auth/components/verify/VerifyOtpForm";
 
 export const metadata: Metadata = {
   title: "Verify your email - ClientSpace",
@@ -18,15 +18,22 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
   const type = params?.type;
   const email = params?.email;
 
-  const heading = type === "reset" ? "Check your email" : "Verify your account";
-  const desc =
-    type === "reset"
-      ? `We've sent a password reset link to ${email || "your email"}.`
-      : `We've sent an account verification link to ${email || "your email"}. Please click the link to activate your account.`;
+  if (!email || !type) {
+    return (
+      <div className="flex w-full justify-center p-8 text-center">
+        <p className="text-muted-foreground">
+          Invalid verification request. Missing email or type parameters.
+        </p>
+      </div>
+    );
+  }
+
+  // Ensure type is strongly typed to the expected literal union
+  const actionType = type === "recovery" ? "recovery" : "signup";
 
   return (
     <div className="w-full">
-      <VerifyForm heading={heading} desc={desc} />
+      <VerifyOtpForm email={email} type={actionType} />
     </div>
   );
 }
