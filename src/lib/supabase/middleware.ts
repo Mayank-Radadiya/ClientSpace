@@ -55,8 +55,12 @@ export async function updateSession(request: NextRequest): Promise<{
       request.nextUrl.pathname.startsWith("/update-password")) &&
     !user
   ) {
+    const redirectResp = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.getAll().forEach((c) => {
+      redirectResp.cookies.set(c.name, c.value, c);
+    });
     return {
-      response: NextResponse.redirect(new URL("/login", request.url)),
+      response: redirectResp,
       user: null,
     };
   }
@@ -69,8 +73,14 @@ export async function updateSession(request: NextRequest): Promise<{
       request.nextUrl.pathname.startsWith("/verify")) &&
     user
   ) {
+    const redirectResp = NextResponse.redirect(
+      new URL("/dashboard", request.url),
+    );
+    response.cookies.getAll().forEach((c) => {
+      redirectResp.cookies.set(c.name, c.value, c);
+    });
     return {
-      response: NextResponse.redirect(new URL("/dashboard", request.url)),
+      response: redirectResp,
       user,
     };
   }

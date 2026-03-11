@@ -58,7 +58,10 @@ export async function withRLS<T>(
   callback: (tx: TransactionScope) => Promise<T>,
 ): Promise<T> {
   return db.transaction(async (tx) => {
-    // Inject the tenant context into the current transaction.
+    // 1. Switch to the authenticated role (CRITICAL TO ENFORCE RLS)
+    await tx.execute(sql`SELECT set_config('role', 'authenticated', true)`);
+
+    // 2. Inject the tenant context into the current transaction.
     // `true` = is_local → scoped to THIS transaction only.
     // Prevents cross-request leakage in pooled connections.
     await tx.execute(
@@ -68,27 +71,12 @@ export async function withRLS<T>(
       sql`SELECT set_config('app.current_user_id', ${ctx.userId}, true)`,
     );
 
+    // 3. Inject the JWT claims to satisfy Supabase's auth.uid() function natively used in RLS policies.
+    await tx.execute(
+      sql`SELECT set_config('request.jwt.claims', ${JSON.stringify({ sub: ctx.userId })}, true)`,
+    );
+
     // Execute the caller's query within the secured transaction.
     return callback(tx);
   });
-}
-
-// Re-export the old function name with deprecation for backward compatibility
-// during migration from bare createDrizzleClient usage.
-/**
- * @deprecated Use `withRLS()` instead. This exists only for migration compatibility.
- */
-export async function createDrizzleClient(ctx: SessionContext) {
-  // This is intentionally NOT safe — it returns a bare db instance.
-  // Callers should migrate to withRLS().
-  console.warn(
-    "[DEPRECATED] createDrizzleClient() is deprecated. Use withRLS() instead.",
-  );
-  await db.execute(
-    sql`SELECT set_config('app.current_org_id', ${ctx.orgId}, true)`,
-  );
-  await db.execute(
-    sql`SELECT set_config('app.current_user_id', ${ctx.userId}, true)`,
-  );
-  return db;
 }

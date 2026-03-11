@@ -58,6 +58,23 @@ CREATE POLICY "Users can view own memberships"
 ON org_memberships FOR SELECT
 USING (auth.uid() = user_id);
 
+-- ORG MEMBERSHIPS: Allow creation during onboarding
+CREATE POLICY "Users can insert own membership"
+ON org_memberships FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- ORG MEMBERSHIPS: Allow admins to invite others
+CREATE POLICY "Team can insert memberships"
+ON org_memberships FOR INSERT
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM org_memberships AS om
+    WHERE om.org_id = org_memberships.org_id
+    AND om.user_id = auth.uid()
+    AND om.role IN ('owner', 'admin')
+  )
+);
+
 -- ORGANIZATIONS: Users can view orgs they belong to
 CREATE POLICY "Members can view organization"
 ON organizations FOR SELECT
@@ -68,6 +85,11 @@ USING (
     AND org_memberships.user_id = auth.uid()
   )
 );
+
+-- ORGANIZATIONS: Users can create an organization
+CREATE POLICY "Users can create organization"
+ON organizations FOR INSERT
+WITH CHECK (owner_id = auth.uid());
 
 -- ORGANIZATIONS: Only owner can update org settings
 CREATE POLICY "Owner can update organization"

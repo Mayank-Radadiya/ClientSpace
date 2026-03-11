@@ -6,4 +6,4 @@ export const db = drizzle(pool, { schema });
 
 // ⚠️ WARNING: This `db` export bypasses Row Level Security.
 // It is ONLY for use in seed scripts and drizzle-kit migrations.
-// All application code must use createDrizzleClient(session) from ./createDrizzleClient.ts
+// All application code must use withRLS() from ./createDrizzleClient.ts

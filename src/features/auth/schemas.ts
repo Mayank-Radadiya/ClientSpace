@@ -28,7 +28,10 @@ import { z } from "zod";
  */
 export const loginSchema = z.object({
   email: z.email().min(1, "Email is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must be at most 72 characters"),
 });
 
 /**
@@ -61,7 +64,8 @@ export const signupSchema = z
         passwordRegex,
         "Password must contain uppercase, lowercase, number, and special character.",
       )
-      .min(8, "Password must be at least 8 characters."),
+      .min(8, "Password must be at least 8 characters.")
+      .max(72, "Password must be at most 72 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password."),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -99,7 +103,8 @@ export const updatePasswordSchema = z
         passwordRegex,
         "Password must contain uppercase, lowercase, number, and special character.",
       )
-      .min(8, "Password must be at least 8 characters."),
+      .min(8, "Password must be at least 8 characters.")
+      .max(72, "Password must be at most 72 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password."),
   })
   .refine((data) => data.password === data.confirmPassword, {
