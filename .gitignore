@@ -42,4 +42,11 @@ next-env.d.ts
 
 # docs
 docs/
-.agent/
+
+# context-mode
+.github
+.vscode
+ctx_tmp
+opencode.json
+
+

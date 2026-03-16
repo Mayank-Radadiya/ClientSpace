@@ -75,10 +75,11 @@ WITH CHECK (
   )
 );
 
--- ORGANIZATIONS: Users can view orgs they belong to
+-- ORGANIZATIONS: Users can view orgs they belong to or own
 CREATE POLICY "Members can view organization"
 ON organizations FOR SELECT
 USING (
+  owner_id = auth.uid() OR
   EXISTS (
     SELECT 1 FROM org_memberships
     WHERE org_memberships.org_id = organizations.id
@@ -179,13 +180,20 @@ USING (
 );
 
 -- PROJECT MEMBERS: Viewable by anyone with project access
--- Leverages the projects RLS check recursively.
+-- Leverages the projects RLS check bypass via a SECURITY DEFINER function to break infinite recursion.
+CREATE OR REPLACE FUNCTION get_project_org(p_id uuid) RETURNS uuid AS $$
+  SELECT org_id FROM projects WHERE id = p_id;
+$$ LANGUAGE sql SECURITY DEFINER;
+
 CREATE POLICY "Project access dictates member viewing"
 ON project_members FOR SELECT
 USING (
+  user_id = auth.uid() OR
   EXISTS (
-    SELECT 1 FROM projects
-    WHERE projects.id = project_members.project_id
+    SELECT 1 FROM org_memberships
+    WHERE org_memberships.org_id = get_project_org(project_members.project_id)
+    AND org_memberships.user_id = auth.uid()
+    AND org_memberships.role IN ('owner', 'admin')
   )
 );
 
@@ -194,9 +202,8 @@ CREATE POLICY "Owners and Admins manage project members"
 ON project_members FOR ALL
 USING (
   EXISTS (
-    SELECT 1 FROM projects
-    JOIN org_memberships ON org_memberships.org_id = projects.org_id
-    WHERE projects.id = project_members.project_id
+    SELECT 1 FROM org_memberships
+    WHERE org_memberships.org_id = get_project_org(project_members.project_id)
     AND org_memberships.user_id = auth.uid()
     AND org_memberships.role IN ('owner', 'admin')
   )
