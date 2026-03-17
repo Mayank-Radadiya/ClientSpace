@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { orgMemberships } from "@/db/schema";
 import { cookies } from "next/headers";
+import WorkspaceShell from "./_components/DashboardShell";
 
 export default async function DashboardLayout({
   children,
@@ -44,9 +45,5 @@ export default async function DashboardLayout({
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
-      <main className="p-8">{children}</main>
-    </div>
-  );
+  return <WorkspaceShell>{children}</WorkspaceShell>;
 }

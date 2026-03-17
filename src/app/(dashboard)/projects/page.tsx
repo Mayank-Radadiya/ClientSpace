@@ -3,7 +3,7 @@ import { eq, desc } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { orgMemberships, clients, projects } from "@/db/schema";
-import { ProjectList } from "./ProjectList";
+import { ProjectList } from "../../../features/projects/components/ProjectList";
 
 export const metadata = { title: "Projects — ClientSpace" };
 
