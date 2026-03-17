@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,7 +81,10 @@ export function CreateProjectDialog({ clients }: CreateProjectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>
-        <Button>New Project</Button>
+        <div className="flex items-center gap-2">
+          <Plus />
+          <span>New Project</span>
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>

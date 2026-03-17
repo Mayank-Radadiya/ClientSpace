@@ -61,8 +61,7 @@ export default async function ProjectsPage() {
         .from(projects)
         .leftJoin(clients, eq(projects.clientId, clients.id))
         .where(eq(projects.orgId, membership.orgId))
-        .orderBy(desc(projects.createdAt))
-        .limit(50);
+        .orderBy(desc(projects.createdAt));
     },
   );
 
@@ -81,10 +80,6 @@ export default async function ProjectsPage() {
         clients={orgClients}
         initialData={{
           projects: projectsWithOverdue as any,
-          nextCursor:
-            rawProjects.length === 50
-              ? rawProjects[rawProjects.length - 1]?.id
-              : undefined,
         }}
       />
     </div>
