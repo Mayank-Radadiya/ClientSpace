@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+
 import "./globals.css";
 import Provider from "@/provider/Provider";
 import { TRPCProvider } from "@/lib/trpc/provider";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "ClientSpace",
@@ -18,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="bg-background text-foreground h-full min-h-screen w-full font-sans antialiased">
         <TRPCProvider>
           <Provider>{children}</Provider>
         </TRPCProvider>

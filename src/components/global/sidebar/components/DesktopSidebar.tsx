@@ -20,8 +20,9 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./SidebarContext";
 
-interface DesktopSidebarProps
-  extends React.ComponentProps<typeof motion.aside> {}
+interface DesktopSidebarProps extends React.ComponentProps<
+  typeof motion.aside
+> {}
 
 export const DesktopSidebar = ({
   className,
@@ -41,8 +42,8 @@ export const DesktopSidebar = ({
     <motion.aside
       className={cn(
         // Base sidebar styles: fixed layout, glassmorphism, dark/light support
-        "group/sidebar fixed left-0 top-0 z-40 hidden h-screen w-[280px] shrink-0 border-r border-neutral-200/50 bg-white/80 backdrop-blur-xl shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] transition-colors dark:border-neutral-800/50 dark:bg-neutral-950/80 md:flex overflow-hidden",
-        className
+        "group/sidebar fixed top-0 left-0 z-40 hidden h-screen w-[280px] shrink-0 overflow-hidden border-r border-neutral-200/50 bg-white/80 shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-colors md:flex dark:border-neutral-800/50 dark:bg-neutral-950/80",
+        className,
       )}
       initial={false}
       animate={{
@@ -83,7 +84,7 @@ export const DesktopSidebar = ({
     >
       {/* Animated vertical border glow shown when sidebar is open */}
       <motion.div
-        className="absolute right-0 top-0 bottom-0 w-px bg-linear-to-b from-transparent via-primary/20 to-transparent pointer-events-none"
+        className="via-primary/20 pointer-events-none absolute top-0 right-0 bottom-0 w-px bg-linear-to-b from-transparent to-transparent"
         initial={{ opacity: 0, scaleY: 0.5 }}
         animate={{ opacity: open ? 1 : 0, scaleY: open ? 1 : 0.5 }}
         transition={{ duration: 0.4 }}

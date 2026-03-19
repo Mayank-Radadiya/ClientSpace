@@ -202,3 +202,38 @@ export async function updateProjectAction(
   revalidatePath("/dashboard/projects");
   return { success: true };
 }
+
+// ─── DELETE ───────────────────────────────────────────────────────────────────
+
+export async function deleteProjectAction(
+  projectId: string,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  if (!ctx) return { error: "You must be logged in to delete a project." };
+
+  if (ctx.role === "client" || ctx.role === "member") {
+    return { error: "Only Admins and Owners can delete projects." };
+  }
+
+  const errorMsg = await withRLS(ctx, async (tx) => {
+    const existing = await tx.query.projects.findFirst({
+      where: and(eq(projects.id, projectId), eq(projects.orgId, ctx.orgId)),
+    });
+    if (!existing) return "Project not found.";
+
+    try {
+      await tx
+        .delete(projects)
+        .where(and(eq(projects.id, projectId), eq(projects.orgId, ctx.orgId)));
+      return null;
+    } catch (err) {
+      console.error("deleteProjectAction:", err);
+      return "Something went wrong. Please try again.";
+    }
+  });
+
+  if (errorMsg) return { error: errorMsg };
+
+  revalidatePath("/dashboard/projects");
+  return { success: true };
+}

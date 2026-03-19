@@ -1,11 +1,7 @@
 "use client";
-import { SupabaseClient } from "@supabase/supabase-js";
 import Link from "next/link";
 
 export default function Home() {
-  const showUserList = async () => {
-    
-  };
   return (
     <div className="mx-auto max-w-xl space-y-6 p-8 font-sans">
       <p> Basic route for navigation and testing</p>

@@ -41,7 +41,7 @@ export const SidebarHeader = memo(() => {
     <Link href="/" className="flex items-center gap-3 px-3 py-2">
       {/* Logo container */}
       <motion.div
-        className="flex h-11 w-11 p-1 shrink-0 items-center justify-center rounded-xl bg-background/50 shadow-sm ring-1 ring-border hover:ring-1 hover:ring-primary transition-all"
+        className="bg-background/50 ring-border hover:ring-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-xl p-1 shadow-sm ring-1 transition-all hover:ring-1"
         whileHover={{ scale: 1.06 }} // Slight scale-up on hover
         whileTap={{ scale: 0.95 }} // Press-down effect on click
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -64,13 +64,13 @@ export const SidebarHeader = memo(() => {
             animate={{ opacity: 1, x: 0 }} // Fully visible
             exit={{ opacity: 0, x: -8 }} // Exit to left
             transition={{ duration: 0.25 }}
-            className="flex flex-col leading-tight absolute left-22 top-8"
+            className="absolute top-8 left-22 flex flex-col leading-tight"
           >
             <span className="text-lg font-bold tracking-tight">
               Flow
               <span className="text-primary ml-0.5 font-mono">X</span>
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               Workflow platform
             </span>
           </motion.div>

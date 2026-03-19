@@ -48,4 +48,6 @@ docs/
 .vscode
 ctx_tmp
 opencode.json
+.agent
+.agent/
 

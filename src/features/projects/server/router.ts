@@ -1,26 +1,15 @@
 import { z } from "zod";
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, lt, ilike, inArray, or } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
-import { projects, clients } from "@/db/schema";
-import { PROJECT_STATUSES } from "../schemas";
-
-const projectColumns = {
-  id: projects.id,
-  name: projects.name,
-  description: projects.description,
-  status: projects.status,
-  priority: projects.priority,
-  startDate: projects.startDate,
-  deadline: projects.deadline,
-  budget: projects.budget,
-  tags: projects.tags,
-  createdAt: projects.createdAt,
-  updatedAt: projects.updatedAt,
-  clientId: projects.clientId,
-  clientCompanyName: clients.companyName,
-  clientEmail: clients.email,
-};
+import { TRPCError } from "@trpc/server";
+import {
+  clients,
+  projects,
+  projectStatusEnum,
+  projectPriorityEnum,
+} from "@/db/schema";
+import { projectColumns } from "../types";
 
 function computeOverdue(row: {
   deadline: string | null;
@@ -31,42 +20,53 @@ function computeOverdue(row: {
   return new Date(row.deadline) < new Date();
 }
 
+// Cursor uses ISO timestamp string — avoids an extra DB lookup
+const getAllInput = z.object({
+  search: z.string().optional(),
+  status: z.array(z.enum(projectStatusEnum.enumValues)).optional(),
+  priority: z.array(z.enum(projectPriorityEnum.enumValues)).optional(),
+  limit: z.number().int().min(1).max(100).default(50),
+  cursor: z.string().optional(), // ISO timestamp
+});
+
 export const projectRouter = createTRPCRouter({
   getAll: protectedProcedure
-    .input(
-      z
-        .object({
-          status: z.enum(PROJECT_STATUSES).optional(),
-          limit: z.number().int().min(1).max(100).default(50),
-          cursor: z.string().uuid().optional(),
-        })
-        .optional(),
-    )
+    .input(getAllInput)
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
-        const limit = input?.limit ?? 50;
-        const conditions = [eq(projects.orgId, ctx.orgId)];
+        const { search, status, priority, limit, cursor } = input;
 
-        if (input?.status)
-          conditions.push(eq(projects.status, input.status as any));
+        const conditions = [];
 
-        if (input?.cursor) {
-          const cursorRow = await tx
-            .select({ createdAt: projects.createdAt })
-            .from(projects)
-            .where(eq(projects.id, input.cursor))
-            .limit(1);
-          if (cursorRow[0])
-            conditions.push(lt(projects.createdAt, cursorRow[0].createdAt));
+        if (search) {
+          conditions.push(
+            or(
+              ilike(projects.name, `%${search}%`),
+              ilike(projects.description, `%${search}%`),
+            ),
+          );
         }
 
-        const results = await tx
-          .select(projectColumns)
-          .from(projects)
-          .leftJoin(clients, eq(projects.clientId, clients.id))
-          .where(and(...conditions))
-          .orderBy(desc(projects.createdAt))
-          .limit(limit + 1);
+        if (status && status.length > 0) {
+          conditions.push(inArray(projects.status, status));
+        }
+
+        if (priority && priority.length > 0) {
+          conditions.push(inArray(projects.priority, priority));
+        }
+
+        if (cursor) {
+          conditions.push(lt(projects.createdAt, new Date(cursor)));
+        }
+
+        const results = await tx.query.projects.findMany({
+          where: and(...conditions),
+          orderBy: [desc(projects.createdAt)],
+          limit: limit + 1,
+          with: {
+            client: true,
+          },
+        });
 
         const hasMore = results.length > limit;
         const items = hasMore ? results.slice(0, limit) : results;
@@ -74,9 +74,14 @@ export const projectRouter = createTRPCRouter({
         return {
           projects: items.map((p) => ({
             ...p,
-            isOverdue: computeOverdue(p as any),
+            isOverdue: computeOverdue(p),
+            clientCompanyName: p.client?.companyName ?? null,
+            clientEmail: p.client?.email ?? null,
           })),
-          nextCursor: hasMore ? items[items.length - 1]?.id : undefined,
+          nextCursor:
+            hasMore && items.length > 0
+              ? items[items.length - 1]!.createdAt.toISOString()
+              : undefined,
         };
       });
     }),
@@ -93,7 +98,39 @@ export const projectRouter = createTRPCRouter({
           .limit(1);
 
         if (!result) return null;
+
         return { ...result, isOverdue: computeOverdue(result as any) };
+      });
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Only admins and owners can delete projects
+      if (ctx.role === "client" || ctx.role === "member") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Admins and Owners can delete projects.",
+        });
+      }
+
+      return withRLS(ctx, async (tx) => {
+        const existing = await tx.query.projects.findFirst({
+          where: and(eq(projects.id, input.id), eq(projects.orgId, ctx.orgId)),
+        });
+
+        if (!existing) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Project not found.",
+          });
+        }
+
+        await tx
+          .delete(projects)
+          .where(and(eq(projects.id, input.id), eq(projects.orgId, ctx.orgId)));
+
+        return { success: true };
       });
     }),
 });

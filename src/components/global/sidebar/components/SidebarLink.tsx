@@ -80,25 +80,25 @@ export const SidebarLink = memo(function SidebarLink({
       <Link href={href} className="block w-full outline-offset-2">
         <div
           className={cn(
-            "group relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
+            "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-bold transition-all duration-300 ease-out",
             isActive
-              ? "bg-primary/5 text-primary border-primary/20 dark:border-primary/10 border shadow-sm"
-              : "text-muted-foreground hover:text-foreground border border-transparent hover:bg-neutral-100/80 dark:hover:bg-neutral-800/50",
+              ? "text-primary bg-white/10 font-black tracking-wide shadow-[0_0_15px_rgba(255,255,255,0.05)] ring-1 ring-white/10"
+              : "text-muted-foreground hover:text-foreground hover:bg-white/5",
             className,
           )}
         >
           {/* Active state indicator */}
           {isActive && (
-            <span className="bg-primary absolute top-1/2 left-[-1px] h-4 w-[3px] -translate-y-1/2 rounded-r-full" />
+            <span className="bg-primary absolute top-1/2 left-0 h-1/2 w-[3px] -translate-y-1/2 rounded-r-full shadow-[0_0_8px_currentColor]" />
           )}
 
           {/* Icon container */}
           <span
             className={cn(
-              "flex shrink-0 items-center justify-center transition-colors duration-200",
+              "flex shrink-0 items-center justify-center transition-all duration-300",
               isActive
-                ? "text-primary"
-                : "text-muted-foreground group-hover:text-foreground",
+                ? "text-primary scale-110"
+                : "text-muted-foreground group-hover:text-foreground opacity-70 group-hover:opacity-100",
             )}
           >
             {icon}
