@@ -38,17 +38,17 @@ export const SidebarHeader = memo(() => {
   const showText = !animate || open;
 
   return (
-    <Link href="/" className="flex items-center gap-3 px-3 py-2">
+    <Link href="/" className="flex items-center gap-3 px-1 py-2">
       {/* Logo container */}
       <motion.div
-        className="bg-background/50 ring-border hover:ring-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-xl p-1 shadow-sm ring-1 transition-all hover:ring-1"
+        className="bg-background/50 ring-border hover:ring-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-sm ring-1 transition-all hover:ring-1"
         whileHover={{ scale: 1.06 }} // Slight scale-up on hover
         whileTap={{ scale: 0.95 }} // Press-down effect on click
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
         <Image
           src="/logo.svg"
-          alt="FlowX logo"
+          alt="Logo"
           width={36}
           height={36}
           style={{ width: "auto", height: "auto" }}
@@ -66,12 +66,14 @@ export const SidebarHeader = memo(() => {
             transition={{ duration: 0.25 }}
             className="absolute top-8 left-22 flex flex-col leading-tight"
           >
-            <span className="text-lg font-bold tracking-tight">
-              Flow
-              <span className="text-primary ml-0.5 font-mono">X</span>
+            <span className="text-xl font-bold tracking-tight">
+              Client
+              <span className="text-[#ef5226] ml-0.5 font-mono text-2xl font-bold">
+                Space
+              </span>
             </span>
             <span className="text-muted-foreground text-xs">
-              Workflow platform
+              The Client Portal for Freelancers
             </span>
           </motion.div>
         )}

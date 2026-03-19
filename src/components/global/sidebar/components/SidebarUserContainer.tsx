@@ -16,13 +16,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { SidebarUser } from "./SidebarUser";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 
-export const SidebarUserContainer = () => {
+export const SidebarUserContainer = memo(() => {
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
@@ -85,4 +85,4 @@ export const SidebarUserContainer = () => {
       onLogout={handleLogout}
     />
   );
-};
+});
