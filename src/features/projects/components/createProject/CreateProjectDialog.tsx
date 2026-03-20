@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,10 @@ export function CreateProjectDialog({
     ? (controlledOnOpenChange ?? setInternalOpen)
     : setInternalOpen;
 
+  const handleSuccess = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {!isControlled && (
@@ -62,7 +66,7 @@ export function CreateProjectDialog({
           </div>
         </div>
 
-        <CreateProjectForm clients={clients} onSuccess={() => setOpen(false)} />
+        <CreateProjectForm clients={clients} onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );

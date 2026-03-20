@@ -84,7 +84,11 @@ export function CreateProjectForm({
   )?.label;
 
   return (
-    <form action={formAction} ref={formRef} className="space-y-8 p-8 pt-4">
+    <form
+      action={formAction}
+      ref={formRef}
+      className="space-y-8 overflow-auto p-8 pt-4"
+    >
       {state.error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-bold tracking-wide text-red-500">
           {state.error.toUpperCase()}
@@ -315,6 +319,22 @@ export function CreateProjectForm({
           </div>
         </div>
 
+        {/* Tags */}
+        <div className="space-y-2.5">
+          <Label
+            htmlFor="tags"
+            className="ml-1 text-[10px] font-black tracking-widest uppercase opacity-40"
+          >
+            Tags
+          </Label>
+          <Input
+            id="tags"
+            name="tags"
+            placeholder="E.g., React, Node, AI..."
+            className="border-input bg-background focus-visible:ring-primary/40 h-12 rounded-xl px-5"
+          />
+        </div>
+
         {/* Strategic Overview */}
         <div className="space-y-2.5">
           <Label
@@ -327,6 +347,7 @@ export function CreateProjectForm({
             id="description"
             name="description"
             placeholder="Mission parameters and execution details…"
+            rows={3}
             required
             className="border-input bg-background focus-visible:ring-primary/40 h-28 resize-none rounded-xl p-4 text-[13px] leading-relaxed transition-all placeholder:opacity-50"
           />

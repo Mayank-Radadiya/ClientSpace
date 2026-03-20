@@ -15,5 +15,10 @@ export default async function DashboardLayout({
   }
 
   await requireOrg(user.id);
-  return <WorkspaceShell>{children}</WorkspaceShell>;
+
+  return (
+    <div className="relative h-full min-h-screen w-full overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950/20 dark:text-neutral-100">
+      <WorkspaceShell>{children}</WorkspaceShell>;
+    </div>
+  );
 }

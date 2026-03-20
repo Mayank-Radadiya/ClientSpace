@@ -10,10 +10,10 @@ export function EmptyProjects({ onCreateClick }: EmptyProjectsProps) {
     <div className="animate-in fade-in zoom-in-95 flex flex-col items-center justify-center py-24 text-center duration-500">
       {/* Icon with glass effect */}
       <div className="relative mb-8">
-        <div className="flex h-28 w-28 items-center justify-center rounded-[2rem] bg-gradient-to-br from-blue-500/10 to-indigo-600/10 shadow-2xl ring-1 shadow-blue-500/10 ring-white/10 backdrop-blur-3xl">
+        <div className="flex h-28 w-28 items-center justify-center rounded-4xl bg-linear-to-br from-blue-500/10 to-indigo-600/10 shadow-2xl ring-1 shadow-blue-500/10 ring-white/10 backdrop-blur-3xl">
           <FolderOpen className="h-12 w-12 text-blue-500/60" />
         </div>
-        <div className="ring-background absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg ring-2 shadow-purple-500/40">
+        <div className="ring-background absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-purple-600 shadow-lg ring-2 shadow-purple-500/40">
           <Sparkles className="h-4 w-4 text-white" />
         </div>
       </div>

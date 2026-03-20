@@ -60,7 +60,7 @@ export function DeleteProjectDialog({
       />
 
       <DialogContent className="bg-popover/80 overflow-hidden rounded-3xl border-white/10 p-0 shadow-2xl backdrop-blur-2xl sm:max-w-md">
-        <div className="bg-gradient-to-b from-red-500/10 to-transparent p-6 pb-2">
+        <div className="bg-linear-to-b from-red-500/10 to-transparent p-6 pb-2">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-500/20 ring-1 ring-red-500/40">
               <AlertTriangle className="h-6 w-6 text-red-500" />
@@ -69,7 +69,7 @@ export function DeleteProjectDialog({
               <DialogTitle className="p-0 text-xl font-black tracking-tighter uppercase">
                 Delete Project
               </DialogTitle>
-              <DialogDescription className="text-[10px] font-bold tracking-[0.1em] uppercase opacity-60">
+              <DialogDescription className="text-[10px] font-bold tracking-widest uppercase opacity-60">
                 Data De-provisioning Protocol
               </DialogDescription>
             </DialogHeader>

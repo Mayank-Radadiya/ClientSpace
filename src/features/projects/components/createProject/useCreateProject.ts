@@ -15,14 +15,19 @@ export function useCreateProject(onSuccess?: () => void) {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [deadlineOpen, setDeadlineOpen] = useState(false);
 
+  const hasProcessedRef = useRef(false);
   useEffect(() => {
-    if (state.success) {
+    if (state.success && !hasProcessedRef.current) {
+      hasProcessedRef.current = true;
       formRef.current?.reset();
       setStartDate(undefined);
       setDeadline(undefined);
       utils.project.getAll.invalidate();
+      toast.dismiss();
       toast.success("Project launched successfully!");
       onSuccess?.();
+    } else if (!state.success) {
+      hasProcessedRef.current = false;
     }
   }, [state.success, utils.project.getAll, onSuccess]);
 

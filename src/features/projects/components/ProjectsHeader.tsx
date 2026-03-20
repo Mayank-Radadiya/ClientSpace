@@ -258,7 +258,7 @@ export function ProjectsHeader({
             <Badge
               key={status}
               variant="secondary"
-              className="gap-2 rounded-full border border-white/10 bg-white/5 py-1 pr-1.5 pl-3 text-[10px] font-bold backdrop-blur-md transition-all hover:bg-white/10 hover:shadow-lg hover:shadow-black/20"
+              className="hover:bg-primary/60 gap-2 rounded-full border border-white/10 bg-white/5 py-4 pr-1.5 pl-3 text-[10px] font-bold backdrop-blur-md transition-all hover:shadow-lg hover:shadow-black/20"
             >
               {STATUS_LABELS[
                 status as keyof typeof STATUS_LABELS
@@ -277,7 +277,7 @@ export function ProjectsHeader({
             <Badge
               key={priority}
               variant="secondary"
-              className="gap-2 rounded-full border border-white/10 bg-white/5 py-1 pr-1.5 pl-3 text-[10px] font-bold backdrop-blur-md transition-all hover:bg-white/10 hover:shadow-lg hover:shadow-black/20"
+              className="hover:bg-primary/60 gap-2 rounded-full border border-white/10 bg-white/5 py-4 pr-1.5 pl-3 text-[10px] font-bold backdrop-blur-md transition-all hover:shadow-lg hover:shadow-black/20"
             >
               {PRIORITY_LABELS[
                 priority as keyof typeof PRIORITY_LABELS

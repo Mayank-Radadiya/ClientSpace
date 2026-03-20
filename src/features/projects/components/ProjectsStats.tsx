@@ -98,7 +98,7 @@ export function ProjectsStats({ stats }: ProjectsStatsProps) {
 
                   <div
                     className={cn(
-                      "group-hover:shadow-primary/20 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg ring-1 ring-white/10 backdrop-blur-xl transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:scale-110 group-hover:rotate-3",
+                      "group-hover:shadow-primary/20 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br shadow-lg ring-1 ring-white/10 backdrop-blur-xl transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:scale-110 group-hover:rotate-3",
                       card.iconBg,
                     )}
                   >
@@ -145,10 +145,55 @@ export function ProjectsStats({ stats }: ProjectsStatsProps) {
             </div>
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/5 ring-1 ring-white/10">
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 shadow-[0_0_12px_rgba(139,92,246,0.5)] transition-all duration-1000 ease-out"
+                className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-violet-500 to-purple-500 shadow-[0_0_12px_rgba(139,92,246,0.5)] transition-all duration-1000 ease-out"
                 style={{ width: `${completionRate}%` }}
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export function ProjectsStatsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card
+            key={i}
+            className="bg-card/20 relative overflow-hidden rounded-xl ring-1 ring-white/10 backdrop-blur-3xl transition-all"
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 space-y-2">
+                  <div className="bg-muted h-3 w-2/3 animate-pulse rounded-full opacity-40" />
+                  <div className="bg-muted h-8 w-1/3 animate-pulse rounded-lg opacity-40" />
+                </div>
+                <div className="bg-muted h-12 w-12 animate-pulse rounded-xl opacity-20" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="bg-card/20 relative overflow-hidden rounded-xl ring-1 ring-white/10 backdrop-blur-3xl transition-all">
+        <CardContent className="flex h-full flex-col justify-between p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 space-y-2">
+              <div className="bg-muted h-3 w-1/2 animate-pulse rounded-full opacity-40" />
+              <div className="bg-muted h-8 w-1/3 animate-pulse rounded-lg opacity-40" />
+            </div>
+            <div className="bg-muted h-12 w-12 animate-pulse rounded-xl opacity-20" />
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <div className="flex justify-between">
+              <div className="bg-muted h-3 w-1/4 animate-pulse rounded-full opacity-40" />
+              <div className="bg-muted h-3 w-1/4 animate-pulse rounded-full opacity-40" />
+            </div>
+            <div className="bg-muted h-2 w-full animate-pulse rounded-full opacity-20" />
           </div>
         </CardContent>
       </Card>
