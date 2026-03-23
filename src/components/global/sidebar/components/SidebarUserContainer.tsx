@@ -43,8 +43,13 @@ export const SidebarUserContainer = memo(() => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
     });
 
     return () => subscription.unsubscribe();

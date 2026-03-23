@@ -58,23 +58,18 @@ export async function withRLS<T>(
   callback: (tx: TransactionScope) => Promise<T>,
 ): Promise<T> {
   return db.transaction(async (tx) => {
-    // 1. Switch to the authenticated role (CRITICAL TO ENFORCE RLS)
-    await tx.execute(sql`SELECT set_config('role', 'authenticated', true)`);
-
-    // 2. Inject the tenant context into the current transaction.
-    // `true` = is_local → scoped to THIS transaction only.
-    // Prevents cross-request leakage in pooled connections.
-    await tx.execute(
-      sql`SELECT set_config('app.current_org_id', ${ctx.orgId}, true)`,
-    );
-    await tx.execute(
-      sql`SELECT set_config('app.current_user_id', ${ctx.userId}, true)`,
-    );
-
-    // 3. Inject the JWT claims to satisfy Supabase's auth.uid() function natively used in RLS policies.
-    await tx.execute(
-      sql`SELECT set_config('request.jwt.claims', ${JSON.stringify({ sub: ctx.userId })}, true)`,
-    );
+    // 1. Switch to authenticated role
+    // 2. Inject tenant context (orgId & userId) into transaction scope (is_local = true)
+    // 3. Inject JWT claims so Supabase's auth.uid() function resolves naturally in RLS.
+    //
+    // Optimization: Executing all configuration variables in a single query saves 3 network round-trips per transaction.
+    await tx.execute(sql`
+      SELECT 
+        set_config('role', 'authenticated', true),
+        set_config('app.current_org_id', ${ctx.orgId}::text, true),
+        set_config('app.current_user_id', ${ctx.userId}::text, true),
+        set_config('request.jwt.claims', ${JSON.stringify({ sub: ctx.userId })}::text, true)
+    `);
 
     // Execute the caller's query within the secured transaction.
     return callback(tx);

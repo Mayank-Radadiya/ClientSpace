@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { trpc } from "./client";
+import { getQueryClient } from "./query-client";
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  // getQueryClient() returns the singleton on browser, new instance on server
+  const queryClient = getQueryClient();
+
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [

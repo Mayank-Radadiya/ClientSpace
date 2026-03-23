@@ -1,9 +1,3 @@
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type ProjectCardSkeletonProps = {
@@ -15,87 +9,101 @@ export function ProjectCardSkeleton({
 }: ProjectCardSkeletonProps) {
   if (viewMode === "list") {
     return (
-      <Card className="border-border/70 bg-card/95 relative overflow-hidden shadow-sm ring-1 ring-black/5 backdrop-blur-sm">
-        <div className="flex h-[72px] items-stretch">
-          <div className="bg-muted/40 w-1" />
-          <div className="flex flex-1 items-center justify-between gap-4 px-5">
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-7 w-7 rounded-full" />
-                <Skeleton className="h-4 w-40" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-1.5 w-full flex-1" />
-                <Skeleton className="h-2 w-8" />
-              </div>
-            </div>
-            <div className="hidden shrink-0 items-center gap-2 lg:flex">
-              <Skeleton className="h-6 w-20 rounded-full" />
-              <Skeleton className="h-6 w-24 rounded-full" />
-            </div>
-            <div className="min-w-24 shrink-0 space-y-1 text-right">
-              <Skeleton className="ml-auto h-2.5 w-12" />
-              <Skeleton className="ml-auto h-2.5 w-20" />
-            </div>
+      <div className="border-border bg-card flex items-center gap-4 rounded-xl border p-4 md:gap-6">
+        {/* Left avatar */}
+        <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+
+        {/* Title and Client */}
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-32 rounded-sm" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-20 rounded-sm" />
+            <Skeleton className="h-1 w-1 rounded-full" />
+            <Skeleton className="h-3 w-16 rounded-sm" />
           </div>
         </div>
-      </Card>
+
+        {/* Progress bar */}
+        <div className="hidden w-24 shrink-0 sm:block xl:w-32">
+          <div className="mb-2 flex items-center justify-between">
+            <Skeleton className="h-3 w-12 rounded-sm" />
+            <Skeleton className="h-3 w-6 rounded-sm" />
+          </div>
+          <Skeleton className="h-1.5 w-full rounded-full" />
+        </div>
+
+        {/* Badges */}
+        <div className="hidden min-w-[240px] shrink-0 items-center justify-end gap-3 lg:flex">
+          <Skeleton className="h-6 flex-1 rounded-full" />
+          <Skeleton className="h-6 flex-1 rounded-full" />
+        </div>
+
+        {/* Arrow indicator */}
+        <div className="flex shrink-0 items-center justify-end pl-2">
+          <Skeleton className="h-5 w-5 rounded-sm" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="border-border/70 bg-card/95 relative flex h-full flex-col overflow-hidden shadow-sm ring-1 ring-black/5 backdrop-blur-sm">
-      <div className="bg-muted/40 h-1 w-full" />
-      <CardHeader className="px-5 pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 space-y-3">
-            <Skeleton className="h-5 w-4/5" />
+    <div className="border-border bg-card flex h-full flex-col justify-between rounded-xl border p-6 shadow-xs">
+      <div>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-5 w-3/4 rounded-sm" />
             <div className="flex items-center gap-2">
-              <Skeleton className="h-6 w-6 rounded-full" />
-              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-5 w-5 rounded-full" />
+              <Skeleton className="h-4 w-1/2 rounded-sm" />
             </div>
           </div>
-          <Skeleton className="h-6 w-20 rounded-full" />
-        </div>
-      </CardHeader>
 
-      <CardContent className="flex-1 space-y-4 px-5 pb-4">
-        <div className="flex gap-1.5">
-          <Skeleton className="h-5 w-16 rounded-full" />
+          {/* Badges container (Status & Priority) */}
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
         </div>
 
+        {/* Description */}
+        <div className="mt-5 space-y-2">
+          <Skeleton className="h-4 w-full rounded-sm" />
+          <Skeleton className="h-4 w-4/5 rounded-sm" />
+        </div>
+
+        {/* Tags */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Skeleton className="h-6 w-16 rounded-md" />
+          <Skeleton className="h-6 w-20 rounded-md" />
+          <Skeleton className="h-6 w-14 rounded-md" />
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="border-border/50 mt-6 flex flex-col gap-4 border-t pt-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 rounded-sm" />
+            <Skeleton className="h-4 w-20 rounded-sm" />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="h-4 w-4 rounded-sm" />
+            <Skeleton className="h-4 w-16 rounded-sm" />
+          </div>
+        </div>
+
+        {/* Progress Section */}
         <div className="space-y-2">
-          <div className="flex justify-between">
-            <Skeleton className="h-2 w-12" />
-            <Skeleton className="h-2 w-8" />
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-3 w-16 rounded-sm" />
+            <Skeleton className="h-3 w-8 rounded-sm" />
           </div>
           <Skeleton className="h-2 w-full rounded-full" />
         </div>
-
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-full" />
-          <Skeleton className="h-3 w-5/6" />
-        </div>
-
-        <div className="flex gap-1.5">
-          <Skeleton className="h-4 w-12 rounded-md" />
-          <Skeleton className="h-4 w-10 rounded-md" />
-          <Skeleton className="h-4 w-14 rounded-md" />
-        </div>
-      </CardContent>
-
-      <CardFooter className="border-t border-black/5 px-5 pt-3 dark:border-white/5">
-        <div className="w-full space-y-2">
-          <div className="flex justify-between">
-            <Skeleton className="h-2.5 w-24" />
-            <Skeleton className="h-2.5 w-16" />
-          </div>
-          <div className="flex justify-between">
-            <Skeleton className="h-2.5 w-20" />
-            <Skeleton className="h-2.5 w-24" />
-          </div>
-        </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
