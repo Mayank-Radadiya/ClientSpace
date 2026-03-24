@@ -7,7 +7,7 @@ body {
   transition:
     background-color 0.4s ease,
     color 0.3s ease;
-  font-family: var(--font-sans);
+  /* font-family: var(--font-sans); */
 }
 
 @theme inline {
@@ -48,6 +48,10 @@ body {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-jakarta);
+  --font-heading: var(--font-dm-sans);
+  --font-brand: var(--font-geist);
+  --font-alt: var(--font-montserrat);
 }
 
 :root {
@@ -84,9 +88,11 @@ body {
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.623 0.214 259.815);
   /* Typography from next/font/google */
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui;
-  --font-serif: var(--font-serif), serif;
-  --font-mono: var(--font-mono), monospace;
+  --font-sans: var(--font-jakarta);
+  --font-heading: var(--font-dm-sans);
+  --font-brand: var(--font-geist);
+  --font-alt: var(--font-montserrat);
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   --shadow-color: hsl(0 0% 0%);
   --shadow-opacity: 0.1;
   --shadow-blur: 3px;

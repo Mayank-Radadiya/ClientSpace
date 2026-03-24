@@ -98,7 +98,7 @@ export function ProjectsHeader({
       {/* Title row */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-foreground text-3xl font-black tracking-tighter sm:text-4xl">
+          <h1 className="text-foreground font-heading text-3xl font-black tracking-tighter sm:text-4xl">
             Projects
           </h1>
           <p className="text-muted-foreground mt-2 text-[11px] font-bold tracking-[0.15em] uppercase opacity-70">
@@ -123,7 +123,7 @@ export function ProjectsHeader({
             placeholder="Search projects by name, client, or tag…"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="h-11 rounded-xl border-white/5 bg-white/5 px-11 text-sm ring-1 ring-white/10 backdrop-blur-md transition-all duration-300 focus-visible:bg-white/10 focus-visible:ring-1 focus-visible:ring-white/20"
+            className="h-11 rounded-xl border-black/10 bg-white/5 px-11 text-sm ring-1 ring-white/10 backdrop-blur-md transition-all duration-300 focus-visible:bg-white/10 focus-visible:ring-1 focus-visible:ring-white/20 dark:border-white/5 dark:bg-white/5"
           />
           {localSearch && (
             <button
