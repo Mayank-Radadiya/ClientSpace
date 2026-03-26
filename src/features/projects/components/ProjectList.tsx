@@ -14,8 +14,6 @@ import {
 import { CreateProjectDialog } from "@/features/projects/components/createProject/CreateProjectDialog";
 import { EmptyProjects } from "@/features/projects/components/EmptyProjects";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { ProjectCardSkeleton } from "./project-card/ProjectCardSkeleton";

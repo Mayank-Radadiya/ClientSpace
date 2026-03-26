@@ -1,18 +1,3 @@
-/**
- * SidebarUserContainer Component
- * ------------------------------
- * Container component responsible for connecting authentication data
- * to the SidebarUser presentation component.
- *
- * Responsibilities:
- *  - Read the current authenticated session from Supabase
- *  - Map session data into SidebarUser props
- *  - Handle user logout flow and redirection
- *
- * This component separates authentication logic from UI rendering,
- * keeping SidebarUser purely presentational.
- */
-
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -20,67 +5,60 @@ import { memo, useCallback, useEffect, useState } from "react";
 import { SidebarUser } from "./SidebarUser";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { trpc } from "@/lib/trpc/client";
 import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 
 export const SidebarUserContainer = memo(() => {
   const router = useRouter();
-  const supabase = createClient();
+
+  // Initialize once to prevent unnecessary effect triggers on re-renders
+  const [supabase] = useState(() => createClient());
   const [user, setUser] = useState<User | null>(null);
 
-  /**
-   * Session data
-   * ------------
-   * Retrieved from Supabase client.
-   *
-   * data.user contains:
-   *  - email
-   *  - user_metadata (name, avatar_url, etc)
-   */
+  const { data: profile } = trpc.auth.me.useQuery(undefined, {
+    enabled: !!user,
+  });
+
   useEffect(() => {
+    // 1. Fetch initial user immediately to prevent UI flashing
     supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+      setUser(data.user ?? null);
     });
 
+    // 2. Listen for subsequent auth changes purely via the session object
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        const { data } = await supabase.auth.getUser();
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Use session?.user directly instead of making another network request
+      setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  /**
-   * handleLogout
-   * ------------
-   * Triggers the sign-out process and handles post-logout behavior.
-   *
-   * Flow:
-   *  1. Call Supabase signOut
-   *  2. Show success toast
-   *  3. Redirect user to sign-in page
-   */
   const handleLogout = useCallback(async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+
+      // Supabase returns an error object rather than throwing exceptions
+      if (error) throw error;
+
       toast.success("Successfully logged out");
       router.push("/login");
     } catch (error) {
+      console.error("Logout Error:", error);
       toast.error("Failed to log out");
     }
   }, [router, supabase]);
 
   const name =
+    profile?.name ??
     user?.user_metadata?.full_name ??
     user?.user_metadata?.name ??
     user?.email?.split("@")[0] ??
     null;
-  const image = user?.user_metadata?.avatar_url ?? null;
+
+  const image = profile?.avatarUrl ?? user?.user_metadata?.avatar_url ?? null;
 
   return (
     <SidebarUser
@@ -91,3 +69,5 @@ export const SidebarUserContainer = memo(() => {
     />
   );
 });
+
+SidebarUserContainer.displayName = "SidebarUserContainer";

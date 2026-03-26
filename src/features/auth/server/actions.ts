@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createTRPCContext } from "@/lib/trpc/init";
 import {
   loginSchema,
   signupSchema,
@@ -48,7 +49,8 @@ export async function loginAction(
     return { error: error.message };
   }
 
-  return redirect("/dashboard");
+  const ctx = await createTRPCContext();
+  return redirect(ctx ? "/dashboard" : "/onboarding");
 }
 
 export async function signupAction(

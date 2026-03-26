@@ -194,6 +194,7 @@ export const projects = pgTable(
   },
   (t) => [
     index("projects_org_client_idx").on(t.orgId, t.clientId), // Dashboard list
+    index("projects_org_created_idx").on(t.orgId, t.createdAt), // getAll sort hot path
   ],
 ).enableRLS();
 
