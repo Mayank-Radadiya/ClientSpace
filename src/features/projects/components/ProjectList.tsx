@@ -80,7 +80,7 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
     );
 
   const projects = (data?.pages.flatMap((page) => page.projects) ??
-    []) as ProjectData[];
+    []) as unknown as ProjectData[];
 
   const stats = useMemo(
     () => ({
