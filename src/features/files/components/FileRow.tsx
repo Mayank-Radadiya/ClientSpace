@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
-import { Download, MoreVertical } from "lucide-react";
+import { Download, MoreVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FileTypeBadge } from "./FileTypeBadge";
@@ -19,10 +20,11 @@ import type { ProjectFile } from "../types";
 type FileRowProps = {
   file: ProjectFile;
   index: number;
-  onDownload?: (storagePath: string) => void;
+  onDownload?: (storagePath: string, fileName: string) => void;
+  onDelete?: (assetId: string, fileName: string) => void;
 };
 
-export function FileRow({ file, index, onDownload }: FileRowProps) {
+export function FileRow({ file, index, onDownload, onDelete }: FileRowProps) {
   const kind = inferFileKind(file.mimeType);
   const uploadedAt = new Date(file.updatedAt);
 
@@ -68,10 +70,24 @@ export function FileRow({ file, index, onDownload }: FileRowProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
           {file.storagePath && onDownload && (
-            <DropdownMenuItem onClick={() => onDownload(file.storagePath!)}>
+            <DropdownMenuItem
+              onClick={() => onDownload(file.storagePath!, file.name)}
+            >
               <Download className="mr-2 h-4 w-4" />
               Download
             </DropdownMenuItem>
+          )}
+          {onDelete && (
+            <>
+              {file.storagePath && <DropdownMenuSeparator />}
+              <DropdownMenuItem
+                onClick={() => onDelete(file.id, file.name)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>

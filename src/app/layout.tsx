@@ -3,6 +3,7 @@ import { dmSans, jakarta, montserrat, geist } from "@/lib/fonts";
 import "./globals.css";
 import Provider from "@/provider/Provider";
 import { TRPCProvider } from "@/lib/trpc/provider";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export const metadata: Metadata = {
   title: "ClientSpace",
@@ -21,9 +22,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground h-full min-h-screen w-full font-sans antialiased">
-        <TRPCProvider>
-          <Provider>{children}</Provider>
-        </TRPCProvider>
+        <NuqsAdapter>
+          <TRPCProvider>
+            <Provider>{children}</Provider>
+          </TRPCProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

@@ -29,7 +29,8 @@ type FilesContentProps = {
   onRetry: (id: string) => void;
   onRemove: (id: string) => void;
   // Download
-  onDownload?: (storagePath: string) => void;
+  onDownload?: (storagePath: string, fileName: string) => void;
+  onDelete?: (assetId: string, fileName: string) => void;
   onUploadClick?: () => void;
   onViewAll?: () => void;
 };
@@ -50,6 +51,7 @@ export function FilesContent({
   onRetry,
   onRemove,
   onDownload,
+  onDelete,
   onUploadClick,
   onViewAll,
 }: FilesContentProps) {
@@ -96,6 +98,7 @@ export function FilesContent({
                   file={file}
                   index={index}
                   onDownload={onDownload}
+                  onDelete={onDelete}
                 />
               ))}
             </motion.div>
@@ -106,7 +109,7 @@ export function FilesContent({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+              className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
               {files.map((file, index) => (
                 <FileCard
@@ -114,6 +117,7 @@ export function FilesContent({
                   file={file}
                   index={index}
                   onDownload={onDownload}
+                  onDelete={onDelete}
                 />
               ))}
             </motion.div>

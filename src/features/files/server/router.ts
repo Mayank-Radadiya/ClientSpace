@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
@@ -114,14 +115,62 @@ export const fileRouter = createTRPCRouter({
   // ─── Generate signed download URL on demand (1-hour expiry) ───────────────
   // MUST be a mutation — queries cannot be called imperatively from event handlers
   getSignedDownloadUrl: protectedProcedure
-    .input(z.object({ storagePath: z.string().min(1) }))
+    .input(
+      z.object({
+        storagePath: z.string().min(1),
+        fileName: z.string().optional(),
+      }),
+    )
     .mutation(async ({ input }) => {
       const supabase = await createClient();
+      console.log("[getSignedDownloadUrl] storagePath:", input.storagePath);
+
       const { data, error } = await supabase.storage
         .from("project-files")
-        .createSignedUrl(input.storagePath, 3600); // 1 hour
+        .createSignedUrl(input.storagePath, 3600, {
+          download: input.fileName || true,
+        }); // 1 hour
 
-      if (error || !data) throw new Error("Failed to generate download URL.");
+      console.log("[getSignedDownloadUrl] error:", error);
+      if (error || !data) {
+        console.error("[getSignedDownloadUrl] full error:", error);
+        throw new Error(`Failed to generate download URL: ${error?.message}`);
+      }
       return { url: data.signedUrl };
+    }),
+
+  // ─── Soft-delete an asset ──────────────────────────────────────────────────
+  // Sets deletedAt timestamp — filtered out by getAssets (isNull check).
+  deleteAsset: protectedProcedure
+    .input(
+      z.object({
+        assetId: z.string().uuid(),
+        projectId: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return withRLS(ctx, async (tx) => {
+        // Verify the asset belongs to this org + project before deleting
+        const asset = await tx.query.assets.findFirst({
+          where: and(
+            eq(assets.id, input.assetId),
+            eq(assets.projectId, input.projectId),
+            eq(assets.orgId, ctx.orgId),
+            isNull(assets.deletedAt), // Can't delete already-deleted assets
+          ),
+          columns: { id: true, projectId: true },
+        });
+
+        if (!asset) throw new Error("Asset not found or already deleted.");
+
+        await tx
+          .update(assets)
+          .set({ deletedAt: new Date() })
+          .where(eq(assets.id, input.assetId));
+
+        revalidatePath(`/projects/${input.projectId}/files`);
+
+        return { success: true };
+      });
     }),
 });

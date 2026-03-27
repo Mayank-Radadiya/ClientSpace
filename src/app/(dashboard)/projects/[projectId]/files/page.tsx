@@ -30,16 +30,20 @@ export default async function FilesPage({ params }: FilesPageProps) {
   const caller = await getServerCaller();
   if (!caller) notFound();
 
-  const project = await caller.project
-    .getById({ id: projectId })
-    .catch(() => null);
+  const [project, initialFiles] = await Promise.all([
+    caller.project.getById({ id: projectId }).catch(() => null),
+    caller.file.getAssets({ projectId }).catch(() => []), // Fallback to empty array on error
+  ]);
+  // const project = await caller.project
+  //   .getById({ id: projectId })
+  //   .catch(() => null);
   if (!project) notFound();
 
   return (
     <NuqsAdapter>
-      <div className="bg-background flex h-full w-full flex-col overflow-hidden rounded-2xl">
+      <div className="bg-background flex h-full w-full flex-col overflow-hidden">
         {/* ── Page Header ─────────────────────────────────────────────── */}
-        <header className="border-border bg-background flex shrink-0 flex-col gap-4  px-6 py-5">
+        <header className="border-border bg-background flex shrink-0 flex-col gap-4 border-b px-6 py-5">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -78,11 +82,12 @@ export default async function FilesPage({ params }: FilesPageProps) {
                 </div>
               )}
             </div>
+            {/* Future-proofing: Empty slot for page-level actions (e.g., "Upload") */}
           </div>
         </header>
 
         {/* ── Split Layout: Sidebar + Content ─────────────────────────── */}
-        <main className="bg-muted/10 flex min-h-0 flex-1 overflow-hidden rounded-2xl">
+        <main className="bg-muted/10 flex min-h-0 flex-1 overflow-hidden">
           <Suspense
             fallback={
               <div className="flex h-full w-full">
@@ -91,7 +96,10 @@ export default async function FilesPage({ params }: FilesPageProps) {
               </div>
             }
           >
-            <FilesPageClient projectId={projectId} />
+            <FilesPageClient
+              projectId={projectId}
+              initialFiles={initialFiles}
+            />
           </Suspense>
         </main>
       </div>

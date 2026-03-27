@@ -1,4 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
+import superjson from "superjson";
 import { cache } from "react";
 import { withRLS } from "@/db/createDrizzleClient";
 import { orgMemberships } from "@/db/schema";
@@ -57,7 +58,9 @@ export const createTRPCContext = cache(
   },
 );
 
-const t = initTRPC.context<TRPCContext>().create();
+const t = initTRPC.context<TRPCContext>().create({
+  transformer: superjson,
+});
 
 export const createTRPCRouter = t.router;
 

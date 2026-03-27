@@ -8,11 +8,11 @@ export function Shimmer({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded bg-neutral-100 dark:bg-neutral-800",
+        "relative overflow-hidden rounded bg-neutral-200 dark:bg-neutral-800",
         className,
       )}
     >
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-linear-to-r from-transparent via-white/40 to-transparent dark:via-white/10" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-linear-to-r from-transparent via-white/70 to-transparent dark:via-white/10" />
     </div>
   );
 }

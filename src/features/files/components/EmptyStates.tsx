@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FolderOpen, SearchX, UploadCloud } from "lucide-react";
 
 type EmptyStateProps = {
-  type: "no-files" | "no-results" | "no-recent";
+  type: "no-files" | "no-results" | "no-recent" | "no-filters";
   onUploadClick?: () => void;
 };
 
@@ -25,6 +25,12 @@ const stateConfig = {
     icon: UploadCloud,
     title: "No recent uploads",
     description: "Files you upload will appear here",
+    action: { label: "", show: false },
+  },
+  "no-filters": {
+    icon: SearchX,
+    title: "No matching files",
+    description: "Try adjusting your search or filters",
     action: { label: "", show: false },
   },
 };
