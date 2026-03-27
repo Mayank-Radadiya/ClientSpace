@@ -1,12 +1,22 @@
+import Link from "next/link";
+
+interface ProjectDetailPageProps {
+  params: Promise<{ projectId: string }>;
+}
+
 export default async function ProjectDetailPage({
   params,
-}: {
-  params: { projectId: string };
-}) {
-  const projectId = await params.projectId;
+}: ProjectDetailPageProps) {
+  const { projectId } = await params;
+
+  console.log(projectId);
+
   return (
-    <div className="p-6">
+    <div className="flex p-6">
       Project detail — coming in a future task. ID: {projectId}
+      <Link className="text-blue-500" href={`/projects/${projectId}/files`}>
+        Files
+      </Link>
     </div>
   );
 }
