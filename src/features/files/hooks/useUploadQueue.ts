@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 import { getUploadToken, createFileVersion } from "../server/actions";
-import { inferFileKind } from "../components/fileMeta";
+import { inferFileKind } from "../components/FileMeta";
 import type { ProjectFile } from "../types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────

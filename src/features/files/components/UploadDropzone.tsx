@@ -1,208 +1,187 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Upload,
-  FileIcon,
-  AlertCircle,
-  CheckCircle2,
-  RotateCcw,
-  X,
-} from "lucide-react";
+import { UploadCloud, File, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ALLOWED_MIME_TYPES } from "../schemas";
-import type { UploadItem } from "../hooks/useUploadQueue";
+import { Progress } from "@/components/ui/progress";
+import { formatFileSize } from "../utils/file-helpers";
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+export type UploadQueueItem = {
+  id: string;
+  file: File;
+  status: "pending" | "uploading" | "success" | "error";
+  progress: number;
+  error?: string;
+};
 
 type UploadDropzoneProps = {
-  queue: UploadItem[];
+  queue: UploadQueueItem[];
   onFilesAdded: (files: File[]) => void;
   onRetry: (id: string) => void;
   onRemove: (id: string) => void;
-  onOpenDialogReady?: (openFn: () => void) => void;
 };
-
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
-
-function ProgressBar({ value }: { value: number }) {
-  return (
-    <div className="bg-border mt-1.5 h-1 w-full overflow-hidden rounded-full">
-      <motion.div
-        className="bg-primary h-full rounded-full"
-        initial={{ width: 0 }}
-        animate={{ width: `${value}%` }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-      />
-    </div>
-  );
-}
-
-// ─── Status Icon ──────────────────────────────────────────────────────────────
-
-function StatusIcon({ status }: { status: UploadItem["status"] }) {
-  if (status === "success")
-    return <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />;
-  if (status === "error")
-    return <AlertCircle className="text-destructive h-4 w-4 shrink-0" />;
-  return (
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-    >
-      <FileIcon className="text-muted-foreground h-4 w-4 shrink-0" />
-    </motion.div>
-  );
-}
-
-// ─── Upload Queue Item ────────────────────────────────────────────────────────
-
-function QueueItem({
-  item,
-  onRetry,
-  onRemove,
-}: {
-  item: UploadItem;
-  onRetry: (id: string) => void;
-  onRemove: (id: string) => void;
-}) {
-  const done = item.status === "success" || item.status === "error";
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.15 }}
-      className="bg-card border-border flex items-center gap-3 rounded-lg border px-3 py-2.5"
-    >
-      <StatusIcon status={item.status} />
-
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{item.file.name}</p>
-        {item.status === "uploading" && <ProgressBar value={item.progress} />}
-        {item.status === "uploading" && (
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            Uploading ({item.progress}%)
-          </p>
-        )}
-        {item.status === "success" && (
-          <p className="mt-0.5 text-xs text-green-600 dark:text-green-400">
-            Uploaded
-          </p>
-        )}
-        {item.status === "error" && (
-          <p className="text-destructive mt-0.5 text-xs">
-            {item.error ?? "Upload failed"}
-          </p>
-        )}
-      </div>
-
-      <div className="flex shrink-0 items-center gap-1">
-        {item.status === "error" && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => onRetry(item.id)}
-            title="Retry"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </Button>
-        )}
-        {done && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => onRemove(item.id)}
-            title="Dismiss"
-          >
-            <X className="h-3.5 w-3.5" />
-          </Button>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── UploadDropzone ───────────────────────────────────────────────────────────
 
 export function UploadDropzone({
   queue,
   onFilesAdded,
   onRetry,
   onRemove,
-  onOpenDialogReady,
 }: UploadDropzoneProps) {
+  const [isDragActive, setIsDragActive] = useState(false);
+
   const onDrop = useCallback(
-    (acceptedFiles: File[]) => onFilesAdded(acceptedFiles),
+    (acceptedFiles: File[]) => {
+      onFilesAdded(acceptedFiles);
+      setIsDragActive(false);
+    },
     [onFilesAdded],
   );
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragReject } = useDropzone({
     onDrop,
-    accept: ALLOWED_MIME_TYPES.reduce(
-      (acc, type) => ({ ...acc, [type]: [] }),
-      {} as Record<string, string[]>,
-    ),
-    maxFiles: 10,
+    onDragEnter: () => setIsDragActive(true),
+    onDragLeave: () => setIsDragActive(false),
   });
 
-  useEffect(() => {
-    if (onOpenDialogReady && open) {
-      onOpenDialogReady(() => open);
-    }
-  }, [open, onOpenDialogReady]);
+  const hasActiveUploads = queue.some(
+    (item) => item.status === "pending" || item.status === "uploading",
+  );
 
   return (
-    <div className="space-y-3">
-      {/* ── Drop Target ── */}
+    <div className="space-y-4">
+      {/* Use plain div for dropzone – motion.div conflicts with react-dropzone event types */}
       <div
         {...getRootProps()}
+        style={{
+          transform: isDragActive ? "scale(1.01)" : "scale(1)",
+          borderColor: isDragActive
+            ? "var(--primary)"
+            : isDragReject
+              ? "var(--destructive)"
+              : "var(--border)",
+          backgroundColor: isDragActive
+            ? "oklch(var(--primary) / 0.03)"
+            : "transparent",
+          transition:
+            "transform 0.1s, border-color 0.1s, background-color 0.1s",
+        }}
         className={cn(
-          "cursor-pointer rounded-xl border-2 border-dashed px-6 py-10 text-center transition-all duration-150",
-          isDragActive
-            ? "border-primary bg-primary/5 scale-[1.01]"
-            : "border-border hover:border-primary/50 hover:bg-muted/30",
+          "relative flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8",
+          "hover:border-border/80 hover:bg-muted/30",
         )}
       >
         <input {...getInputProps()} />
+
         <motion.div
-          animate={isDragActive ? { scale: 1.1 } : { scale: 1 }}
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.15 }}
+          className="bg-primary/10 mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
         >
-          <Upload
-            className={cn(
-              "mx-auto mb-3 h-9 w-9 transition-colors",
-              isDragActive ? "text-primary" : "text-muted-foreground",
-            )}
-          />
+          <UploadCloud className="text-primary h-7 w-7" />
         </motion.div>
-        <p className="text-sm font-medium">
+
+        <p className="mb-1 text-sm font-semibold">
           {isDragActive
-            ? "Drop files here…"
-            : "Drag & drop files, or click to browse"}
+            ? "Drop files here"
+            : isDragReject
+              ? "Invalid file type"
+              : "Drag and drop files here"}
         </p>
-        <p className="text-muted-foreground mt-1 text-xs">
-          Images, PDFs, Documents, Design files • Max 10 files at once
+        <p className="text-muted-foreground text-sm">
+          or{" "}
+          <span className="text-primary font-medium underline-offset-2 hover:underline">
+            browse
+          </span>{" "}
+          to choose files
+        </p>
+        <p className="text-muted-foreground mt-3 text-xs">
+          Supports: PDF, Images, Documents, Spreadsheets, Presentations
         </p>
       </div>
 
-      {/* ── Upload Queue ── */}
-      <AnimatePresence initial={false}>
-        {queue.map((item) => (
-          <QueueItem
-            key={item.id}
-            item={item}
-            onRetry={onRetry}
-            onRemove={onRemove}
-          />
-        ))}
+      <AnimatePresence>
+        {queue.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="rounded-xl border"
+          >
+            <div className="border-b px-4 py-2">
+              <p className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+                Uploading {queue.length} file{queue.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+
+            <div className="max-h-[300px] divide-y overflow-y-auto">
+              {queue.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.1, delay: index * 0.02 }}
+                  className="flex items-center gap-3 px-4 py-3"
+                >
+                  <div className="bg-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
+                    <File className="text-muted-foreground h-4 w-4" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {item.file.name}
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      {item.status === "uploading" && (
+                        <Progress
+                          value={item.progress}
+                          className="h-1.5 w-20"
+                        />
+                      )}
+                      <span className="text-muted-foreground text-xs">
+                        {item.status === "pending" && "Waiting..."}
+                        {item.status === "uploading" && `${item.progress}%`}
+                        {item.status === "success" && (
+                          <span className="text-green-600">Complete</span>
+                        )}
+                        {item.status === "error" && (
+                          <span className="text-destructive">{item.error}</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {item.status === "success" && (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  )}
+                  {item.status === "error" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onRetry(item.id)}
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {item.status !== "uploading" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => onRemove(item.id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

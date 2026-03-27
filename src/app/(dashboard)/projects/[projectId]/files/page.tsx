@@ -1,57 +1,100 @@
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { Building2 } from "lucide-react";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { getServerCaller } from "@/lib/trpc/server";
-import { ProjectFilesClient } from "@/features/files/components/ProjectFilesClient";
 
-type FilesPageProps = { params: Promise<{ projectId: string }> };
+// Components
+import { FilesSidebarSkeleton } from "@/features/files/components/FilesSidebarSkeleton";
+import { FilesContentSkeleton } from "@/features/files/components/FilesContentSkeleton";
+import { FilesPageClient } from "@/features/files/components/FilesPageClient";
+
+// UI (shadcn/ui)
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+
+type FilesPageProps = {
+  params: Promise<{ projectId: string }>;
+};
 
 export default async function FilesPage({ params }: FilesPageProps) {
   const { projectId } = await params;
 
-  // Fetch project name for the breadcrumb — zero HTTP overhead (direct DB)
+  // 1. Strict null check for caller if your setup allows it to be null
   const caller = await getServerCaller();
-  const project = caller
-    ? await caller.project.getById({ id: projectId }).catch(() => null)
-    : null;
+  if (!caller) notFound();
 
+  const project = await caller.project
+    .getById({ id: projectId })
+    .catch(() => null);
   if (!project) notFound();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/* ── Page Header ─────────────────────────────────────────────── */}
-      <div className="border-b px-6 py-4">
-        <nav className="text-muted-foreground mb-1.5 flex items-center gap-1 text-xs">
-          <Link
-            href="/projects"
-            className="hover:text-foreground transition-colors"
-          >
-            Projects
-          </Link>
-          <ChevronRight className="h-3 w-3 shrink-0" />
-          <Link
-            href={`/projects/${projectId}`}
-            className="hover:text-foreground max-w-[180px] truncate transition-colors"
-          >
-            {project.name}
-          </Link>
-          <ChevronRight className="h-3 w-3 shrink-0" />
-          <span className="text-foreground font-medium">Files</span>
-        </nav>
-        <h1 className="font-brand text-2xl font-semibold tracking-tight">
-          Files
-        </h1>
-        {project.clientCompanyName && (
-          <p className="text-muted-foreground mt-0.5 font-sans text-sm">
-            {project.clientCompanyName}
-          </p>
-        )}
-      </div>
+    <NuqsAdapter>
+      <div className="bg-background flex h-full w-full flex-col overflow-hidden rounded-2xl">
+        {/* ── Page Header ─────────────────────────────────────────────── */}
+        <header className="border-border bg-background flex shrink-0 flex-col gap-4  px-6 py-5">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href="/projects"
+                  className="hover:text-foreground transition-colors"
+                >
+                  Projects
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href={`/projects/${projectId}`}
+                  className="hover:text-foreground max-w-[200px] truncate transition-colors hover:cursor-pointer"
+                >
+                  {project.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-primary">Files</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
 
-      {/* ── Main Content ────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        <ProjectFilesClient projectId={projectId} />
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-col gap-1.5">
+              <h1 className="font-brand text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
+                Files
+              </h1>
+              {project.clientCompanyName && (
+                <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+                  <Building2 className="h-4 w-4 shrink-0 opacity-70" />
+                  <span className="font-sans">{project.clientCompanyName}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* ── Split Layout: Sidebar + Content ─────────────────────────── */}
+        <main className="bg-muted/10 flex min-h-0 flex-1 overflow-hidden rounded-2xl">
+          <Suspense
+            fallback={
+              <div className="flex h-full w-full">
+                <FilesSidebarSkeleton />
+                <FilesContentSkeleton />
+              </div>
+            }
+          >
+            <FilesPageClient projectId={projectId} />
+          </Suspense>
+        </main>
       </div>
-    </div>
+    </NuqsAdapter>
   );
 }

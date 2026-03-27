@@ -8,10 +8,14 @@ import {
   FileSpreadsheet,
   Presentation,
   File as GenericFile,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FileKind, ProjectFile } from "@/features/files/types";
+import { color } from "framer-motion";
 
 // --- Configuration Maps ---
 
@@ -69,9 +73,26 @@ const FILE_ICON_CONFIG: Record<
 };
 
 const APPROVAL_CONFIG = {
-  approved: { label: "Approved", variant: "success" },
-  changes_requested: { label: "Changes Requested", variant: "destructive" },
-  pending_review: { label: "Pending", variant: "outline" },
+  approved: {
+    label: "Approved",
+    variant: "success",
+    color:
+      "bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20",
+    icon: CheckCircle,
+  },
+  changes_requested: {
+    label: "Changes Requested",
+    variant: "destructive",
+    color: "bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20",
+    icon: XCircle,
+  },
+  pending_review: {
+    label: "Pending",
+    variant: "outline",
+    color:
+      "bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border-yellow-500/20",
+    icon: Clock,
+  },
 } as const;
 
 // --- Utility Functions ---
@@ -155,7 +176,14 @@ export function ApprovalBadge({
   const config = APPROVAL_CONFIG[status] || APPROVAL_CONFIG.pending_review;
 
   return (
-    <Badge variant={config.variant} className="h-6 rounded-md px-2 text-[11px]">
+    <Badge
+      variant={config.variant}
+      className={cn(
+        "h-6 rounded-md px-2 py-3 text-[11px] font-medium",
+        config.color,
+      )}
+    >
+      <config.icon className="mr-1 h-3 w-3" />
       {config.label}
     </Badge>
   );
