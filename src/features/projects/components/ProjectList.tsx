@@ -15,7 +15,7 @@ import { CreateProjectDialog } from "@/features/projects/components/createProjec
 import { EmptyProjects } from "@/features/projects/components/EmptyProjects";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { BadgePlus, Loader2 } from "lucide-react";
 import { ProjectCardSkeleton } from "./project-card/ProjectCardSkeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -114,10 +114,10 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
         {/* Standalone trigger button — styled properly */}
         <Button
           onClick={() => setCreateOpen(true)}
-          className="group from-primary shadow-primary/25 hover:shadow-primary/40 relative overflow-hidden rounded-xl bg-linear-to-br to-indigo-600 px-6 font-bold tracking-wide shadow-lg transition-[transform,shadow] duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-95"
+          className="group from-primary shadow-primary/25 hover:shadow-primary/40 relative overflow-hidden rounded-xl bg-linear-to-br to-indigo-600 px-6 font-bold tracking-wide text-white shadow-lg transition-[transform,shadow] duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-95"
         >
           <div className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <span className="relative mr-1.5 text-lg leading-none">+</span>
+          <BadgePlus />
           <span className="relative">New Project</span>
         </Button>
       </ProjectsHeader>

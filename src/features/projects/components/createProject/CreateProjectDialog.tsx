@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Plus, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { CreateProjectForm } from "./CreateProjectForm";
 
@@ -39,15 +37,6 @@ export function CreateProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {!isControlled && (
-        <DialogTrigger>
-          <div className="shadow-primary/20 ring-primary/20 h-10 rounded-xl px-5 font-bold tracking-tight shadow-xl ring-1 transition-all hover:scale-[1.02] active:scale-95">
-            <Plus className="mr-2 h-4 w-4" />
-            New Project
-          </div>
-        </DialogTrigger>
-      )}
-
       <DialogContent className="bg-background overflow-hidden rounded-3xl border p-0 shadow-2xl backdrop-blur-2xl sm:max-w-[580px]">
         {/* Header section with vibrant accent */}
         <div className="from-primary/10 bg-linear-to-b to-transparent p-8 pb-4">

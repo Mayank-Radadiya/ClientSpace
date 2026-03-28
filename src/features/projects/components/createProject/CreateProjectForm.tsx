@@ -37,7 +37,7 @@ function SubmitButton() {
     <Button
       type="submit"
       disabled={pending}
-      className="shadow-primary/20 h-11 w-full rounded-xl px-8 font-black tracking-widest shadow-xl sm:w-auto"
+      className="shadow-primary/20 h-11 w-full rounded-xl px-8 font-black tracking-widest text-white shadow-xl sm:w-auto"
     >
       {pending ? (
         <>
@@ -252,9 +252,9 @@ export function CreateProjectForm({
             </Label>
             <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
               <PopoverTrigger>
-                <div className="flex h-12 w-fit cursor-pointer items-center justify-start rounded-xl border-white/8 bg-white/3 px-4 text-left text-xs font-semibold hover:border-white/40 hover:bg-white/10 hover:shadow hover:shadow-white/20">
+                <div className="border-input bg-accent dark:bg-accent/50 focus:ring-primary/40 flex h-12 w-fit cursor-pointer items-center justify-start rounded-xl px-4 text-left text-xs font-semibold shadow-lg transition-all">
                   <CalendarIcon className="text-primary mr-2 h-4 w-4" />
-                  <span className="font-mono text-neutral-200">
+                  <span className="font-mono">
                     {startDate
                       ? format(startDate, "MMM d, yyyy")
                       : "SELECT DATE"}

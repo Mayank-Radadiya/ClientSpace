@@ -58,7 +58,7 @@ export default async function FilesPage({ params }: FilesPageProps) {
               <BreadcrumbItem>
                 <BreadcrumbLink
                   href={`/projects/${projectId}`}
-                  className="hover:text-foreground max-w-[200px] truncate transition-colors hover:cursor-pointer"
+                  className="hover:text-foreground max-w-50 truncate transition-colors hover:cursor-pointer"
                 >
                   {project.name}
                 </BreadcrumbLink>
