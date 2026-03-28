@@ -183,4 +183,89 @@ export const invoiceRouter = createTRPCRouter({
         };
       });
     }),
+
+  /**
+   * invoice.getByProject — Get all invoices for a specific project
+   *
+   * - Scoped to project + org
+   * - Includes client details
+   * - Ordered by createdAt DESC
+   */
+  getByProject: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return withRLS(ctx, async (tx) => {
+        const results = await tx
+          .select({
+            id: invoices.id,
+            number: invoices.number,
+            status: invoices.status,
+            currency: invoices.currency,
+            amountCents: invoices.amountCents,
+            taxRateBasisPoints: invoices.taxRateBasisPoints,
+            dueDate: invoices.dueDate,
+            pdfUrl: invoices.pdfUrl,
+            paidAt: invoices.paidAt,
+            createdAt: invoices.createdAt,
+            updatedAt: invoices.updatedAt,
+            clientId: invoices.clientId,
+            projectId: invoices.projectId,
+            notes: invoices.notes,
+            clientCompanyName: clients.companyName,
+            clientEmail: clients.email,
+            clientContactName: clients.contactName,
+          })
+          .from(invoices)
+          .leftJoin(clients, eq(invoices.clientId, clients.id))
+          .where(
+            and(
+              eq(invoices.orgId, ctx.orgId),
+              eq(invoices.projectId, input.projectId),
+            ),
+          )
+          .orderBy(desc(invoices.createdAt));
+
+        return results;
+      });
+    }),
+
+  /**
+   * invoice.getProjectFinancials — Get financial summary for a project
+   *
+   * - Returns: totalBilled, totalPaid, outstanding
+   * - All amounts in cents
+   */
+  getProjectFinancials: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return withRLS(ctx, async (tx) => {
+        const projectInvoices = await tx
+          .select({
+            amountCents: invoices.amountCents,
+            status: invoices.status,
+          })
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.orgId, ctx.orgId),
+              eq(invoices.projectId, input.projectId),
+            ),
+          );
+
+        const totalBilled = projectInvoices.reduce(
+          (sum, inv) => sum + inv.amountCents,
+          0,
+        );
+        const totalPaid = projectInvoices
+          .filter((inv) => inv.status === "paid")
+          .reduce((sum, inv) => sum + inv.amountCents, 0);
+        const outstanding = totalBilled - totalPaid;
+
+        return {
+          totalBilled,
+          totalPaid,
+          outstanding,
+        };
+      });
+    }),
 });

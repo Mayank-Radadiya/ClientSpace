@@ -32,6 +32,7 @@ interface InvoiceListProps {
   onResetFilters?: () => void;
   onCreateClick?: () => void;
   onCountsChange?: (total: number, filtered: number) => void;
+  projectId?: string; // Optional: filter invoices by project
 }
 
 interface InvoiceData {
@@ -55,17 +56,35 @@ export function InvoiceList({
   onResetFilters,
   onCreateClick,
   onCountsChange,
+  projectId,
 }: InvoiceListProps) {
-  const { data, isLoading, error, refetch } = trpc.invoice.getAll.useQuery(
+  // Fetch data based on whether we're filtering by project or not
+  const globalQuery = trpc.invoice.getAll.useQuery(
     {
       status: statusFilter === "all" ? undefined : (statusFilter as any),
     },
     {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      enabled: !projectId,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: true,
     },
   );
+
+  const projectQuery = trpc.invoice.getByProject.useQuery(
+    { projectId: projectId! },
+    {
+      enabled: !!projectId,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: true,
+    },
+  );
+
+  // Use the appropriate query result
+  const { data, isLoading, error, refetch } = projectId
+    ? projectQuery
+    : globalQuery;
 
   // Client-side filtering for search (since backend might not support it yet)
   const filteredData = useMemo(() => {

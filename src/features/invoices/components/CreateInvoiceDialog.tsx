@@ -50,11 +50,11 @@ export function CreateInvoiceDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="group bg-primary text-white hover:bg-primary/90 focus:ring-primary/40 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium shadow-sm transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] focus:ring-2 focus:outline-none active:scale-[0.97] ">
+      <DialogTrigger className="group bg-primary hover:bg-primary/90 focus:ring-primary/40 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] focus:ring-2 focus:outline-none active:scale-[0.97]">
         <PlusIcon className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
         <span>Create Invoice</span>
       </DialogTrigger>
-      <DialogPopup className="max-w-4xl backdrop-blur-sm bg-accent/20">
+      <DialogPopup className="bg-accent/20 max-w-4xl backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-2xl">Create Invoice</DialogTitle>
           <DialogDescription>
