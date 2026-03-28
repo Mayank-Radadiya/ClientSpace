@@ -10,6 +10,7 @@ import {
   projectPriorityEnum,
 } from "@/db/schema";
 import { projectColumns } from "../types";
+import { projectSchema } from "../schemas";
 
 function computeOverdue(row: {
   deadline: string | null;
@@ -30,6 +31,59 @@ const getAllInput = z.object({
 });
 
 export const projectRouter = createTRPCRouter({
+  create: protectedProcedure
+    .input(projectSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Clients cannot create projects
+      if (ctx.role === "client") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Clients cannot create projects.",
+        });
+      }
+
+      return withRLS(ctx, async (tx) => {
+        // Verify client belongs to user's organization
+        const client = await tx.query.clients.findFirst({
+          where: and(
+            eq(clients.id, input.clientId),
+            eq(clients.orgId, ctx.orgId),
+          ),
+        });
+
+        if (!client) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Selected client does not belong to your organization.",
+          });
+        }
+
+        // Helper to convert Date to date string (YYYY-MM-DD)
+        const toDateString = (date: Date): string => {
+          return date.toISOString().split("T")[0]!;
+        };
+
+        // Insert project
+        const [newProject] = await tx
+          .insert(projects)
+          .values({
+            orgId: ctx.orgId,
+            clientId: input.clientId,
+            name: input.name,
+            description: input.description,
+            status: input.status as any,
+            priority: input.priority as any,
+            startDate: input.startDate ? toDateString(input.startDate) : null,
+            deadline: toDateString(input.deadline),
+            budget: input.budget ?? null,
+            tags: input.tags,
+          })
+          .returning();
+
+        return newProject;
+      });
+    }),
+
   getAll: protectedProcedure
     .input(getAllInput)
     .query(async ({ ctx, input }) => {

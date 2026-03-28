@@ -133,9 +133,10 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
       {isLoading ? (
         <div
           className={cn(
+            "grid gap-4",
             viewMode === "grid"
-              ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-              : "space-y-2",
+              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              : "grid-cols-1",
           )}
         >
           {Array.from({ length: 3 }).map((_: any, i: number) => (
@@ -145,11 +146,12 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
       ) : projects.length > 0 ? (
         <>
           <div
-            className={
+            className={cn(
+              "grid gap-4",
               viewMode === "grid"
-                ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                : "space-y-2"
-            }
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                : "grid-cols-1",
+            )}
           >
             {projects.map((project) => (
               <div key={project.id} className="group/card relative">
