@@ -15,7 +15,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FileKind, ProjectFile } from "@/features/files/types";
-import { color } from "framer-motion";
 
 // --- Configuration Maps ---
 

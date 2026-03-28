@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FileTypeBadge } from "./FileTypeBadge";
 import { FileTypeIcon } from "./FileTypeIcon";
-import { ApprovalBadge } from "./FileMeta";
 import { formatFileSize, inferFileKind } from "../utils/file-helpers";
 import type { ProjectFile } from "../types";
+import { ApprovalBadge } from "./FileMeta";
 
 type FileRowProps = {
   file: ProjectFile;
