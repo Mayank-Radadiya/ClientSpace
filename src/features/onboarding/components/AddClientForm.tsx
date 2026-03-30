@@ -30,7 +30,7 @@ function SubmitButton() {
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         )}
       </span>
-      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent" />
     </Button>
   );
 }
@@ -72,9 +72,9 @@ export function AddClientForm() {
       className="relative z-10 w-full max-w-[480px]"
     >
       {/* Decorative background glow behind the form itself */}
-      <div className="from-primary/20 absolute -inset-1 z-0 rounded-3xl bg-gradient-to-tr via-indigo-500/20 to-purple-500/20 opacity-50 blur-2xl" />
+      <div className="from-primary/20 absolute -inset-1 z-0 rounded-3xl bg-linear-to-tr via-indigo-500/20 to-purple-500/20 opacity-50 blur-2xl" />
 
-      <div className="sm:bg-background/70 relative z-10 flex min-h-[460px] flex-col overflow-hidden p-6 transition-all duration-500 hover:border-white/20 sm:rounded-[2rem] sm:border sm:border-white/10 sm:p-10 sm:shadow-2xl sm:shadow-black/20 sm:backdrop-blur-2xl">
+      <div className="sm:bg-background/70 relative z-10 flex min-h-[460px] flex-col overflow-hidden p-6 transition-all duration-500 hover:border-white/20 sm:rounded-4xl sm:border sm:border-white/10 sm:p-10 sm:shadow-2xl sm:shadow-black/20 sm:backdrop-blur-2xl">
         <form
           action={formAction}
           className="flex h-full flex-1 flex-col justify-center"

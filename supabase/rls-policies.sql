@@ -240,6 +240,23 @@ USING (
   )
 );
 
+-- CLIENTS: Allow users to link themselves via valid invitation
+CREATE POLICY "Users can accept client invitations"
+ON clients FOR UPDATE
+USING (
+  auth.uid() IS NOT NULL
+  AND user_id IS NULL  -- Only unlinked clients
+  AND EXISTS (
+    SELECT 1 FROM invitations
+    WHERE invitations.client_id = clients.id
+    AND invitations.email = (SELECT email FROM auth.users WHERE id = auth.uid())
+    AND invitations.status = 'pending'
+    AND invitations.type = 'client'
+    AND invitations.expires_at > NOW()
+  )
+)
+WITH CHECK (user_id = auth.uid());
+
 -- INVOICES: Team sees all in org; Client sees their own via client_id
 -- ⚠️ Client sees ONLY invoices linked to their client_id — not all org invoices.
 CREATE POLICY "Invoice visibility"
@@ -427,6 +444,21 @@ WITH CHECK (
     AND org_memberships.user_id = auth.uid()
     AND org_memberships.role IN ('owner', 'admin', 'member')
   )
+);
+
+-- INVITATIONS: Users can accept their own invitations
+CREATE POLICY "Users can accept invitations"
+ON invitations FOR UPDATE
+USING (
+  auth.uid() IS NOT NULL
+  AND email = (SELECT email FROM auth.users WHERE id = auth.uid())
+  AND status = 'pending'
+  AND type = 'client'
+  AND expires_at > NOW()
+)
+WITH CHECK (
+  status = 'accepted'
+  AND accepted_at IS NOT NULL
 );
 
 -- SHARE LINKS: Creator can view their own

@@ -3,15 +3,13 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { withRLS } from "@/db/createDrizzleClient";
-import { organizations, orgMemberships } from "@/db/schema";
 import { createOrgSchema, type CreateOrgInput } from "../schemas";
-import { generateSlug } from "../utils/slug";
 import { revalidatePath } from "next/cache";
 import { onboardClientSchema, type OnboardClientInput } from "../schemas";
 import { createClientInDb, createOrganizationInDb } from "./mutations";
 import { getUserExistingMembership } from "./queries";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendFirstClientAddedEmail } from "@/emails/send";
 
 export type CreateOrgState = {
   error?: string;
@@ -129,7 +127,27 @@ export async function onboardClientAction(
     }
 
     // Call our abstracted mutation
-    await createClientInDb(user.id, membership.orgId, validationResult.data);
+    const { isFirstClient } = await createClientInDb(
+      user.id,
+      membership.orgId,
+      validationResult.data,
+    );
+
+    if (isFirstClient && user.email) {
+      try {
+        await sendFirstClientAddedEmail({
+          to: user.email,
+          clientCompanyName: validationResult.data.companyName,
+          clientContactName: validationResult.data.contactName,
+          clientEmail: validationResult.data.email,
+        });
+      } catch (emailError) {
+        console.error(
+          "onboardClientAction warning: first-client email failed:",
+          emailError,
+        );
+      }
+    }
   } catch (err) {
     console.error("onboardClientAction error:", err);
     return {

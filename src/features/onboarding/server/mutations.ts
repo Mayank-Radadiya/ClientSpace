@@ -1,3 +1,4 @@
+import { count, eq } from "drizzle-orm";
 import { withRLS } from "@/db/createDrizzleClient";
 import { clients } from "@/db/schema";
 import type { OnboardClientInput } from "../schemas";
@@ -15,6 +16,12 @@ export async function createClientInDb(
   clientData: OnboardClientInput,
 ) {
   return await withRLS({ userId, orgId }, async (tx) => {
+    const clientCountRows = await tx
+      .select({ totalClients: count() })
+      .from(clients)
+      .where(eq(clients.orgId, orgId));
+    const totalClients = clientCountRows[0]?.totalClients ?? 0;
+
     await tx.insert(clients).values({
       orgId,
       companyName: clientData.companyName,
@@ -22,6 +29,8 @@ export async function createClientInDb(
       email: clientData.email,
       status: "active", // Consider making this a default value at the DB schema level
     });
+
+    return { isFirstClient: totalClients === 0 };
   });
 }
 
