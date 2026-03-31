@@ -1,16 +1,15 @@
 /**
- * Sidebar Component
- * -----------------
- * Composes the complete application sidebar by assembling
- * all sidebar building blocks together.
+ * ClientSidebar Component
+ * -----------------------
+ * Client-facing portal sidebar navigation.
  *
  * Responsibilities:
- *  - Render the sidebar layout (header, navigation, footer)
- *  - Map navigation configuration into sidebar links
- *  - Integrate upgrade CTA and user account section
+ *  - Render sidebar for client portal with client-specific navigation
+ *  - Reuse existing sidebar building blocks from team dashboard
+ *  - Provide navigation to: Dashboard, Projects, Invoices, Files, Settings
  *
- * This component acts as the final composition layer
- * for the sidebar system.
+ * This component mirrors the team dashboard sidebar structure
+ * but with client-appropriate navigation items.
  */
 
 "use client";
@@ -21,10 +20,9 @@ import {
   SidebarFooter,
   SidebarLink,
   SidebarNav,
-  UpgradeProButton,
-  NAV_ITEMS,
   SidebarUserContainer,
-} from "./components";
+} from "@/components/global/sidebar/components";
+import { CLIENT_NAV_ITEMS } from "./Constants";
 import { OrgDropdown } from "../org-switcher/OrgDropdown";
 
 type Organization = {
@@ -34,19 +32,19 @@ type Organization = {
   role: string;
 };
 
-type SidebarProps = {
+type ClientSidebarProps = {
   organizations: Organization[];
   currentOrgId: string;
   currentOrgName: string;
   currentRole: string;
 };
 
-function Sidebar({
+function ClientSidebar({
   organizations,
   currentOrgId,
   currentOrgName,
   currentRole,
-}: SidebarProps) {
+}: ClientSidebarProps) {
   return (
     <SidebarBody>
       {/* Top branding section */}
@@ -63,19 +61,18 @@ function Sidebar({
       </div>
 
       {/* Main navigation section */}
-      <SidebarNav title="Main">
-        {NAV_ITEMS.map((item) => (
+      <SidebarNav title="Portal">
+        {CLIENT_NAV_ITEMS.map((item) => (
           <SidebarLink key={item.href} {...item} />
         ))}
       </SidebarNav>
 
       {/* Footer actions */}
       <SidebarFooter>
-        <UpgradeProButton />
         <SidebarUserContainer />
       </SidebarFooter>
     </SidebarBody>
   );
 }
 
-export default Sidebar;
+export default ClientSidebar;

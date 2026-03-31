@@ -103,6 +103,7 @@ USING (owner_id = auth.uid());
 -- ================================================================
 
 -- PROJECTS: SELECT — Role-Based Isolation
+-- ⚠️ SECURITY FIX: Check that client status is 'active'
 CREATE POLICY "Role-based project viewing"
 ON projects FOR SELECT
 USING (
@@ -130,18 +131,20 @@ USING (
     )
   )
   OR
-  -- 3. Client: Only projects mapped to their client_id
+  -- 3. Client: Only projects mapped to their client_id AND status is 'active'
   EXISTS (
     SELECT 1 FROM clients
     WHERE clients.id = projects.client_id
     AND clients.user_id = auth.uid()
+    AND clients.status = 'active'
   )
 );
 
--- PROJECTS: INSERT — Members can create (PRD §6.3)
+-- PROJECTS: INSERT — Only team members can create (NOT clients)
+-- ⚠️ SECURITY FIX: Clients should not be able to create projects
 -- ⚠️ CRITICAL: This uses is_org_member, NOT project_members.
 -- A member cannot be assigned to a project that doesn't exist yet.
-CREATE POLICY "Org members can create projects"
+CREATE POLICY "Team can create projects (not clients)"
 ON projects FOR INSERT
 WITH CHECK (
   EXISTS (
@@ -214,7 +217,8 @@ USING (
 -- 4. Client & Invoice Policies
 -- ================================================================
 
--- CLIENTS: Team (owner/admin/member) sees all in org; Client sees self
+-- CLIENTS: Team (owner/admin/member) sees all in org; Client sees self if active
+-- ⚠️ SECURITY FIX: Clients can only view their own record if status is 'active'
 CREATE POLICY "Client visibility"
 ON clients FOR SELECT
 USING (
@@ -225,7 +229,7 @@ USING (
     AND org_memberships.role IN ('owner', 'admin', 'member')
   )
   OR
-  (user_id = auth.uid())
+  (user_id = auth.uid() AND status = 'active')
 );
 
 -- CLIENTS: Team manages clients
@@ -257,7 +261,8 @@ USING (
 )
 WITH CHECK (user_id = auth.uid());
 
--- INVOICES: Team sees all in org; Client sees their own via client_id
+-- INVOICES: Team sees all in org; Client sees their own via client_id AND status='active'
+-- ⚠️ SECURITY FIX: Check that client status is 'active'
 -- ⚠️ Client sees ONLY invoices linked to their client_id — not all org invoices.
 CREATE POLICY "Invoice visibility"
 ON invoices FOR SELECT
@@ -273,12 +278,37 @@ USING (
     SELECT 1 FROM clients
     WHERE clients.id = invoices.client_id
     AND clients.user_id = auth.uid()
+    AND clients.status = 'active'
   )
 );
 
--- INVOICES: Team manages invoices
+-- INVOICES: Only Owner/Admin can create invoices (NOT clients or members)
+-- ⚠️ SECURITY FIX: Prevent clients from creating invoices
+CREATE POLICY "Team can create invoices (not clients)"
+ON invoices FOR INSERT
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM org_memberships
+    WHERE org_memberships.org_id = invoices.org_id
+    AND org_memberships.user_id = auth.uid()
+    AND org_memberships.role IN ('owner', 'admin')
+  )
+);
+
+-- INVOICES: Team manages invoices (UPDATE, DELETE)
 CREATE POLICY "Team manages invoices"
-ON invoices FOR ALL
+ON invoices FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM org_memberships
+    WHERE org_memberships.org_id = invoices.org_id
+    AND org_memberships.user_id = auth.uid()
+    AND org_memberships.role IN ('owner', 'admin', 'member')
+  )
+);
+
+CREATE POLICY "Team deletes invoices"
+ON invoices FOR DELETE
 USING (
   EXISTS (
     SELECT 1 FROM org_memberships
@@ -587,3 +617,16 @@ CREATE TRIGGER on_auth_user_created
 AFTER INSERT ON auth.users
 FOR EACH ROW
 EXECUTE FUNCTION handle_new_user();
+
+
+DROP POLICY "Project members can read files" ON storage.objects;
+
+CREATE POLICY "Project members can read files"
+ON storage.objects FOR SELECT
+USING (
+  bucket_id = 'project-files'
+  AND EXISTS (
+    SELECT 1 FROM projects
+    WHERE projects.id = (storage.foldername(name))[2]::uuid
+  )
+);

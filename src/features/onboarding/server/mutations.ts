@@ -4,6 +4,7 @@ import { clients } from "@/db/schema";
 import type { OnboardClientInput } from "../schemas";
 import { organizations, orgMemberships } from "@/db/schema";
 import { generateSlug } from "../utils/slug";
+import { setActiveOrg } from "@/lib/auth/orgSwitcher";
 
 const POSTGRES_UNIQUE_VIOLATION_CODE = "23505";
 
@@ -41,7 +42,7 @@ export async function createOrganizationInDb(
   const slug = generateSlug(name);
 
   try {
-    return await withRLS({ userId, orgId: "SYSTEM" }, async (tx) => {
+    const result = await withRLS({ userId, orgId: "SYSTEM" }, async (tx) => {
       // 1. Create Organization
       const [org] = await tx
         .insert(organizations)
@@ -65,6 +66,11 @@ export async function createOrganizationInDb(
 
       return { id: org.id, slug };
     });
+
+    // 3. Set active org cookie
+    await setActiveOrg(result.id);
+
+    return result;
   } catch (error) {
     // Safely check for Postgres unique constraint violation without `any`
     if (

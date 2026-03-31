@@ -72,6 +72,7 @@ export const invitationTypeEnum = pgEnum("invitation_type", [
 ]);
 export const invitationStatusEnum = pgEnum("invitation_status", [
   "pending",
+  "in_use",
   "accepted",
   "expired",
   "revoked",

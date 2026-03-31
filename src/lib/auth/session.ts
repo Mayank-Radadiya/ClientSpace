@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { orgMemberships } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getActiveOrgId } from "./orgSwitcher";
 
 /**
  * Resolves the current user's session and org context.
@@ -19,21 +20,49 @@ export async function getSessionContext() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Bootstrap with SYSTEM sentinel to read membership (no real org yet in context)
-  const membership = await withRLS(
+  // Bootstrap with SYSTEM sentinel to read memberships (no real org yet in context)
+  const memberships = await withRLS(
     { userId: user.id, orgId: "SYSTEM" },
     async (tx) => {
-      return tx.query.orgMemberships.findFirst({
+      return tx.query.orgMemberships.findMany({
         where: eq(orgMemberships.userId, user.id),
+        with: {
+          organization: {
+            columns: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
       });
     },
   );
 
-  if (!membership) return null;
+  if (!memberships || memberships.length === 0) return null;
+
+  // Get active org from cookie
+  const activeOrgId = await getActiveOrgId();
+
+  // Find membership for active org (validate it belongs to user)
+  let activeMembership = activeOrgId
+    ? memberships.find((m) => m.orgId === activeOrgId)
+    : undefined;
+
+  // Fallback to first membership if cookie invalid/missing
+  if (!activeMembership) {
+    activeMembership = memberships[0]!; // Safe: we already checked memberships.length > 0
+  }
 
   return {
     userId: user.id,
-    orgId: membership.orgId,
-    role: membership.role as "owner" | "admin" | "member" | "client",
+    orgId: activeMembership.orgId,
+    role: activeMembership.role as "owner" | "admin" | "member" | "client",
+    availableOrgs: memberships.map((m) => ({
+      orgId: m.orgId,
+      orgName: m.organization.name,
+      orgSlug: m.organization.slug,
+      role: m.role,
+    })),
   };
 }

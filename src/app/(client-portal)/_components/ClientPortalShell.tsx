@@ -1,21 +1,21 @@
 /**
- * WorkspaceShell
- * --------------
- * Acts as the core structural wrapper for the workspace experience.
+ * ClientPortalShell
+ * -----------------
+ * Acts as the core structural wrapper for the client portal experience.
  *
  * Responsibilities:
  *  - Provide sidebar state management via SidebarProvider
- *  - Render persistent workspace UI elements (background and sidebar)
+ *  - Render persistent client portal UI elements (background and sidebar)
  *  - Wrap the main page content inside a controlled layout container
  *
- * This component centralizes all workspace-level layout concerns,
- * ensuring consistent behavior and appearance across workflow pages.
+ * This component centralizes all client portal layout concerns,
+ * ensuring consistent behavior and appearance across client-facing pages.
  */
 
 "use client";
 
 import type { ReactNode } from "react";
-import Sidebar from "@/components/global/sidebar/Sidebar";
+import ClientSidebar from "@/components/global/client-sidebar/ClientSidebar";
 import { SidebarProvider } from "@/components/global/sidebar/components";
 import MainContentWrapper from "./MainContentWrapper";
 
@@ -26,7 +26,7 @@ type Organization = {
   role: string;
 };
 
-type WorkspaceShellProps = {
+type ClientPortalShellProps = {
   children: ReactNode;
   organizations: Organization[];
   currentOrgId: string;
@@ -34,17 +34,17 @@ type WorkspaceShellProps = {
   currentRole: string;
 };
 
-export default function WorkspaceShell({
+export default function ClientPortalShell({
   children,
   organizations,
   currentOrgId,
   currentOrgName,
   currentRole,
-}: WorkspaceShellProps) {
+}: ClientPortalShellProps) {
   return (
     <SidebarProvider>
-      {/* Persistent navigation sidebar */}
-      <Sidebar
+      {/* Persistent client navigation sidebar */}
+      <ClientSidebar
         organizations={organizations}
         currentOrgId={currentOrgId}
         currentOrgName={currentOrgName}

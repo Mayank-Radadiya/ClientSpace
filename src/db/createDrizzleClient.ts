@@ -34,6 +34,13 @@ type SessionContext = {
   orgId: string;
 };
 
+const UUID_V4_LIKE_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string) {
+  return UUID_V4_LIKE_REGEX.test(value);
+}
+
 type DbType = typeof db;
 type TransactionScope = Parameters<Parameters<DbType["transaction"]>[0]>[0];
 
@@ -58,6 +65,8 @@ export async function withRLS<T>(
   callback: (tx: TransactionScope) => Promise<T>,
 ): Promise<T> {
   return db.transaction(async (tx) => {
+    const jwtClaims = isUuid(ctx.userId) ? { sub: ctx.userId } : {};
+
     // 1. Switch to authenticated role
     // 2. Inject tenant context (orgId & userId) into transaction scope (is_local = true)
     // 3. Inject JWT claims so Supabase's auth.uid() function resolves naturally in RLS.
@@ -68,7 +77,7 @@ export async function withRLS<T>(
         set_config('role', 'authenticated', true),
         set_config('app.current_org_id', ${ctx.orgId}::text, true),
         set_config('app.current_user_id', ${ctx.userId}::text, true),
-        set_config('request.jwt.claims', ${JSON.stringify({ sub: ctx.userId })}::text, true)
+        set_config('request.jwt.claims', ${JSON.stringify(jwtClaims)}::text, true)
     `);
 
     // Execute the caller's query within the secured transaction.

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createTRPCContext } from "@/lib/trpc/init";
+import { setActiveOrg } from "@/lib/auth/orgSwitcher";
 import {
   loginSchema,
   signupSchema,
@@ -49,8 +50,17 @@ export async function loginAction(
     return { error: error.message };
   }
 
+  // Get user's org context
   const ctx = await createTRPCContext();
-  return redirect(ctx ? "/dashboard" : "/onboarding");
+
+  // If user has org membership, set active org cookie
+  if (ctx) {
+    await setActiveOrg(ctx.orgId);
+    return redirect("/dashboard");
+  }
+
+  // No org membership - redirect to onboarding
+  return redirect("/onboarding");
 }
 
 export async function signupAction(

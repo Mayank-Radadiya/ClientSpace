@@ -2,11 +2,14 @@
 
 import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { and, eq, gt } from "drizzle-orm";
 import { withRLS } from "@/db/createDrizzleClient";
 import { clients, invitations } from "@/db/schema";
 import { getSessionContext } from "@/lib/auth/session";
 import { sendClientInviteEmail } from "@/emails/send";
+import { setActiveOrg } from "@/lib/auth/orgSwitcher";
+import { inviteRateLimit } from "@/lib/rateLimit";
 import {
   inviteClientSchema,
   acceptInviteSignUpSchema,
@@ -14,14 +17,64 @@ import {
   type AcceptInviteSignUpInput,
   type AcceptInviteSignInInput,
 } from "../schemas";
-import { getInvitationByToken } from "./queries";
+import { reserveInvitationByToken } from "./queries";
 import { createClient } from "@/lib/supabase/server";
 import { orgMemberships, users, organizations } from "@/db/schema";
 import { redirect } from "next/navigation";
+import { pool } from "@/db/pool";
+
+async function rollbackInvitationToPending(
+  invitationId: string,
+  _orgId: string,
+  _userId = "SYSTEM",
+) {
+  try {
+    await pool`
+      UPDATE invitations
+      SET status = 'pending'
+      WHERE id = ${invitationId}
+        AND status = 'in_use'
+    `;
+  } catch (rollbackError) {
+    console.error(
+      "[rollbackInvitationToPending] Failed to rollback invitation:",
+      rollbackError,
+    );
+  }
+}
 
 export type InviteActionResult =
   | { success: true; warning?: string }
   | { error: string | Record<string, string[]> };
+
+async function getRequestMetadata() {
+  const requestHeaders = await headers();
+  return {
+    ip:
+      requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown",
+    userAgent: requestHeaders.get("user-agent") || "unknown",
+  };
+}
+
+function logClientInviteAccepted(event: {
+  method: "signup" | "signin";
+  invitationId: string;
+  orgId: string;
+  clientId: string;
+  userId: string;
+  ip: string;
+  userAgent: string;
+}) {
+  const sanitizedIp = event.ip.slice(0, 128);
+  const sanitizedUserAgent = event.userAgent.slice(0, 512);
+
+  console.info("[AUDIT] client_invite_accepted", {
+    ...event,
+    ip: sanitizedIp,
+    userAgent: sanitizedUserAgent,
+    timestamp: new Date().toISOString(),
+  });
+}
 
 export async function inviteClientAction(
   rawInput: unknown,
@@ -133,7 +186,7 @@ export async function inviteClientAction(
     };
   }
 
-  const inviteUrl = `${appUrl}/invite/accept?token=${rawToken}`;
+  const inviteUrl = `${appUrl}/client/auth?token=${rawToken}`;
 
   try {
     await sendClientInviteEmail({
@@ -185,6 +238,7 @@ export async function acceptInviteSignUpAction(
   _prevState: AcceptInviteResult,
   formData: FormData,
 ): Promise<AcceptInviteResult> {
+  const requestMeta = await getRequestMetadata();
   const parsed = acceptInviteSignUpSchema.safeParse(
     Object.fromEntries(formData),
   );
@@ -200,8 +254,17 @@ export async function acceptInviteSignUpAction(
 
   const { token, email, name, password } = parsed.data;
 
+  // 0. Rate limit check by email
+  const rateLimitResult = inviteRateLimit(email);
+  if (!rateLimitResult.allowed) {
+    return {
+      error:
+        rateLimitResult.error || "Too many attempts. Please try again later.",
+    };
+  }
+
   // 1. Validate invitation
-  const invitation = await getInvitationByToken(token);
+  const invitation = await reserveInvitationByToken(token);
   if (!invitation) {
     return {
       error:
@@ -211,6 +274,7 @@ export async function acceptInviteSignUpAction(
 
   // 2. Verify email matches invitation
   if (invitation.email.toLowerCase() !== email.toLowerCase()) {
+    await rollbackInvitationToPending(invitation.id, invitation.orgId);
     return {
       error: "Email address does not match the invitation.",
     };
@@ -229,6 +293,7 @@ export async function acceptInviteSignUpAction(
 
   if (authError || !authData.user) {
     console.error("[acceptInviteSignUpAction] Auth error:", authError);
+    await rollbackInvitationToPending(invitation.id, invitation.orgId);
     return {
       error:
         authError?.message ||
@@ -283,6 +348,7 @@ export async function acceptInviteSignUpAction(
     });
   } catch (err) {
     console.error("[acceptInviteSignUpAction] Database error:", err);
+    await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
 
     if (err instanceof Error && err.message === "CLIENT_ALREADY_LINKED") {
       return {
@@ -297,9 +363,19 @@ export async function acceptInviteSignUpAction(
     };
   }
 
-  // 5. Revalidate and redirect to dashboard
-  revalidatePath("/dashboard");
-  redirect("/dashboard");
+  // 5. Set active org cookie and redirect to client portal
+  await setActiveOrg(invitation.orgId);
+  logClientInviteAccepted({
+    method: "signup",
+    invitationId: invitation.id,
+    orgId: invitation.orgId,
+    clientId: invitation.clientId,
+    userId,
+    ip: requestMeta.ip,
+    userAgent: requestMeta.userAgent,
+  });
+  revalidatePath("/client-portal");
+  redirect("/client-portal");
 }
 
 /**
@@ -309,6 +385,7 @@ export async function acceptInviteSignInAction(
   _prevState: AcceptInviteResult,
   formData: FormData,
 ): Promise<AcceptInviteResult> {
+  const requestMeta = await getRequestMetadata();
   const parsed = acceptInviteSignInSchema.safeParse(
     Object.fromEntries(formData),
   );
@@ -324,8 +401,17 @@ export async function acceptInviteSignInAction(
 
   const { token, email, password } = parsed.data;
 
+  // 0. Rate limit check by email
+  const rateLimitResult = inviteRateLimit(email);
+  if (!rateLimitResult.allowed) {
+    return {
+      error:
+        rateLimitResult.error || "Too many attempts. Please try again later.",
+    };
+  }
+
   // 1. Validate invitation
-  const invitation = await getInvitationByToken(token);
+  const invitation = await reserveInvitationByToken(token);
   if (!invitation) {
     return {
       error:
@@ -335,6 +421,7 @@ export async function acceptInviteSignInAction(
 
   // 2. Verify email matches invitation
   if (invitation.email.toLowerCase() !== email.toLowerCase()) {
+    await rollbackInvitationToPending(invitation.id, invitation.orgId);
     return {
       error: "Email address does not match the invitation.",
     };
@@ -350,6 +437,7 @@ export async function acceptInviteSignInAction(
 
   if (authError || !authData.user) {
     console.error("[acceptInviteSignInAction] Auth error:", authError);
+    await rollbackInvitationToPending(invitation.id, invitation.orgId);
     return {
       error:
         authError?.message === "Invalid login credentials"
@@ -363,6 +451,7 @@ export async function acceptInviteSignInAction(
   // 4. Verify authenticated email matches invitation (security check)
   if (authData.user.email?.toLowerCase() !== email.toLowerCase()) {
     await supabase.auth.signOut();
+    await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
     return {
       error:
         "Authentication email mismatch. Please contact support for assistance.",
@@ -414,6 +503,7 @@ export async function acceptInviteSignInAction(
     });
   } catch (err) {
     console.error("[acceptInviteSignInAction] Database error:", err);
+    await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
 
     if (err instanceof Error && err.message === "CLIENT_ALREADY_LINKED") {
       return {
@@ -428,7 +518,17 @@ export async function acceptInviteSignInAction(
     };
   }
 
-  // 6. Revalidate and redirect to dashboard
-  revalidatePath("/dashboard");
-  redirect("/dashboard");
+  // 6. Set active org cookie and redirect to client portal
+  await setActiveOrg(invitation.orgId);
+  logClientInviteAccepted({
+    method: "signin",
+    invitationId: invitation.id,
+    orgId: invitation.orgId,
+    clientId: invitation.clientId,
+    userId,
+    ip: requestMeta.ip,
+    userAgent: requestMeta.userAgent,
+  });
+  revalidatePath("/client-portal");
+  redirect("/client-portal");
 }

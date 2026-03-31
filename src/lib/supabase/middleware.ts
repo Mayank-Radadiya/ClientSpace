@@ -65,6 +65,20 @@ export async function updateSession(request: NextRequest): Promise<{
     };
   }
 
+  // 1b. Protect Client Portal Routes — redirect unauthenticated users to client auth
+  if (request.nextUrl.pathname.startsWith("/client-portal") && !user) {
+    const redirectResp = NextResponse.redirect(
+      new URL("/client/auth", request.url),
+    );
+    response.cookies.getAll().forEach((c) => {
+      redirectResp.cookies.set(c.name, c.value, c);
+    });
+    return {
+      response: redirectResp,
+      user: null,
+    };
+  }
+
   // 2. Protect Auth Routes — redirect authenticated users to dashboard
   if (
     (request.nextUrl.pathname.startsWith("/login") ||

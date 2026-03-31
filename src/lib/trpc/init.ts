@@ -5,12 +5,19 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { orgMemberships } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getUser } from "@/lib/auth/getUser";
+import { getActiveOrgId } from "@/lib/auth/orgSwitcher";
 
 // Context shape available in all procedures
 export type TRPCContext = {
   userId: string;
   orgId: string;
   role: string;
+  availableOrgs: Array<{
+    orgId: string;
+    orgName: string;
+    orgSlug: string;
+    role: string;
+  }>;
 };
 
 /**
@@ -27,8 +34,8 @@ export type TRPCContext = {
  *    Supabase Auth server, preventing spoofed JWTs from bypassing checks.
  *    While it adds a network round-trip (~200–400ms), it is required for strict security.
  *
- * 3. `columns` projection on membership query — fetches only the two fields
- *    we need instead of the full row.
+ * 3. Fetches all memberships but only includes minimal org data (id, name, slug)
+ *    to support multi-org switching without bloating the context.
  */
 export const createTRPCContext = cache(
   async (): Promise<TRPCContext | null> => {
@@ -38,22 +45,51 @@ export const createTRPCContext = cache(
 
     const userId = user.id;
 
-    const membership = await withRLS(
+    // Fetch all memberships with minimal org data
+    const memberships = await withRLS(
       { userId, orgId: "SYSTEM" },
       async (tx) => {
-        return tx.query.orgMemberships.findFirst({
+        return tx.query.orgMemberships.findMany({
           where: eq(orgMemberships.userId, userId),
           columns: { orgId: true, role: true },
+          with: {
+            organization: {
+              columns: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
         });
       },
     );
 
-    if (!membership) return null;
+    if (!memberships || memberships.length === 0) return null;
+
+    // Get active org from cookie
+    const activeOrgId = await getActiveOrgId();
+
+    // Find membership for active org (validate it belongs to user)
+    let activeMembership = activeOrgId
+      ? memberships.find((m) => m.orgId === activeOrgId)
+      : undefined;
+
+    // Fallback to first membership if cookie invalid/missing
+    if (!activeMembership) {
+      activeMembership = memberships[0]!; // Safe: we already checked memberships.length > 0
+    }
 
     return {
       userId,
-      orgId: membership.orgId,
-      role: membership.role,
+      orgId: activeMembership.orgId,
+      role: activeMembership.role,
+      availableOrgs: memberships.map((m) => ({
+        orgId: m.orgId,
+        orgName: m.organization.name,
+        orgSlug: m.organization.slug,
+        role: m.role,
+      })),
     };
   },
 );
