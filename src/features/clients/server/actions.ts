@@ -19,7 +19,8 @@ import {
 } from "../schemas";
 import { reserveInvitationByToken } from "./queries";
 import { createClient } from "@/lib/supabase/server";
-import { orgMemberships, users, organizations } from "@/db/schema";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { orgMemberships, organizations } from "@/db/schema";
 import { redirect } from "next/navigation";
 import { pool } from "@/db/pool";
 
@@ -280,16 +281,16 @@ export async function acceptInviteSignUpAction(
     };
   }
 
-  // 3. Create Supabase auth account
-  const supabase = await createClient();
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { name },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-    },
-  });
+  // 3. Create Supabase auth account with email auto-confirmed (using admin API)
+  // Since this is an invited client, we bypass email verification
+  const adminClient = createAdminClient();
+  const { data: authData, error: authError } =
+    await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // Auto-confirm email for invited users
+      user_metadata: { name },
+    });
 
   if (authError || !authData.user) {
     console.error("[acceptInviteSignUpAction] Auth error:", authError);
@@ -303,7 +304,89 @@ export async function acceptInviteSignUpAction(
 
   const userId = authData.user.id;
 
-  // 4. Link client record and create org membership atomically
+  // 3.5. Sign in the newly created user
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) {
+    console.error(
+      "[acceptInviteSignUpAction] Auto-signin failed after user creation:",
+      signInError,
+    );
+    await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
+    return {
+      error:
+        "Account created but sign-in failed. Please try signing in manually from the Sign In tab.",
+    };
+  }
+
+  // DEBUG: Log auth state immediately after signup
+  console.info("[acceptInviteSignUpAction] User created in auth.users:", {
+    userId,
+    email,
+    emailConfirmed: authData.user.email_confirmed_at ? "yes" : "no",
+    invitationId: invitation.id,
+    orgId: invitation.orgId,
+  });
+
+  // 4. Ensure the user exists in public.users before the RLS-scoped transaction.
+  // withRLS switches to the 'authenticated' role, which is blocked by the RLS
+  // policy on the users table. Using pool (service role) bypasses RLS safely.
+  // This is an upsert — if the Supabase trigger already ran it's a no-op.
+  try {
+    await pool`
+      INSERT INTO users (id, email, name)
+      VALUES (${userId}, ${email}, ${name})
+      ON CONFLICT (id) DO NOTHING
+    `;
+  } catch (userInsertErr) {
+    console.error(
+      "[acceptInviteSignUpAction] Failed to upsert user record:",
+      userInsertErr,
+    );
+    await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
+    return {
+      error:
+        "Failed to create user profile. Please try again or contact support.",
+    };
+  }
+
+  // 4.5. Verify user exists in database before proceeding to RLS transaction
+  // Small delay to ensure trigger has completed if it was running async
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  // Verify user actually exists by querying with service role
+  const userVerification = await pool`
+    SELECT id, email, name FROM users WHERE id = ${userId} LIMIT 1
+  `;
+
+  if (!userVerification || userVerification.length === 0) {
+    console.error(
+      "[acceptInviteSignUpAction] User record not found after insert:",
+      {
+        userId,
+        email,
+        triggerMayHaveFailed: true,
+        manualInsertAttempted: true,
+      },
+    );
+    await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
+    return {
+      error:
+        "Failed to create user profile. The account was created but profile setup failed. Please contact support.",
+    };
+  }
+
+  console.info("[acceptInviteSignUpAction] User verified in public.users:", {
+    userId,
+    email: userVerification[0]?.email,
+    name: userVerification[0]?.name,
+  });
+
+  // 5. Link client record and create org membership atomically
   try {
     await withRLS({ userId, orgId: invitation.orgId }, async (tx) => {
       // 4a. Check if client is already linked to another user
@@ -337,7 +420,7 @@ export async function acceptInviteSignUpAction(
         });
       }
 
-      // 4d. Mark invitation as accepted
+      // 5d. Mark invitation as accepted
       await tx
         .update(invitations)
         .set({
@@ -347,7 +430,19 @@ export async function acceptInviteSignUpAction(
         .where(eq(invitations.id, invitation.id));
     });
   } catch (err) {
-    console.error("[acceptInviteSignUpAction] Database error:", err);
+    console.error("[acceptInviteSignUpAction] Database error:", {
+      error: err,
+      errorMessage: err instanceof Error ? err.message : String(err),
+      userId,
+      orgId: invitation.orgId,
+      clientId: invitation.clientId,
+      invitationId: invitation.id,
+      // PostgreSQL error details
+      code: (err as any)?.code,
+      detail: (err as any)?.detail,
+      constraint: (err as any)?.constraint,
+      table: (err as any)?.table_name,
+    });
     await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
 
     if (err instanceof Error && err.message === "CLIENT_ALREADY_LINKED") {
@@ -357,13 +452,24 @@ export async function acceptInviteSignUpAction(
       };
     }
 
+    // Check if it's the specific FK constraint error for missing user
+    if (
+      (err as any)?.code === "23503" &&
+      (err as any)?.constraint === "org_memberships_user_id_users_id_fk"
+    ) {
+      return {
+        error:
+          "Account creation incomplete. The user profile was not found in the database. Please try again or contact support. (Error: FK constraint violation)",
+      };
+    }
+
     return {
       error:
         "Failed to complete invitation acceptance. Please try again or contact support.",
     };
   }
 
-  // 5. Set active org cookie and redirect to client portal
+  // 6. Set active org cookie and redirect to client portal
   await setActiveOrg(invitation.orgId);
   logClientInviteAccepted({
     method: "signup",
@@ -448,6 +554,14 @@ export async function acceptInviteSignInAction(
 
   const userId = authData.user.id;
 
+  // DEBUG: Log auth state for sign-in flow
+  console.info("[acceptInviteSignInAction] User signed in:", {
+    userId,
+    email,
+    invitationId: invitation.id,
+    orgId: invitation.orgId,
+  });
+
   // 4. Verify authenticated email matches invitation (security check)
   if (authData.user.email?.toLowerCase() !== email.toLowerCase()) {
     await supabase.auth.signOut();
@@ -502,7 +616,19 @@ export async function acceptInviteSignInAction(
         .where(eq(invitations.id, invitation.id));
     });
   } catch (err) {
-    console.error("[acceptInviteSignInAction] Database error:", err);
+    console.error("[acceptInviteSignInAction] Database error:", {
+      error: err,
+      errorMessage: err instanceof Error ? err.message : String(err),
+      userId,
+      orgId: invitation.orgId,
+      clientId: invitation.clientId,
+      invitationId: invitation.id,
+      // PostgreSQL error details
+      code: (err as any)?.code,
+      detail: (err as any)?.detail,
+      constraint: (err as any)?.constraint,
+      table: (err as any)?.table_name,
+    });
     await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
 
     if (err instanceof Error && err.message === "CLIENT_ALREADY_LINKED") {

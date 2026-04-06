@@ -80,6 +80,8 @@ export async function updateSession(request: NextRequest): Promise<{
   }
 
   // 2. Protect Auth Routes — redirect authenticated users to dashboard
+  // Exception: /client/auth is allowed even for authenticated users
+  // (multi-org scenario: existing user accepting new client invitation)
   if (
     (request.nextUrl.pathname.startsWith("/login") ||
       request.nextUrl.pathname.startsWith("/signup") ||
@@ -98,6 +100,9 @@ export async function updateSession(request: NextRequest): Promise<{
       user,
     };
   }
+
+  // Note: /client/auth is NOT redirected for authenticated users
+  // This allows existing users to accept client invitations to new orgs
 
   return { response, user };
 }

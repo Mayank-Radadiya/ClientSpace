@@ -253,7 +253,7 @@ USING (
   AND EXISTS (
     SELECT 1 FROM invitations
     WHERE invitations.client_id = clients.id
-    AND invitations.email = (SELECT email FROM auth.users WHERE id = auth.uid())
+    AND invitations.email = (SELECT email FROM public.users WHERE id = auth.uid())
     AND invitations.status = 'pending'
     AND invitations.type = 'client'
     AND invitations.expires_at > NOW()
@@ -481,7 +481,7 @@ CREATE POLICY "Users can accept invitations"
 ON invitations FOR UPDATE
 USING (
   auth.uid() IS NOT NULL
-  AND email = (SELECT email FROM auth.users WHERE id = auth.uid())
+  AND email = (SELECT email FROM public.users WHERE id = auth.uid())
   AND status = 'pending'
   AND type = 'client'
   AND expires_at > NOW()
