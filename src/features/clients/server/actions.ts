@@ -284,6 +284,7 @@ export async function acceptInviteSignUpAction(
   // 3. Create Supabase auth account with email auto-confirmed (using admin API)
   // Since this is an invited client, we bypass email verification
   const adminClient = createAdminClient();
+  const supabase = await createClient();
   const { data: authData, error: authError } =
     await adminClient.auth.admin.createUser({
       email,
@@ -292,45 +293,107 @@ export async function acceptInviteSignUpAction(
       user_metadata: { name },
     });
 
+  let userId: string;
+
   if (authError || !authData.user) {
-    console.error("[acceptInviteSignUpAction] Auth error:", authError);
-    await rollbackInvitationToPending(invitation.id, invitation.orgId);
-    return {
-      error:
-        authError?.message ||
-        "Failed to create account. Please try again or contact support.",
-    };
+    if (authError?.code === "email_exists") {
+      let { data: existingAuthData, error: existingSignInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (existingSignInError || !existingAuthData.user) {
+        const existingAuthUsers = await pool`
+          SELECT id
+          FROM auth.users
+          WHERE lower(email) = lower(${email})
+          LIMIT 1
+        `;
+
+        const existingAuthUserId = existingAuthUsers[0]?.id as
+          | string
+          | undefined;
+
+        if (existingAuthUserId) {
+          const { error: updateAuthUserError } =
+            await adminClient.auth.admin.updateUserById(existingAuthUserId, {
+              password,
+              email_confirm: true,
+              user_metadata: { name },
+            });
+
+          if (!updateAuthUserError) {
+            ({ data: existingAuthData, error: existingSignInError } =
+              await supabase.auth.signInWithPassword({
+                email,
+                password,
+              }));
+          }
+        }
+      }
+
+      if (existingSignInError || !existingAuthData.user) {
+        await rollbackInvitationToPending(invitation.id, invitation.orgId);
+        return {
+          error:
+            "An account with this email already exists. Please use the Sign In tab. If you do not remember your password, reset it and try again.",
+        };
+      }
+
+      userId = existingAuthData.user.id;
+      console.info(
+        "[acceptInviteSignUpAction] Existing user detected, continued with sign-in:",
+        {
+          userId,
+          email,
+          invitationId: invitation.id,
+          orgId: invitation.orgId,
+        },
+      );
+    } else {
+      console.error("[acceptInviteSignUpAction] Auth error:", authError);
+      await rollbackInvitationToPending(invitation.id, invitation.orgId);
+      return {
+        error:
+          authError?.message ||
+          "Failed to create account. Please try again or contact support.",
+      };
+    }
+  } else {
+    userId = authData.user.id;
+
+    // 3.5. Sign in the newly created user
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      console.error(
+        "[acceptInviteSignUpAction] Auto-signin failed after user creation:",
+        signInError,
+      );
+      await rollbackInvitationToPending(
+        invitation.id,
+        invitation.orgId,
+        userId,
+      );
+      return {
+        error:
+          "Account created but sign-in failed. Please try signing in manually from the Sign In tab.",
+      };
+    }
+
+    // DEBUG: Log auth state immediately after signup
+    console.info("[acceptInviteSignUpAction] User created in auth.users:", {
+      userId,
+      email,
+      emailConfirmed: authData.user.email_confirmed_at ? "yes" : "no",
+      invitationId: invitation.id,
+      orgId: invitation.orgId,
+    });
   }
-
-  const userId = authData.user.id;
-
-  // 3.5. Sign in the newly created user
-  const supabase = await createClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (signInError) {
-    console.error(
-      "[acceptInviteSignUpAction] Auto-signin failed after user creation:",
-      signInError,
-    );
-    await rollbackInvitationToPending(invitation.id, invitation.orgId, userId);
-    return {
-      error:
-        "Account created but sign-in failed. Please try signing in manually from the Sign In tab.",
-    };
-  }
-
-  // DEBUG: Log auth state immediately after signup
-  console.info("[acceptInviteSignUpAction] User created in auth.users:", {
-    userId,
-    email,
-    emailConfirmed: authData.user.email_confirmed_at ? "yes" : "no",
-    invitationId: invitation.id,
-    orgId: invitation.orgId,
-  });
 
   // 4. Ensure the user exists in public.users before the RLS-scoped transaction.
   // withRLS switches to the 'authenticated' role, which is blocked by the RLS
