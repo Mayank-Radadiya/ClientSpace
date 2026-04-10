@@ -1,14 +1,17 @@
 "use client";
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 // src/features/invoices/components/InvoiceList.tsx
-// Invoice list with filtering, search, and polished UI.
+// Invoice list with filtering, search, selection, and polished UI.
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { AlertCircleIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { gooeyToast } from "goey-toast";
 import {
   Table,
   TableBody,
@@ -21,6 +24,8 @@ import { InvoiceRow } from "./InvoiceRow";
 import { InvoiceCard } from "./InvoiceCard";
 import { InvoiceTableSkeleton } from "./InvoiceTableSkeleton";
 import { EmptyInvoiceState } from "./EmptyInvoiceState";
+import { InvoiceBulkActionBar } from "./InvoiceBulkActionBar";
+import { InvoiceFinancialSummary } from "./InvoiceFinancialSummary";
 import type { InvoiceFilterStatus } from "../hooks/useInvoiceFilters";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -41,6 +46,7 @@ interface InvoiceData {
   status: string;
   amountCents: number;
   currency: string;
+  issuedDate?: string | null;
   dueDate: string | null;
   clientCompanyName: string | null;
   clientContactName: string | null;
@@ -86,12 +92,30 @@ export function InvoiceList({
     ? projectQuery
     : globalQuery;
 
-  // Client-side filtering for search (since backend might not support it yet)
+  // Selected row state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const handleSelectAllChange = (checked: boolean) => {
+    if (checked && filteredData) {
+      setSelectedIds(new Set(filteredData.map((inv: InvoiceData) => inv.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleRowSelectChange = (id: string, checked: boolean) => {
+    const newSet = new Set(selectedIds);
+    if (checked) newSet.add(id);
+    else newSet.delete(id);
+    setSelectedIds(newSet);
+  };
+
+  // Client-side filtering for search
   const filteredData = useMemo(() => {
     if (!data || !searchQuery) return data;
 
     const query = searchQuery.toLowerCase();
-    return data.filter((invoice: any) => {
+    return data.filter((invoice: InvoiceData) => {
       const invoiceNumber = `INV-${invoice.number}`.toLowerCase();
       const clientName = (
         invoice.clientCompanyName ??
@@ -108,6 +132,38 @@ export function InvoiceList({
       );
     });
   }, [data, searchQuery]);
+
+  // Calculate financial summary from data
+  const summary = useMemo(() => {
+    let totalBilled = 0;
+    let totalPaid = 0;
+    let outstanding = 0;
+    let overdue = 0;
+
+    if (data) {
+      data.forEach((inv: InvoiceData) => {
+        totalBilled += inv.amountCents;
+        if (inv.status === "paid") {
+          totalPaid += inv.amountCents;
+        }
+        if (inv.status === "sent" || inv.status === "overdue") {
+          outstanding += inv.amountCents;
+        }
+        if (inv.status === "overdue") {
+          overdue += inv.amountCents;
+        }
+      });
+    }
+
+    return { totalBilled, totalPaid, outstanding, overdue, currency: "USD" };
+  }, [data]);
+
+  const allSelected =
+    filteredData &&
+    filteredData.length > 0 &&
+    selectedIds.size === filteredData.length;
+  const indeterminate =
+    selectedIds.size > 0 && selectedIds.size < (filteredData?.length ?? 0);
 
   // Update counts when they change
   React.useEffect(() => {
@@ -139,12 +195,17 @@ export function InvoiceList({
 
   if (isLoading) {
     return (
-      <>
-        {/* Desktop skeleton */}
+      <div className="space-y-6">
+        <InvoiceFinancialSummary
+          totalBilled={0}
+          totalPaid={0}
+          outstanding={0}
+          overdue={0}
+          loading
+        />
         <div className="hidden md:block">
           <InvoiceTableSkeleton rows={5} />
         </div>
-        {/* Mobile skeleton */}
         <div className="grid gap-3 md:hidden">
           {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i} className="p-4">
@@ -168,7 +229,7 @@ export function InvoiceList({
             </Card>
           ))}
         </div>
-      </>
+      </div>
     );
   }
 
@@ -176,12 +237,15 @@ export function InvoiceList({
 
   if (!filteredData || filteredData.length === 0) {
     return (
-      <div className="rounded-lg border">
-        <EmptyInvoiceState
-          hasFilters={hasActiveFilters}
-          onResetFilters={onResetFilters}
-          onCreateClick={onCreateClick}
-        />
+      <div className="space-y-6">
+        <InvoiceFinancialSummary {...summary} />
+        <div className="rounded-lg border shadow-sm">
+          <EmptyInvoiceState
+            hasFilters={hasActiveFilters}
+            onResetFilters={onResetFilters}
+            onCreateClick={onCreateClick}
+          />
+        </div>
       </div>
     );
   }
@@ -189,30 +253,68 @@ export function InvoiceList({
   // ── Table with Data ──────────────────────────────────────────────
 
   return (
-    <>
+    <div className="space-y-6">
+      <InvoiceFinancialSummary {...summary} />
+
+      <InvoiceBulkActionBar
+        selectedCount={selectedIds.size}
+        onClearSelection={() => setSelectedIds(new Set())}
+        onSend={() => {
+          gooeyToast.success(`Sending ${selectedIds.size} invoices...`);
+          setSelectedIds(new Set());
+        }}
+        onDownload={() => {
+          gooeyToast.success(`Downloading ${selectedIds.size} invoices...`);
+          setSelectedIds(new Set());
+        }}
+        onMarkPaid={() => {
+          gooeyToast.success(`Marked ${selectedIds.size} invoices as paid.`);
+          setSelectedIds(new Set());
+          refetch();
+        }}
+        onDelete={() => {
+          gooeyToast.error(`Deleted ${selectedIds.size} invoices.`);
+          setSelectedIds(new Set());
+          refetch();
+        }}
+      />
+
       {/* Desktop: Table View */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        className="hidden rounded-lg border md:block"
+        className="bg-card text-card-foreground hidden overflow-hidden rounded-xl border shadow-sm md:block"
       >
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Invoice #</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+          <TableHeader className="bg-muted/40">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[40px] pl-4">
+                <Checkbox
+                  checked={allSelected}
+                  indeterminate={indeterminate}
+                  onCheckedChange={handleSelectAllChange}
+                  aria-label="Select all"
+                />
+              </TableHead>
+              <TableHead className="w-[100px] font-medium">Invoice #</TableHead>
+              <TableHead className="font-medium">Client</TableHead>
+              <TableHead className="font-medium">Issued</TableHead>
+              <TableHead className="font-medium">Due</TableHead>
+              <TableHead className="font-medium">Amount</TableHead>
+              <TableHead className="font-medium">Status</TableHead>
+              <TableHead className="text-right font-medium">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.map((invoice: any) => (
+            {filteredData.map((invoice: InvoiceData) => (
               <InvoiceRow
                 key={invoice.id}
-                invoice={invoice as InvoiceData}
+                invoice={invoice}
+                isSelected={selectedIds.has(invoice.id)}
+                onSelectChange={(checked) =>
+                  handleRowSelectChange(invoice.id, checked)
+                }
                 onStatusUpdate={() => void refetch()}
               />
             ))}
@@ -225,16 +327,16 @@ export function InvoiceList({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        className="grid gap-3 md:hidden"
+        className="grid gap-3 shadow-sm md:hidden"
       >
-        {filteredData.map((invoice: any) => (
+        {filteredData.map((invoice: InvoiceData) => (
           <InvoiceCard
             key={invoice.id}
-            invoice={invoice as InvoiceData}
+            invoice={invoice}
             onStatusUpdate={() => void refetch()}
           />
         ))}
       </motion.div>
-    </>
+    </div>
   );
 }

@@ -3,7 +3,6 @@
 // NO "use client" — this is rendered server-side only.
 // Used by: GET /api/invoices/[invoiceId]/pdf
 
-import React from "react";
 import {
   Document,
   Page,

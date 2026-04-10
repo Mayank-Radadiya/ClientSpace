@@ -1,10 +1,9 @@
 // src/features/invoices/components/InvoiceFinancialSummary.tsx
-// Financial summary cards for project invoices - shows total billed, paid, outstanding
+// Financial summary cards for project invoices - shows total billed, paid, outstanding, overdue
 
 "use client";
 
 import { motion } from "framer-motion";
-import { DollarSign, CheckCircle2, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -15,6 +14,7 @@ interface InvoiceFinancialSummaryProps {
   totalBilled: number;
   totalPaid: number;
   outstanding: number;
+  overdue: number; // Added overdue
   currency?: string;
   loading?: boolean;
 }
@@ -34,6 +34,7 @@ export function InvoiceFinancialSummary({
   totalBilled,
   totalPaid,
   outstanding,
+  overdue,
   currency = "USD",
   loading = false,
 }: InvoiceFinancialSummaryProps) {
@@ -43,54 +44,50 @@ export function InvoiceFinancialSummary({
 
   const summaryItems = [
     {
-      label: "Total Billed",
+      label: "Total invoiced",
       value: formatCurrency(totalBilled, currency),
-      icon: DollarSign,
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-50 dark:bg-blue-950/30",
+      color: "text-foreground",
     },
     {
       label: "Paid",
       value: formatCurrency(totalPaid, currency),
-      icon: CheckCircle2,
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-50 dark:bg-green-950/30",
+      color: "text-emerald-600 dark:text-emerald-500",
     },
     {
       label: "Outstanding",
       value: formatCurrency(outstanding, currency),
-      icon: Clock,
+      color: "text-amber-600 dark:text-amber-500",
+    },
+    {
+      label: "Overdue",
+      value: formatCurrency(overdue, currency),
       color:
-        outstanding > 0
-          ? "text-orange-600 dark:text-orange-400"
+        overdue > 0
+          ? "text-rose-600 dark:text-rose-500"
           : "text-muted-foreground",
-      bgColor:
-        outstanding > 0 ? "bg-orange-50 dark:bg-orange-950/30" : "bg-muted/30",
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {summaryItems.map((item, index) => (
         <motion.div
           key={item.label}
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, delay: index * 0.05, ease: "easeOut" }}
         >
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className={cn("rounded-lg p-2", item.bgColor)}>
-                <item.icon className={cn("h-5 w-5", item.color)} />
-              </div>
-              <div className="flex-1">
-                <p className="text-muted-foreground text-xs font-medium">
-                  {item.label}
-                </p>
-                <p className="font-brand mt-0.5 text-lg font-semibold">
-                  {item.value}
-                </p>
-              </div>
+          <Card className="p-5 shadow-sm transition-shadow hover:shadow-md">
+            <p className="text-muted-foreground text-sm font-medium">
+              {item.label}
+            </p>
+            <div
+              className={cn(
+                "mt-2 text-2xl font-semibold tracking-tight tabular-nums",
+                item.color,
+              )}
+            >
+              {item.value}
             </div>
           </Card>
         </motion.div>
@@ -103,16 +100,11 @@ export function InvoiceFinancialSummary({
 
 function InvoiceFinancialSummarySkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {[...Array(3)].map((_, i) => (
-        <Card key={i} className="p-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-9 w-9 rounded-lg" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-5 w-24" />
-            </div>
-          </div>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {[...Array(4)].map((_, i) => (
+        <Card key={i} className="p-5 shadow-sm">
+          <Skeleton className="mb-3 h-4 w-24" />
+          <Skeleton className="h-8 w-32" />
         </Card>
       ))}
     </div>

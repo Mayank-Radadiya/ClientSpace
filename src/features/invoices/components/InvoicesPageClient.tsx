@@ -64,23 +64,16 @@ export function InvoicesPageClient({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.15, ease: "easeOut" }}
-      className="space-y-6 p-6 md:p-8"
+      className="mx-auto max-w-[1400px] space-y-8 p-6 md:p-8"
     >
       {/* ── Page Header ───────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {userRole === "client"
-              ? "View and download your invoices."
-              : "Manage client invoices and track payments."}
-          </p>
-        </div>
-
-        {/* Create Invoice Button (owner/admin only) */}
-        {isOwnerOrAdmin && (
-          <CreateInvoiceDialog clients={clients} projects={projects} />
-        )}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {userRole === "client"
+            ? "View and download your invoices."
+            : "Manage your client invoices and track payments."}
+        </p>
       </div>
 
       {/* ── Toolbar: Search + Filters ────────────────────────── */}
@@ -93,9 +86,13 @@ export function InvoicesPageClient({
         onResetFilters={resetFilters}
         totalCount={totalCount}
         filteredCount={filteredCount}
-      />
+      >
+        {isOwnerOrAdmin && (
+          <CreateInvoiceDialog clients={clients} projects={projects} />
+        )}
+      </InvoiceToolbar>
 
-      {/* ── Invoice List ──────────────────────────────────────── */}
+      {/* ── Invoice List (Includes Financial Summary) ──────────── */}
       <InvoiceList
         statusFilter={status}
         searchQuery={debouncedSearch}
