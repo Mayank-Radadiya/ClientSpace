@@ -5,7 +5,7 @@
 // All operations are RLS-scoped, RBAC-checked, and atomically safe.
 
 import { revalidatePath } from "next/cache";
-import { and, count, eq, gte, sql } from "drizzle-orm";
+import { and, count, eq, gte, sql, inArray } from "drizzle-orm";
 import {
   clients,
   invoiceLineItems,
@@ -299,5 +299,64 @@ export async function updateInvoiceStatus(
     revalidatePath("/dashboard/invoices");
 
     return { success: true };
+  });
+}
+
+// ─── bulkUpdateInvoiceStatus ──────────────────────────────────────────────────
+
+export async function bulkUpdateInvoiceStatus(input: {
+  invoiceIds: string[];
+  status: "sent" | "paid";
+}): Promise<ActionState> {
+  const { invoiceIds, status } = input;
+  if (!invoiceIds.length) return { success: true };
+
+  let allSuccess = true;
+  for (const id of invoiceIds) {
+    const res = await updateInvoiceStatus({ invoiceId: id, status });
+    if (!res.success) {
+      allSuccess = false;
+      console.error(`Failed to update invoice ${id}:`, res.error);
+    }
+  }
+
+  if (!allSuccess) {
+    return { error: "Some invoices could not be updated." };
+  }
+  return { success: true };
+}
+
+// ─── deleteInvoices ──────────────────────────────────────────────────────────
+
+export async function deleteInvoices(
+  invoiceIds: string[],
+): Promise<ActionState> {
+  if (!invoiceIds.length) return { success: true };
+
+  // 1. Auth & RBAC
+  const ctx = await getSessionContext();
+  if (!ctx) return { error: "You must be logged in." };
+  if (ctx.role !== "owner" && ctx.role !== "admin") {
+    return { error: "Only Admins and Owners can delete invoices." };
+  }
+
+  return withRLS(ctx, async (tx) => {
+    try {
+      await tx
+        .delete(invoiceLineItems)
+        .where(inArray(invoiceLineItems.invoiceId, invoiceIds));
+
+      await tx
+        .delete(invoices)
+        .where(
+          and(inArray(invoices.id, invoiceIds), eq(invoices.orgId, ctx.orgId)),
+        );
+
+      revalidatePath("/dashboard/invoices");
+      return { success: true };
+    } catch (err) {
+      console.error("[deleteInvoices] DB error:", err);
+      return { error: "Failed to delete invoices." };
+    }
   });
 }

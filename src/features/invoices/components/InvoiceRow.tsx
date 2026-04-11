@@ -31,7 +31,7 @@ import {
   STATUS_LABELS,
   getNextStatus,
 } from "../schemas";
-import { updateInvoiceStatus } from "../server/actions";
+import { updateInvoiceStatus, deleteInvoices } from "../server/actions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -192,6 +192,7 @@ export function InvoiceRow({
   onSelectChange,
   onStatusUpdate,
 }: InvoiceRowProps) {
+  const [isDeleting, startDeleteTransition] = useTransition();
   const status = invoice.status as InvoiceStatus;
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
 
@@ -325,11 +326,27 @@ export function InvoiceRow({
                 <span>Edit</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => gooeyToast.info("Delete not implemented yet")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  startDeleteTransition(async () => {
+                    const result = await deleteInvoices([invoice.id]);
+                    if (result.success) {
+                      gooeyToast.success(`INV-${invoice.number} deleted.`);
+                      onStatusUpdate?.(); // triggers refetch
+                    } else {
+                      gooeyToast.error(result.error ?? "Failed to delete.");
+                    }
+                  });
+                }}
+                disabled={isDeleting}
                 className="text-rose-600 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-950/50"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Delete</span>
+                {isDeleting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-2 h-4 w-4" />
+                )}
+                <span>{isDeleting ? "Deleting..." : "Delete"}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

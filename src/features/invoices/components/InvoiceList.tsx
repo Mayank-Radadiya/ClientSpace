@@ -4,7 +4,7 @@
 // src/features/invoices/components/InvoiceList.tsx
 // Invoice list with filtering, search, selection, and polished UI.
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useTransition } from "react";
 import { AlertCircleIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { gooeyToast } from "goey-toast";
+import { bulkUpdateInvoiceStatus, deleteInvoices } from "../server/actions";
 import {
   Table,
   TableBody,
@@ -94,6 +95,7 @@ export function InvoiceList({
 
   // Selected row state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkPending, startBulkTransition] = useTransition();
 
   const handleSelectAllChange = (checked: boolean) => {
     if (checked && filteredData) {
@@ -260,22 +262,67 @@ export function InvoiceList({
         selectedCount={selectedIds.size}
         onClearSelection={() => setSelectedIds(new Set())}
         onSend={() => {
-          gooeyToast.success(`Sending ${selectedIds.size} invoices...`);
-          setSelectedIds(new Set());
+          startBulkTransition(async () => {
+            const ids = Array.from(selectedIds);
+            const res = await bulkUpdateInvoiceStatus({
+              invoiceIds: ids,
+              status: "sent",
+            });
+            if (res.success) {
+              gooeyToast.success(`Sent ${ids.length} invoices.`);
+              setSelectedIds(new Set());
+              refetch();
+            } else {
+              gooeyToast.error(res.error ?? "Failed to send invoices.");
+            }
+          });
         }}
         onDownload={() => {
-          gooeyToast.success(`Downloading ${selectedIds.size} invoices...`);
+          const ids = Array.from(selectedIds);
+          if (ids.length > 5) {
+            gooeyToast.error(
+              "Please select up to 5 invoices to download at once.",
+            );
+            return;
+          }
+          let delay = 0;
+          ids.forEach((id) => {
+            setTimeout(() => {
+              window.open(`/api/invoices/${id}/pdf`, "_blank");
+            }, delay);
+            delay += 300;
+          });
+          gooeyToast.success(`Downloading ${ids.length} PDFs...`);
           setSelectedIds(new Set());
         }}
         onMarkPaid={() => {
-          gooeyToast.success(`Marked ${selectedIds.size} invoices as paid.`);
-          setSelectedIds(new Set());
-          refetch();
+          startBulkTransition(async () => {
+            const ids = Array.from(selectedIds);
+            const res = await bulkUpdateInvoiceStatus({
+              invoiceIds: ids,
+              status: "paid",
+            });
+            if (res.success) {
+              gooeyToast.success(`Marked ${ids.length} invoices as paid.`);
+              setSelectedIds(new Set());
+              refetch();
+            } else {
+              gooeyToast.error(res.error ?? "Failed to mark as paid.");
+            }
+          });
         }}
         onDelete={() => {
-          gooeyToast.error(`Deleted ${selectedIds.size} invoices.`);
-          setSelectedIds(new Set());
-          refetch();
+          startBulkTransition(async () => {
+            const ids = Array.from(selectedIds);
+            const res = await deleteInvoices(ids);
+            if (res.success) {
+              gooeyToast.success(`Deleted ${ids.length} invoices.`);
+              setSelectedIds(new Set());
+              refetch();
+            } else {
+              gooeyToast.error(res.error ?? "Failed to delete invoices.");
+            }
+          });
         }}
       />
 
