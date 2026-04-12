@@ -101,14 +101,10 @@ export function ProjectsHeader({
           <h1 className="text-foreground font-heading text-3xl font-black tracking-tighter sm:text-4xl">
             Projects
           </h1>
-          <p className="text-muted-foreground mt-2 text-[11px] font-bold tracking-[0.15em] uppercase opacity-70">
+          <p className="text-muted-foreground mt-2 text-[13px] opacity-70">
             {filteredCount === totalCount
-              ? `Management Center / `
-              : `Filtered View / `}
-            <span className="text-primary font-mono font-black tracking-normal">
-              {filteredCount}
-            </span>{" "}
-            {filteredCount === totalCount ? "ACTIVE" : `OF ${totalCount}`}
+              ? `${totalCount} of ${totalCount} project · ${filteredCount} active`
+              : `${filteredCount} of ${totalCount} project · Filtered view`}
           </p>
         </div>
         <div className="flex items-center gap-3">{children}</div>

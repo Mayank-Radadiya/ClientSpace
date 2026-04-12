@@ -65,17 +65,60 @@ function getDeadlineInfo(
   };
 }
 
-function getClientInitials(project: ProjectCardData) {
-  if (project.clientCompanyName) {
-    return project.clientCompanyName
-      .split(" ")
-      .map((name) => name[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-  }
+/**
+ * Parse a raw name string that may contain comma-separated junk (e.g. "Jon,,,,,").
+ * Returns the display name.
+ */
+function cleanName(raw: string): string {
+  const cleaned = raw
+    .split(",")
+    .map((s) => s.trim())
+    .find((s) => s.length > 0);
+  return cleaned || "Unassigned";
+}
 
-  return project.clientEmail?.slice(0, 2).toUpperCase() ?? "--";
+function getClientInitials(name: string) {
+  if (name === "Unassigned" || !name) return "--";
+
+  const words = name.split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    return (
+      (words[0]?.charAt(0) ?? "") + (words[words.length - 1]?.charAt(0) ?? "")
+    ).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+function getFormattedClientName(project: ProjectCardData): string {
+  const raw = project.clientCompanyName ?? project.clientEmail ?? "";
+  if (!raw) return "Unassigned";
+  return cleanName(raw);
+}
+
+function getClientAvatarColor(name: string) {
+  if (name === "Unassigned")
+    return "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400";
+  const colors = [
+    "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
+    "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300",
+    "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+    "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300",
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+    "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300",
+    "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300",
+    "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
+    "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300",
+    "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300",
+    "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
+    "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-300",
+    "bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300",
+    "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
 }
 
 function formatBudget(budget: number | null) {
@@ -120,6 +163,8 @@ export function getProjectCardViewModel(project: ProjectCardData) {
   const statusCfg = STATUS_CONFIG[project.status];
   const priorityCfg = PRIORITY_CONFIG[project.priority];
 
+  const clientName = getFormattedClientName(project);
+
   return {
     project,
     statusCfg,
@@ -135,11 +180,9 @@ export function getProjectCardViewModel(project: ProjectCardData) {
       new Date(project.createdAt),
       PROJECT_CARD_FORMATS.shortDate,
     ),
-    clientInitials: getClientInitials(project),
+    clientInitials: getClientInitials(clientName),
+    clientAvatarColor: getClientAvatarColor(clientName),
     budgetFormatted: formatBudget(project.budget),
-    clientName:
-      project.clientCompanyName ??
-      project.clientEmail ??
-      PROJECT_CARD_COPY.noClient,
+    clientName: clientName,
   };
 }

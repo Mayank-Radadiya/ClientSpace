@@ -22,7 +22,10 @@ export function useCreateProject(onSuccess?: () => void) {
       formRef.current?.reset();
       setStartDate(undefined);
       setDeadline(undefined);
-      utils.project.getAll.invalidate();
+      void Promise.all([
+        utils.project.getAll.invalidate(),
+        utils.project.getBootstrap.invalidate(),
+      ]);
       toast.dismiss();
       toast.success("Project launched successfully!");
       onSuccess?.();

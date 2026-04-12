@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, lt, ilike, inArray, or } from "drizzle-orm";
+import { and, desc, eq, lt, ilike, inArray, or, sql } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
 import { TRPCError } from "@trpc/server";
@@ -29,6 +29,80 @@ const getAllInput = z.object({
   limit: z.number().int().min(1).max(100).default(50),
   cursor: z.string().optional(), // ISO timestamp
 });
+
+function buildProjectWhere(input: z.infer<typeof getAllInput>, orgId: string) {
+  const { search, status, priority, cursor } = input;
+  const conditions = [eq(projects.orgId, orgId)];
+
+  if (search) {
+    const searchCondition = or(
+      ilike(projects.name, `%${search}%`),
+      ilike(projects.description, `%${search}%`),
+      ilike(sql`coalesce(${clients.companyName}, '')`, `%${search}%`),
+    );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
+  }
+
+  if (status && status.length > 0) {
+    conditions.push(inArray(projects.status, status));
+  }
+
+  if (priority && priority.length > 0) {
+    conditions.push(inArray(projects.priority, priority));
+  }
+
+  if (cursor) {
+    conditions.push(lt(projects.createdAt, new Date(cursor)));
+  }
+
+  return and(...conditions);
+}
+
+async function fetchProjectPage(
+  tx: any,
+  input: z.infer<typeof getAllInput>,
+  orgId: string,
+) {
+  const { limit } = input;
+  const results = await tx
+    .select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      status: projects.status,
+      priority: projects.priority,
+      startDate: projects.startDate,
+      deadline: projects.deadline,
+      budget: projects.budget,
+      tags: projects.tags,
+      createdAt: projects.createdAt,
+      updatedAt: projects.updatedAt,
+      clientId: projects.clientId,
+      clientCompanyName: clients.companyName,
+      clientEmail: clients.email,
+    })
+    .from(projects)
+    .leftJoin(clients, eq(projects.clientId, clients.id))
+    .where(buildProjectWhere(input, orgId))
+    .orderBy(desc(projects.createdAt))
+    .limit(limit + 1);
+
+  const hasMore = results.length > limit;
+  const items = hasMore ? results.slice(0, limit) : results;
+
+  return {
+    projects: items.map((p: any) => ({
+      ...p,
+      isOverdue: computeOverdue(p),
+    })),
+    nextCursor:
+      hasMore && items.length > 0
+        ? items[items.length - 1]!.createdAt.toISOString()
+        : undefined,
+  };
+}
 
 export const projectRouter = createTRPCRouter({
   create: protectedProcedure
@@ -88,54 +162,29 @@ export const projectRouter = createTRPCRouter({
     .input(getAllInput)
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
-        const { search, status, priority, limit, cursor } = input;
+        return fetchProjectPage(tx, input, ctx.orgId);
+      });
+    }),
 
-        const conditions = [];
-
-        if (search) {
-          conditions.push(
-            or(
-              ilike(projects.name, `%${search}%`),
-              ilike(projects.description, `%${search}%`),
-            ),
-          );
-        }
-
-        if (status && status.length > 0) {
-          conditions.push(inArray(projects.status, status));
-        }
-
-        if (priority && priority.length > 0) {
-          conditions.push(inArray(projects.priority, priority));
-        }
-
-        if (cursor) {
-          conditions.push(lt(projects.createdAt, new Date(cursor)));
-        }
-
-        const results = await tx.query.projects.findMany({
-          where: and(...conditions),
-          orderBy: [desc(projects.createdAt)],
-          limit: limit + 1,
-          with: {
-            client: true,
-          },
-        });
-
-        const hasMore = results.length > limit;
-        const items = hasMore ? results.slice(0, limit) : results;
+  getBootstrap: protectedProcedure
+    .input(getAllInput)
+    .query(async ({ ctx, input }) => {
+      return withRLS(ctx, async (tx) => {
+        const [orgClients, firstPage] = await Promise.all([
+          tx
+            .select({
+              id: clients.id,
+              companyName: clients.companyName,
+              email: clients.email,
+            })
+            .from(clients)
+            .where(eq(clients.orgId, ctx.orgId)),
+          fetchProjectPage(tx, input, ctx.orgId),
+        ]);
 
         return {
-          projects: items.map((p) => ({
-            ...p,
-            isOverdue: computeOverdue(p),
-            clientCompanyName: p.client?.companyName ?? null,
-            clientEmail: p.client?.email ?? null,
-          })),
-          nextCursor:
-            hasMore && items.length > 0
-              ? items[items.length - 1]!.createdAt.toISOString()
-              : undefined,
+          clients: orgClients,
+          firstPage,
         };
       });
     }),
@@ -169,20 +218,17 @@ export const projectRouter = createTRPCRouter({
       }
 
       return withRLS(ctx, async (tx) => {
-        const existing = await tx.query.projects.findFirst({
-          where: and(eq(projects.id, input.id), eq(projects.orgId, ctx.orgId)),
-        });
+        const deleted = await tx
+          .delete(projects)
+          .where(and(eq(projects.id, input.id), eq(projects.orgId, ctx.orgId)))
+          .returning({ id: projects.id });
 
-        if (!existing) {
+        if (deleted.length === 0) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Project not found.",
           });
         }
-
-        await tx
-          .delete(projects)
-          .where(and(eq(projects.id, input.id), eq(projects.orgId, ctx.orgId)));
 
         return { success: true };
       });

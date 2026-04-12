@@ -43,9 +43,8 @@ type ProjectData = {
   updatedAt: string;
   clientId: string;
   clientCompanyName: string | null;
-  clientEmail: string;
+  clientEmail: string | null;
   isOverdue: boolean;
-  client: any;
 };
 
 type ProjectListProps = {
@@ -69,13 +68,14 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     trpc.project.getAll.useInfiniteQuery(
       {
-        search: filters.search,
+        search: filters.search.trim().length >= 2 ? filters.search.trim() : "",
         status: filters.status,
         priority: filters.priority,
         limit: 50,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: (previousData) => previousData,
       },
     );
 
@@ -133,9 +133,9 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
       {isLoading ? (
         <div
           className={cn(
-            "grid gap-4",
+            "grid w-full gap-4",
             viewMode === "grid"
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              ? "grid-cols-[repeat(auto-fill,minmax(320px,1fr))]"
               : "grid-cols-1",
           )}
         >
@@ -147,9 +147,9 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
         <>
           <div
             className={cn(
-              "grid gap-4",
+              "grid w-full gap-4",
               viewMode === "grid"
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                ? "grid-cols-[repeat(auto-fill,minmax(320px,1fr))]"
                 : "grid-cols-1",
             )}
           >

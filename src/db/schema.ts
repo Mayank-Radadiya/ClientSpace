@@ -196,6 +196,12 @@ export const projects = pgTable(
   (t) => [
     index("projects_org_client_idx").on(t.orgId, t.clientId), // Dashboard list
     index("projects_org_created_idx").on(t.orgId, t.createdAt), // getAll sort hot path
+    index("projects_org_status_priority_created_idx").on(
+      t.orgId,
+      t.status,
+      t.priority,
+      t.createdAt,
+    ), // Filtered getAll path
   ],
 ).enableRLS();
 
@@ -292,6 +298,12 @@ export const assets = pgTable(
   },
   (t) => [
     index("assets_org_project_idx").on(t.orgId, t.projectId),
+    index("assets_project_folder_deleted_updated_idx").on(
+      t.projectId,
+      t.folderId,
+      t.deletedAt,
+      t.updatedAt,
+    ),
     index("assets_auto_approve_idx").on(t.autoApproveAt), // Inngest cron hot path
   ],
 ).enableRLS();

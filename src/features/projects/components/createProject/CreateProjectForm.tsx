@@ -106,6 +106,7 @@ export function CreateProjectForm({
     onSuccess: async () => {
       // Invalidate queries to refresh data
       await utils.project.getAll.invalidate();
+      await utils.project.getBootstrap.invalidate();
 
       // Show success toast
       toast.dismiss();

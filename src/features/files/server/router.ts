@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
-import { assets, fileVersions, folders, projects, users } from "@/db/schema";
+import { assets, fileVersions, folders, users } from "@/db/schema";
 
 export const fileRouter = createTRPCRouter({
   // ─── All assets in a project (current folder level) ───────────────────────
@@ -18,16 +18,6 @@ export const fileRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
-        // Verify project belongs to this org
-        const project = await tx.query.projects.findFirst({
-          where: and(
-            eq(projects.id, input.projectId),
-            eq(projects.orgId, ctx.orgId),
-          ),
-          columns: { id: true },
-        });
-        if (!project) throw new Error("Project not found.");
-
         const folderCondition = input.folderId
           ? eq(assets.folderId, input.folderId)
           : isNull(assets.folderId);
@@ -150,23 +140,22 @@ export const fileRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
-        // Verify the asset belongs to this org + project before deleting
-        const asset = await tx.query.assets.findFirst({
-          where: and(
-            eq(assets.id, input.assetId),
-            eq(assets.projectId, input.projectId),
-            eq(assets.orgId, ctx.orgId),
-            isNull(assets.deletedAt), // Can't delete already-deleted assets
-          ),
-          columns: { id: true, projectId: true },
-        });
-
-        if (!asset) throw new Error("Asset not found or already deleted.");
-
-        await tx
+        const updated = await tx
           .update(assets)
           .set({ deletedAt: new Date() })
-          .where(eq(assets.id, input.assetId));
+          .where(
+            and(
+              eq(assets.id, input.assetId),
+              eq(assets.projectId, input.projectId),
+              eq(assets.orgId, ctx.orgId),
+              isNull(assets.deletedAt),
+            ),
+          )
+          .returning({ id: assets.id });
+
+        if (updated.length === 0) {
+          throw new Error("Asset not found or already deleted.");
+        }
 
         revalidatePath(`/projects/${input.projectId}/files`);
 
