@@ -149,8 +149,8 @@ body {
   --foreground: oklch(0.9219 0 0);
   --card: oklch(18.674% 0.00002 271.152);
   --card-foreground: oklch(0.9219 0 0);
-  --popover: oklch(0.29 0.0249 268.3986);
-  --popover-foreground: oklch(0.9219 0 0);
+  --popover: oklch(22.324% 0.00154 16.369);
+  --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.68 0.18 270);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.3095 0.0266 266.7132);
@@ -211,5 +211,27 @@ body {
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes invoice-overdue-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.55;
+  }
+}
+
+.invoice-overdue-pulse {
+  animation: invoice-overdue-pulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invoice-overdue-pulse {
+    animation: none !important;
   }
 }

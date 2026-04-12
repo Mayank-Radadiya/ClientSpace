@@ -7,13 +7,10 @@ import { FileDownIcon, Calendar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import {
-  type InvoiceStatus,
-  type Currency,
-  formatCents,
-  STATUS_LABELS,
-} from "../schemas";
+import { type Currency, formatCents } from "../schemas";
 import { InvoiceStatusButton } from "./InvoiceStatusButton";
+import type { InvoiceStatus } from "../schemas";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,7 +34,7 @@ interface InvoiceCardProps {
 // ─── Status Config ────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<
-  InvoiceStatus,
+  InvoiceUiStatus,
   {
     badgeVariant: "secondary" | "info" | "success" | "error" | "warning";
     dot: string;
@@ -69,16 +66,61 @@ const STATUS_CONFIG: Record<
     amountColor: "text-red-600 dark:text-red-400",
     cardBorder: "border-red-200/50 dark:border-red-800/30",
   },
+  viewed: {
+    badgeVariant: "info",
+    dot: "bg-violet-500",
+    amountColor: "text-violet-600 dark:text-violet-400",
+    cardBorder: "border-violet-200/50 dark:border-violet-800/30",
+  },
+  cancelled: {
+    badgeVariant: "secondary",
+    dot: "bg-zinc-500",
+    amountColor: "text-muted-foreground",
+    cardBorder: "border-border",
+  },
 };
+
+type InvoiceUiStatus =
+  | "draft"
+  | "sent"
+  | "viewed"
+  | "paid"
+  | "overdue"
+  | "cancelled";
+
+const STATUS_LABELS_UI: Record<InvoiceUiStatus, string> = {
+  draft: "Draft",
+  sent: "Sent",
+  viewed: "Viewed",
+  paid: "Paid",
+  overdue: "Overdue",
+  cancelled: "Cancelled",
+};
+
+function normalizeStatus(status: string): InvoiceUiStatus {
+  if (status === "sent") return "sent";
+  if (status === "viewed") return "viewed";
+  if (status === "paid") return "paid";
+  if (status === "overdue") return "overdue";
+  if (status === "cancelled") return "cancelled";
+  return "draft";
+}
+
+function toCoreStatus(status: InvoiceUiStatus): InvoiceStatus {
+  if (status === "sent") return "sent";
+  if (status === "paid") return "paid";
+  if (status === "overdue") return "overdue";
+  return "draft";
+}
 
 // ─── StatusBadge ─────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: InvoiceStatus }) {
+function StatusBadge({ status }: { status: InvoiceUiStatus }) {
   const cfg = STATUS_CONFIG[status];
   return (
     <Badge variant={cfg.badgeVariant} className="gap-1.5 capitalize">
       <span className={cn("size-1.5 rounded-full", cfg.dot)} />
-      {STATUS_LABELS[status]}
+      {STATUS_LABELS_UI[status]}
     </Badge>
   );
 }
@@ -86,7 +128,7 @@ function StatusBadge({ status }: { status: InvoiceStatus }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function InvoiceCard({ invoice, onStatusUpdate }: InvoiceCardProps) {
-  const status = invoice.status as InvoiceStatus;
+  const status = normalizeStatus(invoice.status);
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
 
   const clientName =
@@ -103,7 +145,16 @@ export function InvoiceCard({ invoice, onStatusUpdate }: InvoiceCardProps) {
       })
     : "—";
 
-  const isOverdue = status === "overdue";
+  const urgency = (() => {
+    if (status === "paid") return "paid" as const;
+    if (!invoice.dueDate) return "normal" as const;
+    const now = new Date();
+    const due = new Date(invoice.dueDate);
+    const days = (due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    if (days < 0 || status === "overdue") return "overdue" as const;
+    if (days <= 3) return "soon" as const;
+    return "normal" as const;
+  })();
   const canDownload =
     status === "sent" || status === "paid" || status === "overdue";
 
@@ -146,12 +197,15 @@ export function InvoiceCard({ invoice, onStatusUpdate }: InvoiceCardProps) {
           <span
             className={cn(
               "text-sm",
-              isOverdue
-                ? "font-semibold text-red-500 dark:text-red-400"
-                : "text-muted-foreground",
+              urgency === "overdue" &&
+                "font-semibold text-red-600 dark:text-red-400",
+              urgency === "soon" &&
+                "font-medium text-amber-600 dark:text-amber-400",
+              urgency === "paid" && "text-muted-foreground line-through",
+              urgency === "normal" && "text-muted-foreground",
             )}
           >
-            {isOverdue ? "Overdue · " : "Due · "}
+            {urgency === "overdue" ? "Overdue · " : "Due · "}
             {dueDate}
           </span>
         </div>
@@ -159,7 +213,7 @@ export function InvoiceCard({ invoice, onStatusUpdate }: InvoiceCardProps) {
         {/* Actions */}
         <div className="flex items-center gap-2 border-t px-4 py-3">
           {canDownload && (
-            <a
+            <Link
               href={`/api/invoices/${invoice.id}/pdf`}
               target="_blank"
               rel="noopener noreferrer"
@@ -167,14 +221,14 @@ export function InvoiceCard({ invoice, onStatusUpdate }: InvoiceCardProps) {
               className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:ring-1 focus-visible:outline-none"
             >
               <FileDownIcon className="h-4 w-4" />
-            </a>
+            </Link>
           )}
 
           <div className="flex-1">
             <InvoiceStatusButton
               invoice={{
                 id: invoice.id,
-                status,
+                status: toCoreStatus(status),
                 number: invoice.number,
               }}
               onSuccess={onStatusUpdate}

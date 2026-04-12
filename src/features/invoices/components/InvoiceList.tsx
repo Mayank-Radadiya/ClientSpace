@@ -1,44 +1,55 @@
 "use client";
-// ─── Main Component ───────────────────────────────────────────────────────────
-
-// src/features/invoices/components/InvoiceList.tsx
-// Invoice list with filtering, search, selection, and polished UI.
 
 import React, { useMemo, useState, useTransition } from "react";
-import { AlertCircleIcon } from "lucide-react";
+import { AlertCircleIcon, ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { motion } from "framer-motion";
+import { gooeyToast } from "goey-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { gooeyToast } from "goey-toast";
-import { bulkUpdateInvoiceStatus, deleteInvoices } from "../server/actions";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { trpc } from "@/lib/trpc/client";
+import { cn } from "@/lib/utils";
+import { bulkUpdateInvoiceStatus, deleteInvoices } from "../server/actions";
 import { InvoiceRow } from "./InvoiceRow";
 import { InvoiceCard } from "./InvoiceCard";
 import { InvoiceTableSkeleton } from "./InvoiceTableSkeleton";
-import { EmptyInvoiceState } from "./EmptyInvoiceState";
 import { InvoiceBulkActionBar } from "./InvoiceBulkActionBar";
 import { InvoiceFinancialSummary } from "./InvoiceFinancialSummary";
-import type { InvoiceFilterStatus } from "../hooks/useInvoiceFilters";
+import type {
+  InvoiceFilterStatus,
+  InvoiceSortBy,
+  InvoiceSortDir,
+} from "../hooks/useInvoiceFilters";
+import type { StatusCount } from "./InvoiceToolbar";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+function tableLayoutClass(view: "desktop" | "tablet"): string {
+  if (view === "desktop") return "hidden lg:block";
+  return "hidden md:block lg:hidden";
+}
 
 interface InvoiceListProps {
   statusFilter?: InvoiceFilterStatus;
   searchQuery?: string;
-  hasActiveFilters?: boolean;
-  onResetFilters?: () => void;
+  sortBy?: InvoiceSortBy;
+  sortDir?: InvoiceSortDir;
+  onSortChange?: (column: InvoiceSortBy) => void;
+  userRole?: string;
   onCreateClick?: () => void;
-  onCountsChange?: (total: number, filtered: number) => void;
-  projectId?: string; // Optional: filter invoices by project
+  onCountsChange?: (
+    total: number,
+    filtered: number,
+    statusCounts: StatusCount[],
+  ) => void;
+  projectId?: string;
 }
 
 interface InvoiceData {
@@ -54,22 +65,76 @@ interface InvoiceData {
   clientEmail: string | null;
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+function timeValue(dateString?: string | null): number {
+  if (!dateString) return 0;
+  const ms = new Date(dateString).getTime();
+  return Number.isNaN(ms) ? 0 : ms;
+}
+
+function EmptyTabState({
+  status,
+  onCreateClick,
+}: {
+  status: InvoiceFilterStatus;
+  onCreateClick?: () => void;
+}) {
+  const copyMap: Record<
+    InvoiceFilterStatus,
+    { title: string; subtitle: string }
+  > = {
+    all: {
+      title: "No invoices yet",
+      subtitle:
+        "Create your first invoice to start tracking billing and payments.",
+    },
+    draft: {
+      title: "No draft invoices",
+      subtitle:
+        "Drafts let you prepare invoices before sending them to clients.",
+    },
+    sent: {
+      title: "No sent invoices",
+      subtitle: "Sent invoices will appear here once they are delivered.",
+    },
+    paid: {
+      title: "No paid invoices",
+      subtitle: "Paid invoices are shown here once payments are settled.",
+    },
+    overdue: {
+      title: "No overdue invoices",
+      subtitle: "Great news - you currently have no overdue invoices.",
+    },
+  };
+
+  const copy = copyMap[status] ?? copyMap.all;
+
+  return (
+    <div className="border-border/70 bg-muted/10 flex min-h-[240px] flex-col items-center justify-center rounded-lg border border-dashed px-6 py-8 text-center">
+      <h3 className="text-base font-semibold">{copy.title}</h3>
+      <p className="text-muted-foreground mt-1 max-w-md text-sm">
+        {copy.subtitle}
+      </p>
+      {status === "draft" && onCreateClick && (
+        <Button className="mt-4" onClick={onCreateClick}>
+          Create invoice
+        </Button>
+      )}
+    </div>
+  );
+}
 
 export function InvoiceList({
   statusFilter = "all",
   searchQuery = "",
-  hasActiveFilters = false,
-  onResetFilters,
+  sortBy = "due",
+  sortDir = "desc",
+  onSortChange,
   onCreateClick,
   onCountsChange,
   projectId,
 }: InvoiceListProps) {
-  // Fetch data based on whether we're filtering by project or not
   const globalQuery = trpc.invoice.getAll.useQuery(
-    {
-      status: statusFilter === "all" ? undefined : (statusFilter as any),
-    },
+    { status: undefined },
     {
       enabled: !projectId,
       staleTime: 5 * 60 * 1000,
@@ -88,93 +153,175 @@ export function InvoiceList({
     },
   );
 
-  // Use the appropriate query result
   const { data, isLoading, error, refetch } = projectId
     ? projectQuery
     : globalQuery;
 
-  // Selected row state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkPending, startBulkTransition] = useTransition();
 
-  const handleSelectAllChange = (checked: boolean) => {
-    if (checked && filteredData) {
-      setSelectedIds(new Set(filteredData.map((inv: InvoiceData) => inv.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
-  };
-
-  const handleRowSelectChange = (id: string, checked: boolean) => {
-    const newSet = new Set(selectedIds);
-    if (checked) newSet.add(id);
-    else newSet.delete(id);
-    setSelectedIds(newSet);
-  };
-
-  // Client-side filtering for search
   const filteredData = useMemo(() => {
-    if (!data || !searchQuery) return data;
+    if (!data) return [] as InvoiceData[];
+    const baseRows =
+      statusFilter === "all"
+        ? (data as InvoiceData[])
+        : (data as InvoiceData[]).filter(
+            (invoice) => invoice.status === statusFilter,
+          );
+    if (!searchQuery) return baseRows;
 
     const query = searchQuery.toLowerCase();
-    return data.filter((invoice: InvoiceData) => {
+    return baseRows.filter((invoice) => {
       const invoiceNumber = `INV-${invoice.number}`.toLowerCase();
       const clientName = (
         invoice.clientCompanyName ??
         invoice.clientContactName ??
         invoice.clientEmail ??
         ""
-      ).toLowerCase();
-      const amount = invoice.amountCents.toString();
+      )
+        .replace(/,+/g, " ")
+        .toLowerCase();
 
       return (
         invoiceNumber.includes(query) ||
         clientName.includes(query) ||
-        amount.includes(query)
+        String(invoice.amountCents).includes(query)
       );
     });
-  }, [data, searchQuery]);
+  }, [data, searchQuery, statusFilter]);
 
-  // Calculate financial summary from data
+  const sortedData = useMemo(() => {
+    const rows = [...filteredData];
+    rows.sort((a, b) => {
+      let left = 0;
+      let right = 0;
+
+      if (sortBy === "number") {
+        left = a.number;
+        right = b.number;
+      } else if (sortBy === "issued") {
+        left = timeValue(a.issuedDate || a.dueDate);
+        right = timeValue(b.issuedDate || b.dueDate);
+      } else if (sortBy === "due") {
+        left = timeValue(a.dueDate);
+        right = timeValue(b.dueDate);
+      } else {
+        left = a.amountCents;
+        right = b.amountCents;
+      }
+
+      return sortDir === "asc" ? left - right : right - left;
+    });
+    return rows;
+  }, [filteredData, sortBy, sortDir]);
+
   const summary = useMemo(() => {
+    const rows = (data as InvoiceData[] | undefined) ?? [];
     let totalBilled = 0;
     let totalPaid = 0;
     let outstanding = 0;
     let overdue = 0;
+    let paidInvoices = 0;
+    let outstandingInvoices = 0;
+    let overdueInvoices = 0;
 
-    if (data) {
-      data.forEach((inv: InvoiceData) => {
-        totalBilled += inv.amountCents;
-        if (inv.status === "paid") {
-          totalPaid += inv.amountCents;
-        }
-        if (inv.status === "sent" || inv.status === "overdue") {
-          outstanding += inv.amountCents;
-        }
-        if (inv.status === "overdue") {
-          overdue += inv.amountCents;
-        }
-      });
-    }
+    rows.forEach((inv) => {
+      totalBilled += inv.amountCents;
+      if (inv.status === "paid") {
+        totalPaid += inv.amountCents;
+        paidInvoices += 1;
+      }
+      if (inv.status === "sent" || inv.status === "overdue") {
+        outstanding += inv.amountCents;
+        outstandingInvoices += 1;
+      }
+      if (inv.status === "overdue") {
+        overdue += inv.amountCents;
+        overdueInvoices += 1;
+      }
+    });
 
-    return { totalBilled, totalPaid, outstanding, overdue, currency: "USD" };
+    return {
+      totalBilled,
+      totalPaid,
+      outstanding,
+      overdue,
+      currency: "USD",
+      totalInvoices: rows.length,
+      paidInvoices,
+      outstandingInvoices,
+      overdueInvoices,
+    };
   }, [data]);
 
-  const allSelected =
-    filteredData &&
-    filteredData.length > 0 &&
-    selectedIds.size === filteredData.length;
-  const indeterminate =
-    selectedIds.size > 0 && selectedIds.size < (filteredData?.length ?? 0);
+  const statusCounts = useMemo<StatusCount[]>(() => {
+    const rows = (data as InvoiceData[] | undefined) ?? [];
+    const draft = rows.filter((r) => r.status === "draft").length;
+    const sent = rows.filter((r) => r.status === "sent").length;
+    const paid = rows.filter((r) => r.status === "paid").length;
+    const overdue = rows.filter((r) => r.status === "overdue").length;
 
-  // Update counts when they change
+    return [
+      { key: "all", label: "All", count: rows.length },
+      { key: "draft", label: "Draft", count: draft },
+      { key: "sent", label: "Sent", count: sent },
+      { key: "paid", label: "Paid", count: paid },
+      { key: "overdue", label: "Overdue", count: overdue },
+    ];
+  }, [data]);
+
   React.useEffect(() => {
-    if (data && filteredData && onCountsChange) {
-      onCountsChange(data.length, filteredData.length);
-    }
-  }, [data, filteredData, onCountsChange]);
+    onCountsChange?.(data?.length ?? 0, sortedData.length, statusCounts);
+  }, [data, sortedData.length, statusCounts, onCountsChange]);
 
-  // ── Error State ──────────────────────────────────────────────────
+  const allSelected =
+    sortedData.length > 0 && selectedIds.size === sortedData.length;
+  const indeterminate =
+    selectedIds.size > 0 && selectedIds.size < sortedData.length;
+
+  const handleSelectAllChange = (checked: boolean) => {
+    if (!checked) {
+      setSelectedIds(new Set());
+      return;
+    }
+    setSelectedIds(new Set(sortedData.map((inv) => inv.id)));
+  };
+
+  const handleRowSelectChange = (id: string, checked: boolean) => {
+    const next = new Set(selectedIds);
+    if (checked) next.add(id);
+    else next.delete(id);
+    setSelectedIds(next);
+  };
+
+  const selectedTotal = selectedIds.size;
+
+  const renderSortHeader = (label: string, key: InvoiceSortBy) => {
+    const active = sortBy === key;
+    return (
+      <button
+        type="button"
+        onClick={() => onSortChange?.(key)}
+        className={
+          "group inline-flex items-center gap-1 text-left text-xs tracking-[0.08em] uppercase"
+        }
+        aria-label={`Sort by ${label}`}
+      >
+        <span className={cn(active ? "text-primary" : "text-muted-foreground")}>
+          {label}
+        </span>
+        {active ? (
+          sortDir === "asc" ? (
+            <ArrowUp className="text-primary h-3.5 w-3.5" />
+          ) : (
+            <ArrowDown className="text-primary h-3.5 w-3.5" />
+          )
+        ) : (
+          <ArrowUpDown className="text-muted-foreground/0 group-hover:text-muted-foreground h-3.5 w-3.5" />
+        )}
+      </button>
+    );
+  };
 
   if (error) {
     return (
@@ -192,8 +339,6 @@ export function InvoiceList({
       </div>
     );
   }
-
-  // ── Loading State ────────────────────────────────────────────────
 
   if (isLoading) {
     return (
@@ -223,10 +368,6 @@ export function InvoiceList({
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-4 w-24" />
                 </div>
-                <div className="flex gap-2 border-t pt-3">
-                  <Skeleton className="h-8 flex-1" />
-                  <Skeleton className="h-8 flex-1" />
-                </div>
               </div>
             </Card>
           ))}
@@ -235,33 +376,21 @@ export function InvoiceList({
     );
   }
 
-  // ── Empty State ──────────────────────────────────────────────────
-
-  if (!filteredData || filteredData.length === 0) {
-    return (
-      <div className="space-y-6">
-        <InvoiceFinancialSummary {...summary} />
-        <div className="rounded-lg border shadow-sm">
-          <EmptyInvoiceState
-            hasFilters={hasActiveFilters}
-            onResetFilters={onResetFilters}
-            onCreateClick={onCreateClick}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // ── Table with Data ──────────────────────────────────────────────
+  const showEmpty = sortedData.length === 0;
 
   return (
     <div className="space-y-6">
       <InvoiceFinancialSummary {...summary} />
 
       <InvoiceBulkActionBar
-        selectedCount={selectedIds.size}
+        selectedCount={selectedTotal}
+        totalCount={sortedData.length}
+        onSelectAll={() =>
+          setSelectedIds(new Set(sortedData.map((inv) => inv.id)))
+        }
         onClearSelection={() => setSelectedIds(new Set())}
         onSend={() => {
+          if (isBulkPending) return;
           startBulkTransition(async () => {
             const ids = Array.from(selectedIds);
             const res = await bulkUpdateInvoiceStatus({
@@ -271,7 +400,7 @@ export function InvoiceList({
             if (res.success) {
               gooeyToast.success(`Sent ${ids.length} invoices.`);
               setSelectedIds(new Set());
-              refetch();
+              void refetch();
             } else {
               gooeyToast.error(res.error ?? "Failed to send invoices.");
             }
@@ -279,23 +408,19 @@ export function InvoiceList({
         }}
         onDownload={() => {
           const ids = Array.from(selectedIds);
-          if (ids.length > 5) {
-            gooeyToast.error(
-              "Please select up to 5 invoices to download at once.",
-            );
-            return;
-          }
-          let delay = 0;
-          ids.forEach((id) => {
+          ids.forEach((id, idx) => {
             setTimeout(() => {
-              window.open(`/api/invoices/${id}/pdf`, "_blank");
-            }, delay);
-            delay += 300;
+              window.open(
+                `/api/invoices/${id}/pdf`,
+                "_blank",
+                "noopener,noreferrer",
+              );
+            }, idx * 250);
           });
           gooeyToast.success(`Downloading ${ids.length} PDFs...`);
-          setSelectedIds(new Set());
         }}
         onMarkPaid={() => {
+          if (isBulkPending) return;
           startBulkTransition(async () => {
             const ids = Array.from(selectedIds);
             const res = await bulkUpdateInvoiceStatus({
@@ -305,20 +430,21 @@ export function InvoiceList({
             if (res.success) {
               gooeyToast.success(`Marked ${ids.length} invoices as paid.`);
               setSelectedIds(new Set());
-              refetch();
+              void refetch();
             } else {
-              gooeyToast.error(res.error ?? "Failed to mark as paid.");
+              gooeyToast.error(res.error ?? "Failed to mark invoices as paid.");
             }
           });
         }}
         onDelete={() => {
+          if (isBulkPending) return;
           startBulkTransition(async () => {
             const ids = Array.from(selectedIds);
             const res = await deleteInvoices(ids);
             if (res.success) {
               gooeyToast.success(`Deleted ${ids.length} invoices.`);
               setSelectedIds(new Set());
-              refetch();
+              void refetch();
             } else {
               gooeyToast.error(res.error ?? "Failed to delete invoices.");
             }
@@ -326,63 +452,164 @@ export function InvoiceList({
         }}
       />
 
-      {/* Desktop: Table View */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        className="bg-card text-card-foreground hidden overflow-hidden rounded-xl border shadow-sm md:block"
+        className={cn(
+          "bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm",
+          tableLayoutClass("desktop"),
+        )}
       >
-        <Table>
-          <TableHeader className="bg-muted/40">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[40px] pl-4">
-                <Checkbox
-                  checked={allSelected}
-                  indeterminate={indeterminate}
-                  onCheckedChange={handleSelectAllChange}
-                  aria-label="Select all"
+        {showEmpty ? (
+          <div className="p-4">
+            <EmptyTabState
+              status={statusFilter}
+              onCreateClick={onCreateClick}
+            />
+          </div>
+        ) : (
+          <Table>
+            {/* <TableCaption>
+              {userRole === "client"
+                ? "List of invoices available for viewing and downloading."
+                : "Invoice register with status, due dates, and payment actions."}
+            </TableCaption> */}
+            <TableHeader className="bg-muted/30">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className="w-[40px] pl-4">
+                  <Checkbox
+                    checked={allSelected}
+                    indeterminate={indeterminate}
+                    onCheckedChange={handleSelectAllChange}
+                    aria-label="Select all invoices"
+                  />
+                </TableHead>
+                <TableHead scope="col" className="w-[140px] font-medium">
+                  {renderSortHeader("Invoice #", "number")}
+                </TableHead>
+                <TableHead scope="col" className="min-w-[180px] font-medium">
+                  Client
+                </TableHead>
+                <TableHead scope="col" className="font-medium">
+                  {renderSortHeader("Issued", "issued")}
+                </TableHead>
+                <TableHead scope="col" className="font-medium">
+                  {renderSortHeader("Due", "due")}
+                </TableHead>
+                <TableHead scope="col" className="font-medium">
+                  {renderSortHeader("Amount", "amount")}
+                </TableHead>
+                <TableHead scope="col" className="font-medium">
+                  Status
+                </TableHead>
+                <TableHead scope="col" className="text-right font-medium">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedData.map((invoice) => (
+                <InvoiceRow
+                  key={invoice.id}
+                  invoice={invoice}
+                  isSelected={selectedIds.has(invoice.id)}
+                  onSelectChange={(checked) =>
+                    handleRowSelectChange(invoice.id, checked)
+                  }
+                  onStatusUpdate={() => void refetch()}
                 />
-              </TableHead>
-              <TableHead className="w-[100px] font-medium">Invoice #</TableHead>
-              <TableHead className="font-medium">Client</TableHead>
-              <TableHead className="font-medium">Issued</TableHead>
-              <TableHead className="font-medium">Due</TableHead>
-              <TableHead className="font-medium">Amount</TableHead>
-              <TableHead className="font-medium">Status</TableHead>
-              <TableHead className="text-right font-medium">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.map((invoice: InvoiceData) => (
-              <InvoiceRow
-                key={invoice.id}
-                invoice={invoice}
-                isSelected={selectedIds.has(invoice.id)}
-                onSelectChange={(checked) =>
-                  handleRowSelectChange(invoice.id, checked)
-                }
-                onStatusUpdate={() => void refetch()}
-              />
-            ))}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </motion.div>
 
-      {/* Mobile: Card View */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        className="grid gap-3 shadow-sm md:hidden"
+        className={cn(
+          "bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm",
+          tableLayoutClass("tablet"),
+        )}
       >
-        {filteredData.map((invoice: InvoiceData) => (
-          <InvoiceCard
-            key={invoice.id}
-            invoice={invoice}
-            onStatusUpdate={() => void refetch()}
-          />
-        ))}
+        {showEmpty ? (
+          <div className="p-4">
+            <EmptyTabState
+              status={statusFilter}
+              onCreateClick={onCreateClick}
+            />
+          </div>
+        ) : (
+          <Table>
+            <TableCaption>
+              Compact invoices table for medium screens.
+            </TableCaption>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className="w-[40px] pl-4">
+                  <Checkbox
+                    checked={allSelected}
+                    indeterminate={indeterminate}
+                    onCheckedChange={handleSelectAllChange}
+                    aria-label="Select all invoices"
+                  />
+                </TableHead>
+                <TableHead scope="col" className="w-[140px] font-medium">
+                  {renderSortHeader("Invoice #", "number")}
+                </TableHead>
+                <TableHead scope="col" className="min-w-[180px] font-medium">
+                  Client
+                </TableHead>
+                <TableHead scope="col" className="font-medium">
+                  {renderSortHeader("Due", "due")}
+                </TableHead>
+                <TableHead scope="col" className="font-medium">
+                  {renderSortHeader("Amount", "amount")}
+                </TableHead>
+                <TableHead scope="col" className="font-medium">
+                  Status
+                </TableHead>
+                <TableHead scope="col" className="text-right font-medium">
+                  Action
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedData.map((invoice) => (
+                <InvoiceRow
+                  key={`tablet-${invoice.id}`}
+                  invoice={invoice}
+                  isSelected={selectedIds.has(invoice.id)}
+                  onSelectChange={(checked) =>
+                    handleRowSelectChange(invoice.id, checked)
+                  }
+                  onStatusUpdate={() => void refetch()}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
+        className="grid gap-3 md:hidden"
+      >
+        {showEmpty ? (
+          <EmptyTabState status={statusFilter} onCreateClick={onCreateClick} />
+        ) : (
+          sortedData.map((invoice) => (
+            <InvoiceCard
+              key={invoice.id}
+              invoice={invoice}
+              onStatusUpdate={() => void refetch()}
+            />
+          ))
+        )}
       </motion.div>
     </div>
   );

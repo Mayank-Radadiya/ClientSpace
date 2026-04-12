@@ -9,6 +9,7 @@ import { CreateInvoiceDialog } from "./CreateInvoiceDialog";
 import { InvoiceToolbar } from "./InvoiceToolbar";
 import { InvoiceList } from "./InvoiceList";
 import { useInvoiceFilters } from "../hooks/useInvoiceFilters";
+import type { StatusCount } from "./InvoiceToolbar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,17 +47,31 @@ export function InvoicesPageClient({
     debouncedSearch,
     status,
     setStatus,
+    sortBy,
+    sortDir,
+    toggleSort,
     hasActiveFilters,
     resetFilters,
   } = useInvoiceFilters();
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [filteredCount, setFilteredCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<StatusCount[]>([
+    { key: "all", label: "All", count: 0 },
+    { key: "draft", label: "Draft", count: 0 },
+    { key: "sent", label: "Sent", count: 0 },
+    { key: "paid", label: "Paid", count: 0 },
+    { key: "overdue", label: "Overdue", count: 0 },
+  ]);
 
-  const handleCountsChange = (total: number, filtered: number) => {
+  const handleCountsChange = (
+    total: number,
+    filtered: number,
+    nextStatusCounts: StatusCount[],
+  ) => {
     setTotalCount(total);
     setFilteredCount(filtered);
+    setStatusCounts(nextStatusCounts);
   };
 
   return (
@@ -66,18 +81,9 @@ export function InvoicesPageClient({
       transition={{ duration: 0.15, ease: "easeOut" }}
       className="mx-auto max-w-[1400px] space-y-8 p-6 md:p-8"
     >
-      {/* ── Page Header ───────────────────────────────────────── */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {userRole === "client"
-            ? "View and download your invoices."
-            : "Manage your client invoices and track payments."}
-        </p>
-      </div>
-
-      {/* ── Toolbar: Search + Filters ────────────────────────── */}
       <InvoiceToolbar
+        title="Invoices"
+        subtitle={`${totalCount} invoices`}
         search={search}
         onSearchChange={setSearch}
         status={status}
@@ -86,20 +92,31 @@ export function InvoicesPageClient({
         onResetFilters={resetFilters}
         totalCount={totalCount}
         filteredCount={filteredCount}
+        statusCounts={statusCounts}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSortByChange={toggleSort}
       >
         {isOwnerOrAdmin && (
-          <CreateInvoiceDialog clients={clients} projects={projects} />
+          <CreateInvoiceDialog
+            clients={clients}
+            projects={projects}
+            triggerId="create-invoice-toolbar"
+          />
         )}
       </InvoiceToolbar>
 
-      {/* ── Invoice List (Includes Financial Summary) ──────────── */}
       <InvoiceList
         statusFilter={status}
         searchQuery={debouncedSearch}
-        hasActiveFilters={hasActiveFilters}
-        onResetFilters={resetFilters}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSortChange={toggleSort}
+        userRole={userRole}
         onCreateClick={
-          isOwnerOrAdmin ? () => setCreateDialogOpen(true) : undefined
+          isOwnerOrAdmin
+            ? () => document.getElementById("create-invoice-toolbar")?.click()
+            : undefined
         }
         onCountsChange={handleCountsChange}
       />

@@ -16,11 +16,16 @@ export interface InvoiceFilters {
   status: InvoiceFilterStatus;
 }
 
+export type InvoiceSortBy = "number" | "issued" | "due" | "amount";
+export type InvoiceSortDir = "asc" | "desc";
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useInvoiceFilters() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<InvoiceFilterStatus>("all");
+  const [sortBy, setSortBy] = useState<InvoiceSortBy>("due");
+  const [sortDir, setSortDir] = useState<InvoiceSortDir>("desc");
 
   // Debounce search to avoid excessive API calls
   const debouncedSearch = useDebounce(search, 300);
@@ -34,6 +39,17 @@ export function useInvoiceFilters() {
   const resetFilters = () => {
     setSearch("");
     setStatus("all");
+    setSortBy("due");
+    setSortDir("desc");
+  };
+
+  const toggleSort = (column: InvoiceSortBy) => {
+    if (column === sortBy) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortBy(column);
+    setSortDir("desc");
   };
 
   return {
@@ -42,6 +58,11 @@ export function useInvoiceFilters() {
     debouncedSearch,
     status,
     setStatus,
+    sortBy,
+    sortDir,
+    setSortBy,
+    setSortDir,
+    toggleSort,
     hasActiveFilters,
     resetFilters,
   };

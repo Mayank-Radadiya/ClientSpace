@@ -1,18 +1,24 @@
 "use client";
 
-// src/features/invoices/components/InvoiceToolbar.tsx
-// Search and filter controls for invoice list with clean, modern design.
-
-import { Search, X, Calendar, ArrowUpDown } from "lucide-react";
+import { Calendar, ArrowUpDown, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { INVOICE_STATUSES, STATUS_LABELS } from "../schemas";
-import type { InvoiceFilterStatus } from "../hooks/useInvoiceFilters";
 import { cn } from "@/lib/utils";
+import type { InvoiceFilterStatus } from "../hooks/useInvoiceFilters";
+import { STATUS_LABELS } from "../schemas";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+type InvoiceUiStatus = InvoiceFilterStatus;
+
+interface StatusCount {
+  key: InvoiceUiStatus;
+  label: string;
+  count: number;
+  disabled?: boolean;
+}
 
 interface InvoiceToolbarProps {
+  title?: string;
+  subtitle?: string;
   search: string;
   onSearchChange: (value: string) => void;
   status: InvoiceFilterStatus;
@@ -21,12 +27,23 @@ interface InvoiceToolbarProps {
   onResetFilters: () => void;
   totalCount?: number;
   filteredCount?: number;
+  statusCounts?: StatusCount[];
+  sortBy?: "number" | "issued" | "due" | "amount";
+  sortDir?: "asc" | "desc";
+  onSortByChange?: (value: "number" | "issued" | "due" | "amount") => void;
   children?: React.ReactNode;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+function renderSortText(sortBy: "number" | "issued" | "due" | "amount") {
+  if (sortBy === "number") return "Invoice #";
+  if (sortBy === "issued") return "Issued";
+  if (sortBy === "due") return "Due";
+  return "Amount";
+}
 
 export function InvoiceToolbar({
+  title = "Invoices",
+  subtitle,
   search,
   onSearchChange,
   status,
@@ -35,113 +52,156 @@ export function InvoiceToolbar({
   onResetFilters,
   totalCount = 0,
   filteredCount = 0,
+  statusCounts = [
+    { key: "all", label: "All", count: totalCount },
+    { key: "draft", label: "Draft", count: 0 },
+    { key: "sent", label: "Sent", count: 0 },
+    { key: "paid", label: "Paid", count: 0 },
+    { key: "overdue", label: "Overdue", count: 0 },
+  ],
+  sortBy = "due",
+  sortDir = "desc",
+  onSortByChange,
   children,
 }: InvoiceToolbarProps) {
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Top row: Status Tabs and Primary Action */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        {/* Status Tabs (Segmented Control) */}
-        <div className="bg-muted/50 hide-scrollbar flex self-start overflow-x-auto rounded-lg p-1">
-          {["all", ...INVOICE_STATUSES].map((s) => (
-            <button
-              key={s}
-              onClick={() => onStatusChange(s as InvoiceFilterStatus)}
-              className={cn(
-                "flex items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-all",
-                status === s
-                  ? "bg-background text-foreground ring-border/50 shadow-sm ring-1"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
-              )}
-            >
-              {s === "all"
-                ? "All"
-                : STATUS_LABELS[s as keyof typeof STATUS_LABELS]}
-            </button>
-          ))}
-        </div>
+  const resolvedSubtitle = subtitle ?? `${totalCount} invoices`;
 
-        {/* Primary Action (New Invoice Button) passed as children */}
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {resolvedSubtitle}
+          </p>
+        </div>
         {children && <div className="shrink-0">{children}</div>}
       </div>
 
-      {/* Bottom row: Filter Controls */}
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div className="flex flex-1 items-center gap-3">
-          {/* Search Input */}
-          <div className="relative w-full sm:max-w-[300px]">
-            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              type="text"
-              placeholder="Search invoices..."
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="border-border/60 h-9 bg-transparent pr-9 pl-9 shadow-sm focus-visible:bg-transparent"
-            />
-            {search && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
-                onClick={() => onSearchChange("")}
-                aria-label="Clear search"
+      <div className="border-border/70 bg-card/80 hide-scrollbar flex overflow-x-auto rounded-xl border px-2 py-1">
+        {statusCounts.map((item) => {
+          const isAll = item.key === "all";
+          const isKnownStatus = ["draft", "sent", "paid", "overdue"].includes(
+            item.key,
+          );
+          const isActive = item.key === status;
+          const disabled =
+            item.disabled || (item.count === 0 && !isAll) || !isKnownStatus;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              disabled={disabled}
+              onClick={() => onStatusChange(item.key as InvoiceFilterStatus)}
+              className={cn(
+                "relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
+                isActive
+                  ? "bg-primary/12 text-primary"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                disabled &&
+                  "hover:text-muted-foreground cursor-not-allowed opacity-45 hover:bg-transparent",
+              )}
+              aria-label={`${item.label} (${item.count})`}
+            >
+              <span className="font-medium">
+                {item.key === "all"
+                  ? "All"
+                  : (STATUS_LABELS[item.key as keyof typeof STATUS_LABELS] ??
+                    item.label)}
+              </span>
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[11px] tabular-nums",
+                  isActive
+                    ? "bg-primary/20 text-primary"
+                    : "bg-muted text-muted-foreground",
+                )}
               >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
+                {item.count}
+              </span>
+              {isActive && (
+                <span className="bg-primary absolute right-2 bottom-0 left-2 h-px rounded-full" />
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-          {/* Date Filter (Mock) */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-border/60 text-muted-foreground hover:text-foreground hidden h-9 shadow-sm sm:flex"
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Filter by Date
-          </Button>
-
-          {/* Sort Dropdown (Mock) */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-border/60 text-muted-foreground hover:text-foreground hidden h-9 shadow-sm md:flex"
-          >
-            <ArrowUpDown className="mr-2 h-4 w-4" />
-            Sort
-          </Button>
-
-          {/* Reset Filters */}
-          {hasActiveFilters && (
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="relative w-full lg:max-w-[60%]">
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Input
+            type="text"
+            placeholder="Search invoices..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="h-9 pr-9 pl-9"
+          />
+          {search && (
             <Button
               variant="ghost"
-              size="sm"
-              onClick={onResetFilters}
-              className="text-muted-foreground hover:text-foreground"
+              size="icon-xs"
+              className="absolute top-1/2 right-1 -translate-y-1/2"
+              onClick={() => onSearchChange("")}
+              aria-label="Clear search"
             >
-              <X className="mr-2 h-3.5 w-3.5" />
-              Reset
+              <X className="h-3.5 w-3.5" />
             </Button>
           )}
         </div>
 
-        {/* Results Count */}
-        <div className="text-muted-foreground text-sm">
-          {filteredCount !== totalCount && hasActiveFilters ? (
-            <span>
-              <span className="text-foreground font-medium">
-                {filteredCount}
-              </span>{" "}
-              of {totalCount} invoices
-            </span>
-          ) : (
-            <span>
-              <span className="text-foreground font-medium">{totalCount}</span>{" "}
-              invoices
-            </span>
-          )}
+        <div className="flex flex-1 items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-2 py-4"
+              onClick={() => onSortByChange?.(sortBy)}
+            >
+              <ArrowUpDown className="h-4 w-4" />
+              Sort: {renderSortText(sortBy)}{" "}
+              {sortDir === "asc" ? "(ASC)" : "(DESC)"}
+            </Button>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2 py-4"
+                onClick={onResetFilters}
+              >
+                <X className="h-3.5 w-3.5" />
+                Reset
+              </Button>
+            )}
+          </div>
+
+          <div className="text-muted-foreground ml-auto text-sm">
+            {filteredCount !== totalCount && hasActiveFilters ? (
+              <span>
+                <span className="text-foreground font-semibold tabular-nums">
+                  {filteredCount}
+                </span>{" "}
+                invoices
+              </span>
+            ) : (
+              <span>
+                <span className="text-foreground font-semibold tabular-nums">
+                  {totalCount}
+                </span>{" "}
+                invoices
+              </span>
+            )}
+          </div>
         </div>
       </div>
+
+      <p className="sr-only" aria-live="polite">
+        Sorted by {renderSortText(sortBy)}{" "}
+        {sortDir === "asc" ? "ascending" : "descending"}
+      </p>
     </div>
   );
 }
+
+export type { StatusCount, InvoiceUiStatus };

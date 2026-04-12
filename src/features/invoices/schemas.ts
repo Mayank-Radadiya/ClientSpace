@@ -75,12 +75,10 @@ const CURRENCY_SYMBOLS: Record<Currency, string> = {
  * @example formatCents(1050, "USD") → "$10.50"
  */
 export function formatCents(cents: number, currency: Currency = "USD"): string {
-  const symbol = CURRENCY_SYMBOLS[currency] ?? "$";
-  const absVal = Math.abs(cents);
-  const whole = Math.floor(absVal / 100);
-  const fraction = (absVal % 100).toString().padStart(2, "0");
-  const sign = cents < 0 ? "-" : "";
-  return `${sign}${symbol}${whole.toLocaleString()}.${fraction}`;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(cents / 100);
 }
 
 export interface LineItemInput {

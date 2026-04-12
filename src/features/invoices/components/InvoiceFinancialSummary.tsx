@@ -14,7 +14,11 @@ interface InvoiceFinancialSummaryProps {
   totalBilled: number;
   totalPaid: number;
   outstanding: number;
-  overdue: number; // Added overdue
+  overdue?: number;
+  totalInvoices?: number;
+  paidInvoices?: number;
+  outstandingInvoices?: number;
+  overdueInvoices?: number;
   currency?: string;
   loading?: boolean;
 }
@@ -34,7 +38,11 @@ export function InvoiceFinancialSummary({
   totalBilled,
   totalPaid,
   outstanding,
-  overdue,
+  overdue = 0,
+  totalInvoices = 0,
+  paidInvoices = 0,
+  outstandingInvoices = 0,
+  overdueInvoices = 0,
   currency = "USD",
   loading = false,
 }: InvoiceFinancialSummaryProps) {
@@ -47,24 +55,29 @@ export function InvoiceFinancialSummary({
       label: "Total invoiced",
       value: formatCurrency(totalBilled, currency),
       color: "text-foreground",
+      meta: `+ ${totalInvoices} invoices`,
+      metaColor: "text-muted-foreground",
     },
     {
       label: "Paid",
       value: formatCurrency(totalPaid, currency),
       color: "text-emerald-600 dark:text-emerald-500",
+      meta: `${paidInvoices} invoices · on time`,
+      metaColor: "text-muted-foreground",
     },
     {
       label: "Outstanding",
       value: formatCurrency(outstanding, currency),
       color: "text-amber-600 dark:text-amber-500",
+      meta: `${outstandingInvoices} invoices pending`,
+      metaColor: "text-muted-foreground",
     },
     {
       label: "Overdue",
       value: formatCurrency(overdue, currency),
-      color:
-        overdue > 0
-          ? "text-rose-600 dark:text-rose-500"
-          : "text-muted-foreground",
+      color: "text-rose-600 dark:text-rose-500",
+      meta: `${overdueInvoices} invoices · action needed`,
+      metaColor: "text-rose-600 dark:text-rose-400",
     },
   ];
 
@@ -89,6 +102,7 @@ export function InvoiceFinancialSummary({
             >
               {item.value}
             </div>
+            <p className={cn("mt-1 text-xs", item.metaColor)}>{item.meta}</p>
           </Card>
         </motion.div>
       ))}
