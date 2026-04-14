@@ -11,6 +11,11 @@ import {
 } from "@/db/schema";
 import { projectColumns } from "../types";
 import { projectSchema } from "../schemas";
+import {
+  revalidateMembersCache,
+  revalidateMilestonesCache,
+  revalidateProjectCache,
+} from "./cache";
 
 function computeOverdue(row: {
   deadline: string | null;
@@ -154,6 +159,10 @@ export const projectRouter = createTRPCRouter({
           })
           .returning();
 
+        revalidateProjectCache(ctx.orgId, newProject.id);
+        revalidateMilestonesCache(ctx.orgId, newProject.id);
+        revalidateMembersCache(ctx.orgId, newProject.id);
+
         return newProject;
       });
     }),
@@ -229,6 +238,10 @@ export const projectRouter = createTRPCRouter({
             message: "Project not found.",
           });
         }
+
+        revalidateProjectCache(ctx.orgId, input.id);
+        revalidateMilestonesCache(ctx.orgId, input.id);
+        revalidateMembersCache(ctx.orgId, input.id);
 
         return { success: true };
       });

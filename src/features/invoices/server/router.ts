@@ -3,7 +3,7 @@
 // All procedures are protected and RLS-scoped via withRLS().
 
 import { z } from "zod";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
@@ -239,10 +239,13 @@ export const invoiceRouter = createTRPCRouter({
     .input(z.object({ projectId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
-        const projectInvoices = await tx
+        const [aggregate] = await tx
           .select({
-            amountCents: invoices.amountCents,
-            status: invoices.status,
+            totalBilled: sql<number>`COALESCE(SUM(${invoices.amountCents}), 0)`,
+            totalPaid: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} = 'paid' THEN ${invoices.amountCents} ELSE 0 END), 0)`,
+            outstanding: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} IN ('sent', 'overdue') THEN ${invoices.amountCents} ELSE 0 END), 0)`,
+            overdueAmount: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} = 'overdue' THEN ${invoices.amountCents} ELSE 0 END), 0)`,
+            invoiceCount: sql<number>`COUNT(*)`,
           })
           .from(invoices)
           .where(
@@ -252,19 +255,12 @@ export const invoiceRouter = createTRPCRouter({
             ),
           );
 
-        const totalBilled = projectInvoices.reduce(
-          (sum, inv) => sum + inv.amountCents,
-          0,
-        );
-        const totalPaid = projectInvoices
-          .filter((inv) => inv.status === "paid")
-          .reduce((sum, inv) => sum + inv.amountCents, 0);
-        const outstanding = totalBilled - totalPaid;
-
         return {
-          totalBilled,
-          totalPaid,
-          outstanding,
+          totalBilled: aggregate?.totalBilled ?? 0,
+          totalPaid: aggregate?.totalPaid ?? 0,
+          outstanding: aggregate?.outstanding ?? 0,
+          overdueAmount: aggregate?.overdueAmount ?? 0,
+          invoiceCount: aggregate?.invoiceCount ?? 0,
         };
       });
     }),

@@ -6,6 +6,11 @@ import { getSessionContext } from "@/lib/auth/session";
 import { withRLS } from "@/db/createDrizzleClient";
 import { projects, clients } from "@/db/schema";
 import { projectSchema, updateProjectSchema } from "../schemas";
+import {
+  revalidateMembersCache,
+  revalidateMilestonesCache,
+  revalidateProjectCache,
+} from "./cache";
 
 export type ActionState = {
   success?: boolean;
@@ -68,6 +73,8 @@ export async function createProjectAction(
 
   const { data } = parsed;
 
+  let createdProjectId: string | null = null;
+
   const errorMsg = await withRLS(ctx, async (tx) => {
     const client = await tx.query.clients.findFirst({
       where: and(eq(clients.id, data.clientId), eq(clients.orgId, ctx.orgId)),
@@ -75,18 +82,22 @@ export async function createProjectAction(
     if (!client) return "Selected client does not belong to your organization.";
 
     try {
-      await tx.insert(projects).values({
-        orgId: ctx.orgId,
-        clientId: data.clientId,
-        name: data.name,
-        description: data.description,
-        status: data.status as any,
-        priority: data.priority as any,
-        startDate: data.startDate ? toDateString(data.startDate) : null,
-        deadline: toDateString(data.deadline),
-        budget: data.budget ?? null,
-        tags: data.tags,
-      });
+      const [created] = await tx
+        .insert(projects)
+        .values({
+          orgId: ctx.orgId,
+          clientId: data.clientId,
+          name: data.name,
+          description: data.description,
+          status: data.status as any,
+          priority: data.priority as any,
+          startDate: data.startDate ? toDateString(data.startDate) : null,
+          deadline: toDateString(data.deadline),
+          budget: data.budget ?? null,
+          tags: data.tags,
+        })
+        .returning({ id: projects.id });
+      createdProjectId = created?.id ?? null;
       return null;
     } catch (err) {
       console.error("createProjectAction:", err);
@@ -97,6 +108,11 @@ export async function createProjectAction(
   if (errorMsg) return { error: errorMsg };
 
   revalidatePath("/dashboard/projects");
+  if (createdProjectId) {
+    revalidateProjectCache(ctx.orgId, createdProjectId);
+    revalidateMilestonesCache(ctx.orgId, createdProjectId);
+    revalidateMembersCache(ctx.orgId, createdProjectId);
+  }
   return { success: true };
 }
 
@@ -200,6 +216,9 @@ export async function updateProjectAction(
   if (errorMsg) return { error: errorMsg };
 
   revalidatePath("/dashboard/projects");
+  revalidateProjectCache(ctx.orgId, projectId);
+  revalidateMilestonesCache(ctx.orgId, projectId);
+  revalidateMembersCache(ctx.orgId, projectId);
   return { success: true };
 }
 
@@ -235,5 +254,8 @@ export async function deleteProjectAction(
   if (errorMsg) return { error: errorMsg };
 
   revalidatePath("/dashboard/projects");
+  revalidateProjectCache(ctx.orgId, projectId);
+  revalidateMilestonesCache(ctx.orgId, projectId);
+  revalidateMembersCache(ctx.orgId, projectId);
   return { success: true };
 }

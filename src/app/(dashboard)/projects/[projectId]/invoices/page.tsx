@@ -5,10 +5,14 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { Building2 } from "lucide-react";
 import { eq } from "drizzle-orm";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryKey } from "@trpc/react-query";
 import { getServerCaller } from "@/lib/trpc/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { clients, projects } from "@/db/schema";
 import { createTRPCContext } from "@/lib/trpc/init";
+import { trpc } from "@/lib/trpc/client";
+import { getQueryClient } from "@/lib/trpc/query-client";
 
 // Components
 import {
@@ -39,6 +43,8 @@ export default async function ProjectInvoicesPage({
   const caller = await getServerCaller();
   if (!caller) notFound();
 
+  const queryClient = getQueryClient();
+
   // Fetch project details
   const project = await caller.project
     .getById({ id: projectId })
@@ -46,29 +52,41 @@ export default async function ProjectInvoicesPage({
   if (!project) notFound();
 
   // Fetch clients and projects for the invoice builder
-  const [orgClients, orgProjects] = await Promise.all([
-    withRLS(ctx, async (tx) =>
-      tx
-        .select({
-          id: clients.id,
-          companyName: clients.companyName,
-          contactName: clients.contactName,
-          email: clients.email,
-        })
-        .from(clients)
-        .where(eq(clients.orgId, ctx.orgId)),
-    ),
-    withRLS(ctx, async (tx) =>
-      tx
-        .select({
-          id: projects.id,
-          clientId: projects.clientId,
-          name: projects.name,
-        })
-        .from(projects)
-        .where(eq(projects.orgId, ctx.orgId)),
-    ),
-  ]);
+  const [orgClients, orgProjects, projectInvoices, projectFinancials] =
+    await Promise.all([
+      withRLS(ctx, async (tx) =>
+        tx
+          .select({
+            id: clients.id,
+            companyName: clients.companyName,
+            contactName: clients.contactName,
+            email: clients.email,
+          })
+          .from(clients)
+          .where(eq(clients.orgId, ctx.orgId)),
+      ),
+      withRLS(ctx, async (tx) =>
+        tx
+          .select({
+            id: projects.id,
+            clientId: projects.clientId,
+            name: projects.name,
+          })
+          .from(projects)
+          .where(eq(projects.orgId, ctx.orgId)),
+      ),
+      caller.invoice.getByProject({ projectId }),
+      caller.invoice.getProjectFinancials({ projectId }),
+    ]);
+
+  queryClient.setQueryData(
+    getQueryKey(trpc.invoice.getByProject, { projectId }, "query"),
+    projectInvoices,
+  );
+  queryClient.setQueryData(
+    getQueryKey(trpc.invoice.getProjectFinancials, { projectId }, "query"),
+    projectFinancials,
+  );
 
   const isOwnerOrAdmin = ctx.role === "owner" || ctx.role === "admin";
 
@@ -105,19 +123,21 @@ export default async function ProjectInvoicesPage({
 
       {/* ── Main Content ────────────────────────────────────────────── */}
       <main className="bg-muted/10 flex min-h-0 flex-1 overflow-auto">
-        <Suspense fallback={<ProjectInvoicesPageSkeleton />}>
-          <ProjectInvoicesPageClient
-            projectInfo={{
-              id: project.id,
-              name: project.name,
-              clientId: project.clientId,
-              clientCompanyName: project.clientCompanyName,
-            }}
-            clients={orgClients}
-            projects={orgProjects}
-            isOwnerOrAdmin={isOwnerOrAdmin}
-          />
-        </Suspense>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <Suspense fallback={<ProjectInvoicesPageSkeleton />}>
+            <ProjectInvoicesPageClient
+              projectInfo={{
+                id: project.id,
+                name: project.name,
+                clientId: project.clientId,
+                clientCompanyName: project.clientCompanyName,
+              }}
+              clients={orgClients}
+              projects={orgProjects}
+              isOwnerOrAdmin={isOwnerOrAdmin}
+            />
+          </Suspense>
+        </HydrationBoundary>
       </main>
     </div>
   );

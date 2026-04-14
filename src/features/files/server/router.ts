@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
@@ -14,6 +14,8 @@ export const fileRouter = createTRPCRouter({
       z.object({
         projectId: z.string().uuid(),
         folderId: z.string().uuid().optional().nullable(),
+        cursor: z.string().uuid().optional(),
+        limit: z.number().int().min(1).max(100).default(50),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -21,6 +23,10 @@ export const fileRouter = createTRPCRouter({
         const folderCondition = input.folderId
           ? eq(assets.folderId, input.folderId)
           : isNull(assets.folderId);
+
+        const cursorCondition = input.cursor
+          ? gt(assets.id, input.cursor)
+          : undefined;
 
         return tx
           .select({
@@ -44,11 +50,14 @@ export const fileRouter = createTRPCRouter({
           .where(
             and(
               eq(assets.projectId, input.projectId),
+              eq(assets.orgId, ctx.orgId),
               folderCondition,
+              cursorCondition,
               isNull(assets.deletedAt), // Exclude soft-deleted
             ),
           )
-          .orderBy(desc(assets.updatedAt));
+          .orderBy(desc(assets.updatedAt))
+          .limit(input.limit);
       });
     }),
 
@@ -70,7 +79,12 @@ export const fileRouter = createTRPCRouter({
           })
           .from(fileVersions)
           .leftJoin(users, eq(fileVersions.uploadedBy, users.id))
-          .where(eq(fileVersions.assetId, input.assetId))
+          .where(
+            and(
+              eq(fileVersions.assetId, input.assetId),
+              eq(fileVersions.orgId, ctx.orgId),
+            ),
+          )
           .orderBy(desc(fileVersions.versionNumber));
       });
     }),
@@ -97,7 +111,13 @@ export const fileRouter = createTRPCRouter({
             createdAt: folders.createdAt,
           })
           .from(folders)
-          .where(and(eq(folders.projectId, input.projectId), parentCondition))
+          .where(
+            and(
+              eq(folders.projectId, input.projectId),
+              eq(folders.orgId, ctx.orgId),
+              parentCondition,
+            ),
+          )
           .orderBy(asc(folders.name));
       });
     }),

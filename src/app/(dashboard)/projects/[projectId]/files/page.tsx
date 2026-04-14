@@ -32,7 +32,7 @@ export default async function FilesPage({ params }: FilesPageProps) {
 
   const [project, initialFiles] = await Promise.all([
     caller.project.getById({ id: projectId }).catch(() => null),
-    caller.file.getAssets({ projectId }).catch(() => []), // Fallback to empty array on error
+    caller.file.getAssets({ projectId }),
   ]);
   // const project = await caller.project
   //   .getById({ id: projectId })
