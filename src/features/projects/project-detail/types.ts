@@ -32,10 +32,13 @@ export interface Milestone {
   org_id: string;
   project_id: string;
   title: string;
+  description?: string;
   due_date: string | null;
   completed: boolean;
   completed_at: string | null;
   order: number;
+  priority?: "low" | "medium" | "high";
+  status?: "todo" | "in_progress" | "done";
   assignee?: { id: string; name: string; avatar_url: string | null };
 }
 
@@ -104,3 +107,5 @@ export interface Invoice {
   pdf_url: string | null;
   created_at: string;
 }
+
+export type ActiveSection = "milestones" | "files" | "invoices" | "activity";
