@@ -543,8 +543,8 @@ export async function acceptInviteSignUpAction(
     ip: requestMeta.ip,
     userAgent: requestMeta.userAgent,
   });
-  revalidatePath("/client-portal");
-  redirect("/client-portal");
+  revalidatePath("/portal");
+  redirect("/portal");
 }
 
 /**
@@ -718,6 +718,6 @@ export async function acceptInviteSignInAction(
     ip: requestMeta.ip,
     userAgent: requestMeta.userAgent,
   });
-  revalidatePath("/client-portal");
-  redirect("/client-portal");
+  revalidatePath("/portal");
+  redirect("/portal");
 }

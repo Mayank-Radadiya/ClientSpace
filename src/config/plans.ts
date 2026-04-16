@@ -1,25 +1,12 @@
-// src/config/plans.ts
-// PRD §12: Plan limits configuration — single source of truth for tier-based feature gates.
-// TODO (Task 03): Define plan limits (storage, members, projects) per tier.
-export const PLAN_LIMITS = {
-  free: {
-    maxProjects: 3,
-    maxClients: 5,
-    maxStorageGb: 1,
-    maxTeamMembers: 1,
-  },
-  pro: {
-    maxProjects: 25,
-    maxClients: 50,
-    maxStorageGb: 25,
-    maxTeamMembers: 5,
-  },
-  business: {
-    maxProjects: Infinity,
-    maxClients: Infinity,
-    maxStorageGb: 100,
-    maxTeamMembers: Infinity,
-  },
-} as const;
+export type PlanTier = "starter" | "pro" | "growth" | "business";
 
-export type Plan = keyof typeof PLAN_LIMITS;
+/**
+ * Single source of truth for plan-gated limits.
+ * Never hardcode plan limits elsewhere.
+ */
+export const PLAN_LIMITS = {
+  starter: { maxUploadSizeBytes: 50 * 1024 * 1024 },
+  pro: { maxUploadSizeBytes: 250 * 1024 * 1024 },
+  growth: { maxUploadSizeBytes: 500 * 1024 * 1024 },
+  business: { maxUploadSizeBytes: 1024 * 1024 * 1024 },
+} as const satisfies Record<PlanTier, { maxUploadSizeBytes: number }>;

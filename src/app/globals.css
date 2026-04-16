@@ -230,6 +230,21 @@ body {
   animation: invoice-overdue-pulse 1.4s ease-in-out infinite;
 }
 
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px) translateX(var(--x, 10px)) scale(0);
+  }
+}
+
+.animate-confetti-burst {
+  animation: confetti-burst 0.6s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .invoice-overdue-pulse {
     animation: none !important;

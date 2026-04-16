@@ -21,7 +21,7 @@ export default async function DashboardLayout({
   const ctx = await createTRPCContext();
 
   if (ctx?.role === "client") {
-    redirect("/client-portal");
+    redirect("/portal");
   }
 
   // Get current org info for org switcher

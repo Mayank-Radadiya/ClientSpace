@@ -159,6 +159,13 @@ export const projectRouter = createTRPCRouter({
           })
           .returning();
 
+        if (!newProject) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create project.",
+          });
+        }
+
         revalidateProjectCache(ctx.orgId, newProject.id);
         revalidateMilestonesCache(ctx.orgId, newProject.id);
         revalidateMembersCache(ctx.orgId, newProject.id);

@@ -4,6 +4,7 @@ import { authRouter } from "@/features/auth/server/router";
 import { fileRouter } from "@/features/files/server/router";
 import { invoiceRouter } from "@/features/invoices/server/router";
 import { dashboardRouter } from "@/features/dashboard/server/router";
+import { portalRouter } from "@/features/portal/server/router";
 
 export const appRouter = createTRPCRouter({
   project: projectRouter,
@@ -11,6 +12,7 @@ export const appRouter = createTRPCRouter({
   file: fileRouter,
   invoice: invoiceRouter,
   dashboard: dashboardRouter,
+  portal: portalRouter,
 });
 
 export type AppRouter = typeof appRouter;

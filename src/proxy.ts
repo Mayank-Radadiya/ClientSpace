@@ -100,6 +100,16 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  if (user && pathname.startsWith("/portal")) {
+    const { apiRateLimit: limiter } = getRateLimiters();
+    if (limiter) {
+      const { success } = await limiter.limit(`user_${user.id}`);
+      if (!success) {
+        return new NextResponse("Too Many Requests", { status: 429 });
+      }
+    }
+  }
+
   return response;
 }
 

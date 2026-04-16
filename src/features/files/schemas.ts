@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PLAN_LIMITS, type PlanTier } from "@/config/plans";
 
 // ─── MIME Type Allowlist ──────────────────────────────────────────────────────
 
@@ -26,11 +27,11 @@ export const ALLOWED_MIME_TYPES = [
 
 // ─── Plan-based File Size Limits (PRD §9) ─────────────────────────────────────
 
-export const MAX_FILE_SIZE: Record<string, number> = {
-  starter: 50 * 1024 * 1024, // 50 MB
-  pro: 75 * 1024 * 1024, // 75 MB
-  growth: 100 * 1024 * 1024, // 100 MB
-  business: Infinity, // Unlimited (Phase 2: BYOS)
+export const MAX_FILE_SIZE: Record<PlanTier, number> = {
+  starter: PLAN_LIMITS.starter.maxUploadSizeBytes,
+  pro: PLAN_LIMITS.pro.maxUploadSizeBytes,
+  growth: PLAN_LIMITS.growth.maxUploadSizeBytes,
+  business: PLAN_LIMITS.business.maxUploadSizeBytes,
 };
 
 // ─── Shared Action Return Type ────────────────────────────────────────────────

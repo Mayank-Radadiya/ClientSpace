@@ -21,7 +21,7 @@ export default async function SwitchOrgPage() {
   // If user only has one org, redirect to appropriate dashboard
   if (ctx.availableOrgs.length === 1) {
     if (ctx.role === "client") {
-      redirect("/client-portal");
+      redirect("/portal");
     } else {
       redirect("/dashboard");
     }

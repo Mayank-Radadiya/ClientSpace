@@ -33,7 +33,7 @@ export async function switchOrgAction(orgId: string) {
 
   // Redirect based on role in the target org
   if (targetOrg.role === "client") {
-    redirect("/client-portal");
+    redirect("/portal");
   } else {
     redirect("/dashboard");
   }

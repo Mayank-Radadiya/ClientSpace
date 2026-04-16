@@ -7,6 +7,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { User } from "@supabase/supabase-js";
 
+const ADMIN_ROLES = new Set(["owner", "admin", "member"]);
+
 export async function updateSession(request: NextRequest): Promise<{
   response: NextResponse;
   user: User | null;
@@ -63,6 +65,40 @@ export async function updateSession(request: NextRequest): Promise<{
       response: redirectResp,
       user: null,
     };
+  }
+
+  // 1c. Protect new portal route: unauthenticated users go to login with return path
+  if (request.nextUrl.pathname.startsWith("/portal") && !user) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", request.nextUrl.pathname);
+
+    const redirectResp = NextResponse.redirect(loginUrl);
+    response.cookies.getAll().forEach((c) => {
+      redirectResp.cookies.set(c.name, c.value, c);
+    });
+    return {
+      response: redirectResp,
+      user: null,
+    };
+  }
+
+  // 1d. Portal role split: team users are redirected back to dashboard
+  if (request.nextUrl.pathname.startsWith("/portal") && user) {
+    const orgRole = (user.app_metadata as Record<string, unknown> | undefined)
+      ?.org_role;
+
+    if (typeof orgRole === "string" && ADMIN_ROLES.has(orgRole)) {
+      const redirectResp = NextResponse.redirect(
+        new URL("/dashboard", request.url),
+      );
+      response.cookies.getAll().forEach((c) => {
+        redirectResp.cookies.set(c.name, c.value, c);
+      });
+      return {
+        response: redirectResp,
+        user,
+      };
+    }
   }
 
   // 1b. Protect Client Portal Routes — redirect unauthenticated users to client auth

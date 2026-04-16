@@ -16,9 +16,9 @@ import {
   uploadRequestSchema,
   createFileVersionSchema,
   ALLOWED_MIME_TYPES,
-  MAX_FILE_SIZE,
 } from "../schemas";
 import type { ActionState } from "../schemas";
+import { PLAN_LIMITS, type PlanTier } from "@/config/plans";
 
 // ─── Helper: Build business-day auto-approve timestamp ────────────────────────
 
@@ -90,10 +90,10 @@ export async function getUploadToken(input: unknown): Promise<ActionState> {
       where: eq(organizations.id, ctx.orgId),
       columns: { plan: true },
     });
-    const plan = org?.plan ?? "starter";
+    const plan = (org?.plan ?? "starter") as PlanTier;
 
     // Enforce plan-based size limit
-    const maxSize = MAX_FILE_SIZE[plan] ?? MAX_FILE_SIZE["starter"]!;
+    const maxSize = PLAN_LIMITS[plan].maxUploadSizeBytes;
     if (fileSize > maxSize) {
       const limitMB = Math.round(maxSize / (1024 * 1024));
       return {
