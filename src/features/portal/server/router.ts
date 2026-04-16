@@ -45,12 +45,14 @@ async function getSignedPdfUrl(
 }
 
 async function resolveClient(userId: string, orgId: string) {
-  // 1. Direct search by userId across all orgs (bypassing RLS)
-  console.info(`[resolveClient] Searching by userId: ${userId}`);
+  // 1. Direct search by userId and orgId (bypassing RLS)
+  console.info(
+    `[resolveClient] Searching by userId: ${userId} in org: ${orgId}`,
+  );
   const rows = await pool`
     SELECT id, org_id, email, contact_name, status, user_id
     FROM clients 
-    WHERE user_id = ${userId}
+    WHERE user_id = ${userId} AND org_id = ${orgId}
     LIMIT 1
   `;
 
@@ -58,7 +60,7 @@ async function resolveClient(userId: string, orgId: string) {
 
   if (!client) {
     console.warn(
-      `[resolveClient] No record found by userId: ${userId}. Trying email fallback...`,
+      `[resolveClient] No record found by userId: ${userId} in org: ${orgId}. Trying email fallback...`,
     );
 
     // 2. Fetch user's email to try email-based lookup (in case of unlinked record)
@@ -67,19 +69,26 @@ async function resolveClient(userId: string, orgId: string) {
     const userEmail = userRows[0]?.email;
 
     if (userEmail) {
-      console.info(`[resolveClient] Searching by user email: ${userEmail}`);
+      console.info(
+        `[resolveClient] Searching by user email: ${userEmail} in org: ${orgId}`,
+      );
       const emailRows = await pool`
         SELECT id, org_id, email, contact_name, status, user_id
         FROM clients 
-        WHERE LOWER(email) = LOWER(${userEmail})
+        WHERE LOWER(email) = LOWER(${userEmail}) AND org_id = ${orgId}
         LIMIT 1
       `;
       client = emailRows[0];
 
-      if (client) {
+      if (client && client.user_id !== userId) {
         console.warn(
-          `[resolveClient] Found client by email (${userEmail}) but userId was ${client.user_id === null ? "NULL" : "DIFFERENT"}. Linking might be broken.`,
+          `[resolveClient] Found client by email (${userEmail}) in org ${orgId} but userId was ${client.user_id === null ? "NULL" : "DIFFERENT"}. Fixing link now.`,
         );
+        try {
+          await pool`UPDATE clients SET user_id = ${userId} WHERE id = ${client.id}`;
+        } catch (e) {
+          console.error(`[resolveClient] Failed to fix client link:`, e);
+        }
       }
     }
   }
