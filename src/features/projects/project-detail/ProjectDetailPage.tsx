@@ -17,6 +17,8 @@ import {
   ActiveSection,
 } from "./types";
 import { gooeyToast } from "goey-toast";
+import { ActivityTimeline } from "@/features/activity/components/ActivityTimeline";
+import type { ActivityEventMetadata } from "@/db/schema";
 
 // v2 components
 import { CommandHeader } from "./components/v2/CommandHeader";
@@ -45,6 +47,20 @@ interface ProjectDetailPageProps {
   initialAssets: Asset[];
   initialComments: Comment[];
   initialInvoices: Invoice[];
+  initialActivity: Array<{
+    id: string;
+    eventType: string;
+    metadata: ActivityEventMetadata;
+    createdAt: string;
+    actor: {
+      id: string;
+      name: string;
+      email: string;
+      avatarUrl: string | null;
+    } | null;
+    actorRole: string | null;
+    project: { id: string; name: string } | null;
+  }>;
 }
 
 export function ProjectDetailPage({
@@ -58,6 +74,7 @@ export function ProjectDetailPage({
   initialAssets,
   initialComments,
   initialInvoices,
+  initialActivity,
 }: ProjectDetailPageProps) {
   const permissions = useProjectPermissions(role);
   const reduced = useReducedMotion();
@@ -223,15 +240,7 @@ export function ProjectDetailPage({
           />
         );
       case "activity":
-        return (
-          <div
-            className="flex h-64 items-center justify-center rounded-xl border border-border bg-muted/30"
-          >
-            <p className="text-[13px] text-muted-foreground">
-              Activity log coming soon
-            </p>
-          </div>
-        );
+        return <ActivityTimeline items={initialActivity} maxHeight="500px" />;
       default:
         return null;
     }
@@ -239,9 +248,7 @@ export function ProjectDetailPage({
 
   return (
     <LayoutGroup>
-      <div
-        className="flex min-h-screen flex-col font-sans bg-background text-foreground"
-      >
+      <div className="bg-background text-foreground flex min-h-screen flex-col font-sans">
         {/* Zone A — Command Header */}
         <CommandHeader
           project={initialProject}

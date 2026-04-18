@@ -6,7 +6,7 @@
 import { trpc } from "@/lib/trpc/client";
 import { MetricsSection } from "./MetricsSection";
 import { RecentProjectsCard } from "./RecentProjectsCard";
-import { ActivityFeedCard } from "./ActivityFeedCard";
+import { ActivityTimeline } from "@/features/activity/components/ActivityTimeline";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,8 +24,8 @@ export function DashboardPageClient({ userName }: DashboardPageClientProps) {
   const { data: recentProjects, isLoading: projectsLoading } =
     trpc.dashboard.getRecentProjects.useQuery();
 
-  const { data: recentActivity, isLoading: activityLoading } =
-    trpc.dashboard.getRecentActivity.useQuery({ limit: 8 });
+  const { data: dashboardActivity, isLoading: activityLoading } =
+    trpc.activity.dashboard.useQuery({ limit: 20 });
 
   // Default data for loading state
   const defaultMetrics = {
@@ -64,10 +64,24 @@ export function DashboardPageClient({ userName }: DashboardPageClientProps) {
           loading={projectsLoading}
         />
 
-        <ActivityFeedCard
-          activities={recentActivity ?? []}
-          loading={activityLoading}
-        />
+        <section
+          aria-labelledby="recent-activity-heading"
+          className="space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <h2 id="recent-activity-heading" className="text-lg font-semibold">
+              Recent Activity
+            </h2>
+            <span className="text-muted-foreground text-xs">
+              Last 20 events across all projects
+            </span>
+          </div>
+          <ActivityTimeline
+            items={activityLoading ? [] : (dashboardActivity ?? [])}
+            showProject
+            maxHeight="360px"
+          />
+        </section>
       </div>
     </div>
   );

@@ -11,7 +11,10 @@ import {
   projects,
   users,
   clients,
+  activityLogs,
+  orgMemberships,
 } from "@/db/schema";
+import type { ActivityEventMetadata } from "@/db/schema";
 
 type SessionCtx = {
   userId: string;
@@ -118,6 +121,21 @@ type ProjectInvoice = {
   amount_cents: number;
   pdf_url: string | null;
   created_at: string;
+};
+
+type ProjectActivity = {
+  id: string;
+  eventType: string;
+  metadata: ActivityEventMetadata;
+  createdAt: string;
+  actor: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl: string | null;
+  } | null;
+  actorRole: string | null;
+  project: { id: string; name: string } | null;
 };
 
 function toIso(value: Date | string | null): string | null {
@@ -447,6 +465,67 @@ export async function getProjectInvoices(
       amount_cents: row.amountCents,
       pdf_url: row.pdfUrl,
       created_at: toIso(row.createdAt) ?? "",
+    }));
+  });
+}
+
+export async function getProjectActivity(
+  ctx: SessionCtx,
+  projectId: string,
+  limit = 50,
+): Promise<ProjectActivity[]> {
+  return withRLS(ctx, async (tx) => {
+    const rows = await tx
+      .select({
+        id: activityLogs.id,
+        eventType: activityLogs.eventType,
+        metadata: activityLogs.metadata,
+        createdAt: activityLogs.createdAt,
+        actorId: users.id,
+        actorName: users.name,
+        actorEmail: users.email,
+        actorAvatarUrl: users.avatarUrl,
+        actorRole: orgMemberships.role,
+        projectId: projects.id,
+        projectName: projects.name,
+      })
+      .from(activityLogs)
+      .leftJoin(users, eq(activityLogs.actorId, users.id))
+      .leftJoin(
+        orgMemberships,
+        and(
+          eq(orgMemberships.userId, activityLogs.actorId),
+          eq(orgMemberships.orgId, activityLogs.orgId),
+        ),
+      )
+      .leftJoin(projects, eq(activityLogs.projectId, projects.id))
+      .where(
+        and(
+          eq(activityLogs.orgId, ctx.orgId),
+          eq(activityLogs.projectId, projectId),
+        ),
+      )
+      .orderBy(desc(activityLogs.createdAt))
+      .limit(limit);
+
+    return rows.map((row) => ({
+      id: row.id,
+      eventType: row.eventType,
+      metadata: row.metadata as ActivityEventMetadata,
+      createdAt: toIso(row.createdAt) ?? "",
+      actor: row.actorId
+        ? {
+            id: row.actorId,
+            name: row.actorName ?? "Unknown",
+            email: row.actorEmail ?? "",
+            avatarUrl: row.actorAvatarUrl,
+          }
+        : null,
+      actorRole: row.actorRole ?? null,
+      project:
+        row.projectId && row.projectName
+          ? { id: row.projectId, name: row.projectName }
+          : null,
     }));
   });
 }

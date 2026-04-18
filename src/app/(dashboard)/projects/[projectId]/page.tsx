@@ -5,6 +5,7 @@ import {
   getCachedMembers,
   getCachedMilestones,
   getCachedProject,
+  getProjectActivity,
   getProjectAssets,
   getProjectComments,
   getProjectFolders,
@@ -34,18 +35,27 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const role = ctx.role as "owner" | "admin" | "member" | "client";
 
   try {
-    const [project, milestones, members, folders, assets, comments, invoices] =
-      await Promise.all([
-        getCachedProject(ctx, projectId),
-        getCachedMilestones(ctx, projectId),
-        getCachedMembers(ctx, projectId),
-        getProjectFolders(ctx, projectId),
-        getProjectAssets(ctx, projectId),
-        getProjectComments(ctx, projectId),
-        role !== "client"
-          ? getProjectInvoices(ctx, projectId)
-          : Promise.resolve([]),
-      ]);
+    const [
+      project,
+      milestones,
+      members,
+      folders,
+      assets,
+      comments,
+      invoices,
+      activity,
+    ] = await Promise.all([
+      getCachedProject(ctx, projectId),
+      getCachedMilestones(ctx, projectId),
+      getCachedMembers(ctx, projectId),
+      getProjectFolders(ctx, projectId),
+      getProjectAssets(ctx, projectId),
+      getProjectComments(ctx, projectId),
+      role !== "client"
+        ? getProjectInvoices(ctx, projectId)
+        : Promise.resolve([]),
+      getProjectActivity(ctx, projectId, 50),
+    ]);
 
     if (!project) return notFound();
 
@@ -61,6 +71,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         initialAssets={assets}
         initialComments={comments}
         initialInvoices={invoices}
+        initialActivity={activity}
       />
     );
   } catch (error: unknown) {

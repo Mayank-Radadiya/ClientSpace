@@ -23,8 +23,18 @@ export type ActivityEventMetadata =
   | { event: "project.created"; projectName: string }
   | { event: "project.status_changed"; from: string; to: string }
   | { event: "asset.uploaded"; assetName: string; versionNumber: number }
-  | { event: "asset.approved"; assetName: string; actorName: string }
-  | { event: "asset.changes_requested"; assetName: string; actorName: string }
+  | {
+      event: "asset.approved";
+      assetName: string;
+      actorName: string;
+      ipAddress?: string;
+    }
+  | {
+      event: "asset.changes_requested";
+      assetName: string;
+      actorName: string;
+      ipAddress?: string;
+    }
   | { event: "invoice.sent"; invoiceNumber: number; amountCents: number }
   | { event: "invoice.paid"; invoiceNumber: number }
   | { event: "comment.created"; bodySnippet: string; assetId?: string }
