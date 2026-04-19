@@ -167,6 +167,7 @@ export function FilesPageClient({
       />
 
       <FilesContent
+        projectId={projectId}
         files={filteredFiles}
         recentFiles={recentFiles}
         query={query}

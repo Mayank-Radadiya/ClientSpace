@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { Download, MoreVertical, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,13 +19,20 @@ import type { ProjectFile } from "../types";
 import { ApprovalBadge } from "./FileMeta";
 
 type FileRowProps = {
+  projectId: string;
   file: ProjectFile;
   index: number;
   onDownload?: (storagePath: string, fileName: string) => void;
   onDelete?: (assetId: string, fileName: string) => void;
 };
 
-export function FileRow({ file, index, onDownload, onDelete }: FileRowProps) {
+export function FileRow({
+  projectId,
+  file,
+  index,
+  onDownload,
+  onDelete,
+}: FileRowProps) {
   const kind = inferFileKind(file.mimeType);
   const uploadedAt = new Date(file.updatedAt);
 
@@ -40,7 +48,12 @@ export function FileRow({ file, index, onDownload, onDelete }: FileRowProps) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{file.name}</p>
+        <Link
+          href={`/projects/${projectId}/files/${file.id}`}
+          className="truncate text-sm font-medium hover:underline"
+        >
+          {file.name}
+        </Link>
         <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-xs">
           <span>{formatFileSize(file.sizeBytes)}</span>
           {file.versionNumber !== null && (

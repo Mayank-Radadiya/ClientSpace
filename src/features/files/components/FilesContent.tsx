@@ -13,6 +13,7 @@ import type { SortBy } from "../utils/file-sorting";
 import type { UploadQueueItem } from "../hooks/useUploadManager";
 
 type FilesContentProps = {
+  projectId: string;
   files: ProjectFile[];
   recentFiles: ProjectFile[];
   query: string;
@@ -36,6 +37,7 @@ type FilesContentProps = {
 };
 
 export function FilesContent({
+  projectId,
   files,
   recentFiles,
   query,
@@ -94,6 +96,7 @@ export function FilesContent({
             >
               {files.map((file, index) => (
                 <FileRow
+                  projectId={projectId}
                   key={file.id}
                   file={file}
                   index={index}
@@ -113,6 +116,7 @@ export function FilesContent({
             >
               {files.map((file, index) => (
                 <FileCard
+                  projectId={projectId}
                   key={file.id}
                   file={file}
                   index={index}

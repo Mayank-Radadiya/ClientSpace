@@ -1,7 +1,14 @@
 import { render } from "@react-email/render";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { assets, fileVersions, projectMembers, projects } from "@/db/schema";
+import {
+  assets,
+  fileVersions,
+  organizations,
+  projectMembers,
+  projects,
+  users,
+} from "@/db/schema";
 import { AssetStatusEmail } from "@/emails/AssetStatusEmail";
 import { inngest } from "@/inngest/client";
 
@@ -65,4 +72,23 @@ export async function resolveNotificationRecipients(
   recipientSet.delete(excludeActorId);
 
   return Array.from(recipientSet);
+}
+
+export async function resolveProjectOwner(orgId: string): Promise<{
+  userId: string;
+  email: string;
+  name: string;
+} | null> {
+  const [row] = await db
+    .select({
+      userId: organizations.ownerId,
+      email: users.email,
+      name: users.name,
+    })
+    .from(organizations)
+    .innerJoin(users, eq(organizations.ownerId, users.id))
+    .where(eq(organizations.id, orgId))
+    .limit(1);
+
+  return row ?? null;
 }

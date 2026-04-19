@@ -149,6 +149,34 @@ export const fileRouter = createTRPCRouter({
       return { url: data.signedUrl };
     }),
 
+  getAssetById: protectedProcedure
+    .input(z.object({ assetId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return withRLS(ctx, async (tx) => {
+        const asset = await tx.query.assets.findFirst({
+          where: and(
+            eq(assets.id, input.assetId),
+            eq(assets.orgId, ctx.orgId),
+            isNull(assets.deletedAt),
+          ),
+          columns: {
+            id: true,
+            name: true,
+            projectId: true,
+            approvalStatus: true,
+            type: true,
+            updatedAt: true,
+          },
+        });
+
+        if (!asset) {
+          throw new Error("Asset not found.");
+        }
+
+        return asset;
+      });
+    }),
+
   // ─── Soft-delete an asset ──────────────────────────────────────────────────
   // Sets deletedAt timestamp — filtered out by getAssets (isNull check).
   deleteAsset: protectedProcedure

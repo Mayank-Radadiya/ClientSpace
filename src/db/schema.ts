@@ -5,6 +5,7 @@
 import {
   pgTable,
   pgEnum,
+  AnyPgColumn,
   uuid,
   text,
   timestamp,
@@ -363,10 +364,13 @@ export const comments = pgTable(
       .references(() => users.id)
       .notNull(),
     body: text("body").notNull(),
-    parentId: uuid("parent_id"), // Threaded replies (max 2 levels)
+    parentId: uuid("parent_id").references((): AnyPgColumn => comments.id, {
+      onDelete: "set null",
+    }), // Threaded replies (max 2 levels)
     hidden: boolean("hidden").default(false).notNull(),
     metadata: jsonb("metadata"), // Annotations: { x, y, width, height }
     editedAt: timestamp("edited_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

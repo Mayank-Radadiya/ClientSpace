@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { Download, MoreVertical, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,13 +20,20 @@ import { formatFileSize, inferFileKind } from "../utils/file-helpers";
 import type { ProjectFile } from "../types";
 
 type FileCardProps = {
+  projectId: string;
   file: ProjectFile;
   index: number;
   onDownload?: (storagePath: string, fileName: string) => void;
   onDelete?: (assetId: string, fileName: string) => void;
 };
 
-export function FileCard({ file, index, onDownload, onDelete }: FileCardProps) {
+export function FileCard({
+  projectId,
+  file,
+  index,
+  onDownload,
+  onDelete,
+}: FileCardProps) {
   const kind = inferFileKind(file.mimeType);
   const uploadedAt = new Date(file.updatedAt);
 
@@ -79,9 +87,12 @@ export function FileCard({ file, index, onDownload, onDelete }: FileCardProps) {
         </DropdownMenu>
       </div>
 
-      <p className="mb-1 line-clamp-2 text-sm leading-snug font-medium">
+      <Link
+        href={`/projects/${projectId}/files/${file.id}`}
+        className="mb-1 line-clamp-2 text-sm leading-snug font-medium hover:underline"
+      >
         {file.name}
-      </p>
+      </Link>
 
       <div className="text-muted-foreground mt-auto flex items-center justify-between pt-2 text-xs">
         <span>{formatFileSize(file.sizeBytes)}</span>
