@@ -14,10 +14,17 @@
 
 "use client";
 
+import type { ReactNode } from "react";
 import { useSidebar } from "@/components/global/sidebar/components";
 import { cn } from "@/lib/utils";
 
-function MainContentWrapper({ children }: { children: React.ReactNode }) {
+function MainContentWrapper({
+  children,
+  headerActions,
+}: {
+  children: React.ReactNode;
+  headerActions?: ReactNode;
+}) {
   /**
    * Sidebar state
    * -------------
@@ -37,6 +44,12 @@ function MainContentWrapper({ children }: { children: React.ReactNode }) {
         open ? "pl-[280px]" : "pl-[84px]",
       )}
     >
+      {headerActions ? (
+        <div className="pointer-events-none sticky top-0 z-30 flex justify-end px-6 pt-4">
+          <div className="pointer-events-auto">{headerActions}</div>
+        </div>
+      ) : null}
+
       {/* Content container */}
       <div className="mx-auto max-w-7xl px-6 py-6">{children}</div>
     </main>

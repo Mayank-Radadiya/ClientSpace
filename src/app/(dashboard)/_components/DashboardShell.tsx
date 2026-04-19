@@ -18,6 +18,7 @@ import type { ReactNode } from "react";
 import Sidebar from "@/components/global/sidebar/Sidebar";
 import { SidebarProvider } from "@/components/global/sidebar/components";
 import MainContentWrapper from "./MainContentWrapper";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 
 type Organization = {
   orgId: string;
@@ -66,7 +67,15 @@ export default function WorkspaceShell({
       </div>
 
       {/* Main scrollable content area */}
-      <MainContentWrapper>{children}</MainContentWrapper>
+      <MainContentWrapper
+        headerActions={
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+          </div>
+        }
+      >
+        {children}
+      </MainContentWrapper>
     </SidebarProvider>
   );
 }
