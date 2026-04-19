@@ -7,6 +7,7 @@ import { dashboardRouter } from "@/features/dashboard/server/router";
 import { portalRouter } from "@/features/portal/server/router";
 import { activityRouter } from "@/features/activity/server/router";
 import { commentsRouter } from "@/features/comments/server/router";
+import { analyticsRouter } from "@/features/analytics/server/router";
 
 export const appRouter = createTRPCRouter({
   project: projectRouter,
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   portal: portalRouter,
   activity: activityRouter,
   comments: commentsRouter,
+  analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;

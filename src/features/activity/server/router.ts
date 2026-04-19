@@ -5,6 +5,60 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { activityLogs, notifications, orgMemberships } from "@/db/schema";
 
 export const activityRouter = createTRPCRouter({
+  getActivityLogs: protectedProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(50).default(10) }))
+    .query(async ({ ctx, input }) => {
+      return withRLS(ctx, async (tx) => {
+        const [rows, totalRows] = await Promise.all([
+          tx.query.activityLogs.findMany({
+            where: eq(activityLogs.orgId, ctx.orgId),
+            orderBy: [desc(activityLogs.createdAt)],
+            limit: input.limit,
+            with: {
+              actor: {
+                columns: { id: true, name: true, avatarUrl: true, email: true },
+              },
+              project: { columns: { id: true, name: true } },
+            },
+          }),
+          tx
+            .select({ value: count() })
+            .from(activityLogs)
+            .where(eq(activityLogs.orgId, ctx.orgId)),
+        ]);
+
+        const actorIds = Array.from(new Set(rows.map((i) => i.actorId)));
+        const memberships =
+          actorIds.length > 0
+            ? await tx.query.orgMemberships.findMany({
+                where: and(
+                  eq(orgMemberships.orgId, ctx.orgId),
+                  inArray(orgMemberships.userId, actorIds),
+                ),
+                columns: { userId: true, role: true },
+              })
+            : [];
+
+        const roleByUserId = new Map(memberships.map((m) => [m.userId, m.role]));
+
+        const logs = rows.map((row) => ({
+          ...row,
+          actor: row.actor
+            ? {
+                ...row.actor,
+                role: roleByUserId.get(row.actorId) ?? null,
+              }
+            : null,
+          actorRole: roleByUserId.get(row.actorId) ?? null,
+        }));
+
+        return {
+          logs,
+          total: Number(totalRows[0]?.value ?? 0),
+        };
+      });
+    }),
+
   byProject: protectedProcedure
     .input(
       z.object({
