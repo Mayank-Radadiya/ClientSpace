@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import VerifyOtpForm from "@/features/auth/components/verify/VerifyOtpForm";
 
 export const metadata: Metadata = {
-  title: "Verify your email - ClientSpace",
+  title: "Verify your email",
   description: "Check your email for the verification link",
 };
 

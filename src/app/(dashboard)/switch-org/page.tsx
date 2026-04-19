@@ -3,7 +3,7 @@ import { createTRPCContext } from "@/lib/trpc/init";
 import { getUser } from "@/lib/auth/getUser";
 import { OrgSwitcherGrid } from "@/components/global/org-switcher/OrgSwitcherGrid";
 
-export const metadata = { title: "Switch Organization — ClientSpace" };
+export const metadata = { title: "Switch Organization" };
 
 export default async function SwitchOrgPage() {
   const user = await getUser();

@@ -3,7 +3,7 @@ import { getInvitationByToken } from "@/features/clients/server/queries";
 import { AcceptInviteForm } from "@/features/clients/components/AcceptInviteForm";
 
 export const metadata = {
-  title: "Accept Invitation - ClientSpace",
+  title: "Accept Invitation",
   description: "Accept your client portal invitation",
 };
 

@@ -7,7 +7,7 @@ import { orgMemberships } from "@/db/schema";
 import { CreateOrganizationForm } from "@/features/onboarding/components/CreateOrgForm";
 
 export const metadata = {
-  title: "Create your workspace — ClientSpace",
+  title: "Create your workspace",
 };
 
 export default async function OnboardingPage() {

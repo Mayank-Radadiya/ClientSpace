@@ -2,7 +2,7 @@ import { LoginForm } from "@/features/auth/components/Login/LoginForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Login - ClientSpace",
+  title: "Login",
   description: "Sign in to your account",
 };
 

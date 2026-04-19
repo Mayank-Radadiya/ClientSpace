@@ -8,7 +8,7 @@ import { StatsCards } from "@/features/analytics/components/StatsCards";
 import { RevenueChart } from "@/features/analytics/components/RevenueChart";
 import { RecentActivityFeed } from "@/features/analytics/components/RecentActivityFeed";
 
-export const metadata = { title: "Dashboard — ClientSpace" };
+export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const caller = await getServerCaller();

@@ -6,7 +6,7 @@ import { orgMemberships } from "@/db/schema";
 import { AddClientForm } from "@/features/onboarding/components/AddClientForm";
 
 export const metadata = {
-  title: "Add your first client — ClientSpace",
+  title: "Add your first client",
 };
 
 export default async function AddClientPage() {

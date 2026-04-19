@@ -2,7 +2,7 @@ import { SignupForm } from "@/features/auth/components/SignUp/SignupForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create an Account - ClientSpace",
+  title: "Create an Account",
   description: "Sign up for ClientSpace",
 };
 

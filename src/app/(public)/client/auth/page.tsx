@@ -4,7 +4,7 @@ import { getInvitationByToken } from "@/features/clients/server/queries";
 import { ClientAuthForm } from "@/features/client-auth/components/ClientAuthForm";
 
 export const metadata = {
-  title: "Client Portal Access - ClientSpace",
+  title: "Client Portal Access",
   description: "Access your client portal invitation",
 };
 

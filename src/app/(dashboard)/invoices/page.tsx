@@ -12,7 +12,7 @@ import { getQueryClient } from "@/lib/trpc/query-client";
 import { createTRPCContext } from "@/lib/trpc/init";
 import { InvoicesPageClient } from "@/features/invoices/components/InvoicesPageClient";
 
-export const metadata = { title: "Invoices — ClientSpace" };
+export const metadata = { title: "Invoices" };
 
 export default async function InvoicesPage() {
   const ctx = await createTRPCContext();

@@ -1,6 +1,6 @@
 import { InviteClientDialog } from "@/features/clients/components/InviteClientDialog";
 
-export const metadata = { title: "Clients - ClientSpace" };
+export const metadata = { title: "Clients" };
 
 export default function ClientsPage() {
   return (

@@ -6,7 +6,7 @@ import { ClientInvoiceList } from "@/features/portal/components/ClientInvoiceLis
 import { ActivityFeed } from "@/features/portal/components/ActivityFeed";
 import { WhatHappensNextBanner } from "@/features/portal/components/WhatHappensNextBanner";
 
-export const metadata = { title: "Portal - ClientSpace" };
+export const metadata = { title: "Portal" };
 
 export default async function PortalHomePage() {
   const caller = await getServerCaller();

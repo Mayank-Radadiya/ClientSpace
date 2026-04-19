@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerCaller } from "@/lib/trpc/server";
 import { ClientInvoiceList } from "@/features/portal/components/ClientInvoiceList";
 
-export const metadata = { title: "Invoices - Client Portal" };
+export const metadata = { title: "Invoices" };
 
 export default async function PortalInvoicesPage() {
   const caller = await getServerCaller();

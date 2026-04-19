@@ -9,7 +9,7 @@ import { getQueryClient } from "@/lib/trpc/query-client";
 import { getServerCaller } from "@/lib/trpc/server";
 import { createTRPCContext } from "@/lib/trpc/init";
 
-export const metadata = { title: "Projects — ClientSpace" };
+export const metadata = { title: "Projects" };
 
 const DEFAULT_FILTERS = {
   search: "",
