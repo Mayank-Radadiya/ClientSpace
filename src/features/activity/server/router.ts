@@ -53,6 +53,12 @@ export const activityRouter = createTRPCRouter({
         );
         const withRole = items.map((item) => ({
           ...item,
+          actor: item.actor
+            ? {
+                ...item.actor,
+                role: roleByUserId.get(item.actorId) ?? null,
+              }
+            : null,
           actorRole: roleByUserId.get(item.actorId) ?? null,
         }));
 
@@ -99,6 +105,12 @@ export const activityRouter = createTRPCRouter({
 
         return rows.map((row) => ({
           ...row,
+          actor: row.actor
+            ? {
+                ...row.actor,
+                role: roleByUserId.get(row.actorId) ?? null,
+              }
+            : null,
           actorRole: roleByUserId.get(row.actorId) ?? null,
         }));
       });

@@ -133,6 +133,7 @@ type ProjectActivity = {
     name: string;
     email: string;
     avatarUrl: string | null;
+    role?: string | null;
   } | null;
   actorRole: string | null;
   project: { id: string; name: string } | null;
@@ -519,6 +520,7 @@ export async function getProjectActivity(
             name: row.actorName ?? "Unknown",
             email: row.actorEmail ?? "",
             avatarUrl: row.actorAvatarUrl,
+            role: row.actorRole ?? null,
           }
         : null,
       actorRole: row.actorRole ?? null,

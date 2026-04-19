@@ -15,6 +15,7 @@ type ActivityRow = {
     name: string;
     avatarUrl: string | null;
     email: string;
+    role?: string | null;
   } | null;
   actorRole?: string | null;
   project?: { id: string; name: string } | null;
@@ -108,7 +109,9 @@ export function ActivityTimeline({
                   const actorName =
                     item.actor?.name ?? item.actor?.email ?? "Someone";
                   const label = toLabel(item.metadata);
-                  const isClientActor = item.actorRole === "client";
+                  const isClientActor =
+                    item.actor?.role === "client" ||
+                    item.actorRole === "client";
 
                   return (
                     <li key={item.id} className="flex items-start gap-3">

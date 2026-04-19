@@ -1,7 +1,7 @@
 import { render } from "@react-email/render";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { assets, fileVersions, projectMembers } from "@/db/schema";
+import { assets, fileVersions, projectMembers, projects } from "@/db/schema";
 import { AssetStatusEmail } from "@/emails/AssetStatusEmail";
 import { inngest } from "@/inngest/client";
 
@@ -46,7 +46,10 @@ export async function resolveNotificationRecipients(
   const members = await db
     .select({ userId: projectMembers.userId })
     .from(projectMembers)
-    .where(eq(projectMembers.projectId, projectId));
+    .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+    .where(
+      and(eq(projectMembers.projectId, projectId), eq(projects.orgId, orgId)),
+    );
 
   const [assetWithUploader] = await db
     .select({ uploadedBy: fileVersions.uploadedBy })
