@@ -5,6 +5,8 @@ import { getUser } from "@/lib/auth/getUser";
 import { requireOrg } from "@/lib/auth/requireOrg";
 import { createTRPCContext } from "@/lib/trpc/init";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {

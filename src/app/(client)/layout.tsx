@@ -6,6 +6,8 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { clients, organizations } from "@/db/schema";
 import { ClientHeader } from "@/features/portal/components/ClientHeader";
 
+export const dynamic = "force-dynamic";
+
 export default async function ClientLayout({
   children,
 }: {

@@ -20,6 +20,16 @@ export const getUser = cache(async () => {
       return null;
     }
 
+    // Rethrow Next.js dynamic server errors so Next can correctly switch to dynamic rendering
+    if (
+      error &&
+      typeof error === "object" &&
+      "digest" in error &&
+      error.digest === "DYNAMIC_SERVER_USAGE"
+    ) {
+      throw error;
+    }
+
     console.error("[getUser] Failed to fetch user:", error);
     return null;
   }
