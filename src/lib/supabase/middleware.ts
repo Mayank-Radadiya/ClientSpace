@@ -101,6 +101,23 @@ export async function updateSession(request: NextRequest): Promise<{
     }
   }
 
+  // 1e. Client role cannot access dashboard clients route
+  if (request.nextUrl.pathname.startsWith("/dashboard/clients") && user) {
+    const orgRole = (user.app_metadata as Record<string, unknown> | undefined)
+      ?.org_role;
+
+    if (orgRole === "client") {
+      const redirectResp = NextResponse.redirect(new URL("/portal", request.url));
+      response.cookies.getAll().forEach((c) => {
+        redirectResp.cookies.set(c.name, c.value, c);
+      });
+      return {
+        response: redirectResp,
+        user,
+      };
+    }
+  }
+
   // 1b. Protect Client Portal Routes — redirect unauthenticated users to client auth
   if (request.nextUrl.pathname.startsWith("/client-portal") && !user) {
     const redirectResp = NextResponse.redirect(

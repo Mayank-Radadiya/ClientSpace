@@ -8,6 +8,7 @@ import { portalRouter } from "@/features/portal/server/router";
 import { activityRouter } from "@/features/activity/server/router";
 import { commentsRouter } from "@/features/comments/server/router";
 import { analyticsRouter } from "@/features/analytics/server/router";
+import { clientRouter } from "@/features/clients/server/router";
 
 export const appRouter = createTRPCRouter({
   project: projectRouter,
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   activity: activityRouter,
   comments: commentsRouter,
   analytics: analyticsRouter,
+  client: clientRouter,
 });
 
 export type AppRouter = typeof appRouter;
