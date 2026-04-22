@@ -48,7 +48,7 @@ function SubmitButton({ mode }: { mode: "signup" | "signin" }) {
       className="group relative w-full overflow-hidden"
       disabled={pending}
     >
-      <span className="relative z-10 flex items-center justify-center gap-2 font-medium text-white">
+      <span className="text-foreground relative z-10 flex items-center justify-center gap-2 font-medium">
         {pending
           ? mode === "signup"
             ? "Creating account..."
@@ -57,7 +57,7 @@ function SubmitButton({ mode }: { mode: "signup" | "signin" }) {
             ? "Create Account & Accept"
             : "Sign In & Accept"}
       </span>
-      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent" />
     </Button>
   );
 }
@@ -84,9 +84,9 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
       className="relative z-10 w-full max-w-[520px]"
     >
       {/* Decorative background glow */}
-      <div className="from-primary/20 absolute -inset-1 z-0 rounded-3xl bg-gradient-to-tr via-indigo-500/20 to-purple-500/20 opacity-50 blur-2xl" />
+      <div className="from-primary/20 absolute -inset-1 z-0 rounded-3xl bg-linear-to-tr via-indigo-500/20 to-purple-500/20 opacity-50 blur-2xl" />
 
-      <div className="sm:bg-background/70 relative z-10 overflow-hidden p-6 transition-all duration-500 hover:border-white/20 sm:rounded-[2rem] sm:border sm:border-white/10 sm:shadow-2xl sm:shadow-black/20 sm:backdrop-blur-2xl">
+      <div className="sm:bg-background/70 relative z-10 overflow-hidden p-6 transition-all duration-500 hover:border-white/20 sm:rounded-4xl sm:border sm:border-white/10 sm:shadow-2xl sm:shadow-black/20 sm:backdrop-blur-2xl">
         <motion.div
           variants={containerVariants}
           initial="hidden"

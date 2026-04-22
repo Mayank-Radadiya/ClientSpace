@@ -125,7 +125,7 @@ export function CreateOrganizationForm() {
               >
                 <motion.div variants={itemVariants} className="relative">
                   <div className="bg-primary/20 absolute inset-0 animate-pulse rounded-2xl blur-xl" />
-                  <div className="from-primary/10 to-primary/5 text-primary border-primary/20 relative z-10 flex h-20 w-20 items-center justify-center rounded-3xl border bg-gradient-to-br shadow-inner">
+                  <div className="from-primary/10 to-primary/5 text-primary border-primary/20 relative z-10 flex h-20 w-20 items-center justify-center rounded-3xl border bg-linear-to-br shadow-inner">
                     <Sparkles
                       className="text-primary h-10 w-10"
                       strokeWidth={1.5}

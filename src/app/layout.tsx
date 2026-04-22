@@ -1,5 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { dmSans, jakarta, montserrat, geist } from "@/lib/fonts";
+import {
+  dmSans,
+  jakarta,
+  montserrat,
+  geist,
+  syne,
+  dmMono,
+  barlowCondensed,
+} from "@/lib/fonts";
 import "./globals.css";
 import Provider from "@/provider/Provider";
 import { TRPCProvider } from "@/lib/trpc/provider";
@@ -62,7 +70,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      className={`${dmSans.variable} ${jakarta.variable} ${montserrat.variable} ${geist.variable}`}
+      className={`${dmSans.variable} ${jakarta.variable} ${montserrat.variable} ${geist.variable} ${syne.variable} ${dmMono.variable} ${barlowCondensed.variable}`}
       lang="en"
       suppressHydrationWarning
     >

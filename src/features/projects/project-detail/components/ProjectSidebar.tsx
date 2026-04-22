@@ -232,7 +232,7 @@ export function ProjectSidebar({
           </h3>
         </div>
         <div className="flex flex-col gap-4 p-4">
-          <div className="before:via-border/50 relative before:absolute before:inset-0 before:ml-3.5 before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:to-transparent md:before:mx-auto md:before:translate-x-0">
+          <div className="before:via-border/50 relative before:absolute before:inset-0 before:ml-3.5 before:h-full before:w-0.5 before:-translate-x-px before:bg-linear-to-b before:from-transparent before:to-transparent md:before:mx-auto md:before:translate-x-0">
             {mockActivities.map((act, i) => (
               <div
                 key={act.id}

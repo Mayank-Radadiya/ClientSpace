@@ -40,8 +40,8 @@ function MainContentWrapper({
 
         // Dynamic left padding based on sidebar width
         // Expanded sidebar: 280px
-        // Collapsed sidebar: 84px
-        open ? "pl-[280px]" : "pl-[84px]",
+        // Collapsed sidebar: 64px
+        open ? "pl-[280px]" : "pl-[64px]",
       )}
     >
       {headerActions ? (
