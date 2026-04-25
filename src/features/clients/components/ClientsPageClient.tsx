@@ -32,7 +32,7 @@ export function ClientsPageClient({
 }: ClientsPageClientProps) {
   const permissions = useClientPermissions(role);
 
-  const { data, isFetching, refetch } = trpc.client.getBootstrap.useQuery(
+  const { data, isFetching, refetch } = trpc.clients.getBootstrap.useQuery(
     undefined,
     {
       initialData: { clients: initialClients, stats: initialStats },
@@ -67,7 +67,7 @@ export function ClientsPageClient({
 
   const selectedClientId = selectedClient?.id;
 
-  const projectsQuery = trpc.client.getClientProjects.useQuery(
+  const projectsQuery = trpc.clients.getClientProjects.useQuery(
     { clientId: selectedClientId ?? "00000000-0000-0000-0000-000000000000" },
     {
       enabled:
@@ -77,7 +77,7 @@ export function ClientsPageClient({
     },
   );
 
-  const invoicesQuery = trpc.client.getClientInvoices.useQuery(
+  const invoicesQuery = trpc.clients.getClientInvoices.useQuery(
     { clientId: selectedClientId ?? "00000000-0000-0000-0000-000000000000" },
     {
       enabled:
@@ -87,7 +87,7 @@ export function ClientsPageClient({
     },
   );
 
-  const activityQuery = trpc.client.getClientActivity.useQuery(
+  const activityQuery = trpc.clients.getClientActivity.useQuery(
     { clientId: selectedClientId ?? "00000000-0000-0000-0000-000000000000" },
     {
       enabled:

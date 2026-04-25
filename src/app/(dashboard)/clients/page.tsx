@@ -15,7 +15,7 @@ export default async function ClientsPage() {
 
   const caller = await getServerCaller();
   const bootstrap = caller
-    ? await caller.client.getBootstrap()
+    ? await caller.clients.getBootstrap()
     : {
         clients: [],
         stats: {

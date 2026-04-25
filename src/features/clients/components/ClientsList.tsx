@@ -36,7 +36,7 @@ export function ClientsList({
   permissions,
   onClientArchived,
 }: ClientsListProps) {
-  const archiveMutation = trpc.client.archiveClient.useMutation({
+  const archiveMutation = trpc.clients.archiveClient.useMutation({
     onSuccess: () => {
       onClientArchived();
     },

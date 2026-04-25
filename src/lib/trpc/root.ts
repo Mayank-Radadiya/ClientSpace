@@ -20,7 +20,7 @@ export const appRouter = createTRPCRouter({
   activity: activityRouter,
   comments: commentsRouter,
   analytics: analyticsRouter,
-  client: clientRouter,
+  clients: clientRouter,
 });
 
 export type AppRouter = typeof appRouter;

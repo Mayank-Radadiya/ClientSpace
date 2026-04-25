@@ -34,7 +34,7 @@ export function ClientDetailSheet({
   activityQuery,
   onClientArchived,
 }: DetailSheetProps) {
-  const archiveMutation = trpc.client.archiveClient.useMutation({
+  const archiveMutation = trpc.clients.archiveClient.useMutation({
     onSuccess: () => {
       onClientArchived();
       setIsOpen(false);
