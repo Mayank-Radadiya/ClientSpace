@@ -64,7 +64,7 @@ export const dashboardRouter = createTRPCRouter({
         tx
           .select({
             total: sql<number>`COUNT(*)`,
-            active: sql<number>`COUNT(*) FILTER (WHERE ${projects.status} = 'in_progress')`,
+            active: sql<number>`COUNT(*) FILTER (WHERE ${projects.status} IN ('not_started', 'in_progress', 'review'))`,
           })
           .from(projects)
           .where(eq(projects.orgId, ctx.orgId)),

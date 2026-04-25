@@ -80,7 +80,7 @@ export function ClientsGrid({ visibleClients, openClient }: ClientsGridProps) {
 
             <div className="font-data)] text-muted-foreground flex items-center gap-2 text-[10px] tracking-widest uppercase">
               <Clock3 className="h-3 w-3 opacity-60" />
-              <span>Active {formatRelative(client.lastActivityAt)}</span>
+              <span>Activity: {formatRelative(client.lastActivityAt)}</span>
             </div>
           </motion.div>
         ))}

@@ -1,3 +1,4 @@
+import { trpc } from "@/lib/trpc/client";
 import { MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,13 +27,21 @@ type ClientsListProps = {
   permissions: {
     canEditClient: boolean;
   };
+  onClientArchived: () => void;
 };
 
 export function ClientsList({
   visibleClients,
   openClient,
   permissions,
+  onClientArchived,
 }: ClientsListProps) {
+  const archiveMutation = trpc.client.archiveClient.useMutation({
+    onSuccess: () => {
+      onClientArchived();
+    },
+  });
+
   return (
     <div className="border-border bg-muted/20 overflow-hidden rounded-2xl border backdrop-blur-md">
       <Table>
@@ -118,8 +127,11 @@ export function ClientsList({
                         Edit Client
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
-                        onClick={(e) => e.stopPropagation()}
+                        className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          archiveMutation.mutate({ clientId: client.id });
+                        }}
                       >
                         Archive Client
                       </DropdownMenuItem>

@@ -32,10 +32,13 @@ export function ClientsPageClient({
 }: ClientsPageClientProps) {
   const permissions = useClientPermissions(role);
 
-  const { data, isFetching } = trpc.client.getBootstrap.useQuery(undefined, {
-    initialData: { clients: initialClients, stats: initialStats },
-    refetchOnWindowFocus: true,
-  });
+  const { data, isFetching, refetch } = trpc.client.getBootstrap.useQuery(
+    undefined,
+    {
+      initialData: { clients: initialClients, stats: initialStats },
+      refetchOnWindowFocus: true,
+    },
+  );
 
   const clients = data?.clients ?? initialClients;
   const stats = data?.stats ?? initialStats;
@@ -100,9 +103,9 @@ export function ClientsPageClient({
   );
 
   return (
-    <div className="bg-background  relative mb-8 min-h-[calc(100vh-2rem)] w-full overflow-hidden rounded-2xl border border-border p-6 text-foreground shadow-lg md:p-10">
+    <div className="bg-background border-border text-foreground relative mb-8 min-h-[calc(100vh-2rem)] w-full overflow-hidden rounded-2xl border p-6 shadow-lg md:p-10">
       {/* Glow effects specific to this page */}
-      <div className="pointer-events-none absolute -right-96 -bottom-96 h-[800px] w-[800px] rounded-full " />
+      <div className="pointer-events-none absolute -right-96 -bottom-96 h-[800px] w-[800px] rounded-full" />
 
       <div className="relative z-10 space-y-10">
         <ClientsHeader
@@ -146,6 +149,7 @@ export function ClientsPageClient({
             visibleClients={visibleClients}
             openClient={openClient}
             permissions={permissions}
+            onClientArchived={() => refetch()}
           />
         )}
 
@@ -153,7 +157,7 @@ export function ClientsPageClient({
           <div className="mt-8 flex justify-center">
             <button
               onClick={loadMore}
-              className="rounded-full border border-border bg-muted/50 px-8 py-3 text-[10px] font-bold tracking-[0.2em] text-foreground uppercase transition-all hover:border-[primary]/50 hover:bg-primary/5 hover:text-primary"
+              className="border-border bg-muted/50 text-foreground hover:bg-primary/5 hover:text-primary rounded-full border px-8 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-all hover:border-[primary]/50"
             >
               Load More Results
             </button>
@@ -162,9 +166,9 @@ export function ClientsPageClient({
       </div>
 
       {isFetching && (
-        <div className="absolute right-6 bottom-6 flex items-center gap-3 rounded-full border border-border bg-foreground px-4 py-2 shadow-2xl backdrop-blur-xl">
-          <div className="h-2 w-2 animate-ping rounded-full bg-primary" />
-          <span className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+        <div className="border-border bg-foreground absolute right-6 bottom-6 flex items-center gap-3 rounded-full border px-4 py-2 shadow-2xl backdrop-blur-xl">
+          <div className="bg-primary h-2 w-2 animate-ping rounded-full" />
+          <span className="text-muted-foreground text-[10px] font-bold tracking-[0.2em] uppercase">
             Syncing Data
           </span>
         </div>
@@ -180,6 +184,7 @@ export function ClientsPageClient({
         projectsQuery={projectsQuery}
         invoicesQuery={invoicesQuery}
         activityQuery={activityQuery}
+        onClientArchived={() => refetch()}
       />
     </div>
   );

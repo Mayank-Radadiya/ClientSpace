@@ -113,11 +113,15 @@ export function useClients({ clients }: UseClientsParams) {
       }
 
       if (sort === "last_activity_desc") {
-        return activityValue(b.lastActivityAt) - activityValue(a.lastActivityAt);
+        return (
+          activityValue(b.lastActivityAt) - activityValue(a.lastActivityAt)
+        );
       }
 
       if (sort === "last_activity_asc") {
-        return activityValue(a.lastActivityAt) - activityValue(b.lastActivityAt);
+        return (
+          activityValue(a.lastActivityAt) - activityValue(b.lastActivityAt)
+        );
       }
 
       if (sort === "revenue_desc") {
@@ -127,7 +131,8 @@ export function useClients({ clients }: UseClientsParams) {
       }
 
       return (
-        parseMoney(b.outstandingAmountCents) - parseMoney(a.outstandingAmountCents)
+        parseMoney(b.outstandingAmountCents) -
+        parseMoney(a.outstandingAmountCents)
       );
     });
 

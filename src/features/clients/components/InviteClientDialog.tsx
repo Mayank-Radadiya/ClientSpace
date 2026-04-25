@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus } from "lucide-react";
+import { BadgePlus, Loader2, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -70,9 +70,10 @@ export function InviteClientDialog() {
     >
       <DialogTrigger
         render={
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Invite Client
+          <Button className="group from-primary shadow-primary/25 hover:shadow-primary/40 relative overflow-hidden rounded-xl bg-linear-to-br to-indigo-600 px-6 font-bold tracking-wide text-white shadow-lg transition-[transform,shadow] duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-95">
+            <div className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <BadgePlus className="hover:scale-105 text-white" />
+            <span className="relative z-10 text-white">Invite Client</span>
           </Button>
         }
       />

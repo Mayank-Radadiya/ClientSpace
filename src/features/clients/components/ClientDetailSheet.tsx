@@ -7,6 +7,7 @@ import type { ClientListItem } from "../client.types";
 import { STATUS_DOT, CUBIC_BEZIER } from "../constants";
 import { statusLabel, formatCents, formatRelative } from "../utils/formatters";
 import { AnimatedCounter } from "./AnimatedCounter";
+import { trpc } from "@/lib/trpc/client";
 
 export type ClientSheetTab = "overview" | "projects" | "invoices" | "activity";
 
@@ -19,6 +20,7 @@ type DetailSheetProps = {
   projectsQuery: any;
   invoicesQuery: any;
   activityQuery: any;
+  onClientArchived: () => void;
 };
 
 export function ClientDetailSheet({
@@ -30,7 +32,15 @@ export function ClientDetailSheet({
   projectsQuery,
   invoicesQuery,
   activityQuery,
+  onClientArchived,
 }: DetailSheetProps) {
+  const archiveMutation = trpc.client.archiveClient.useMutation({
+    onSuccess: () => {
+      onClientArchived();
+      setIsOpen(false);
+    },
+  });
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent
@@ -212,9 +222,22 @@ export function ClientDetailSheet({
                             Edit
                           </span>
                         </button>
-                        <button className="border-border bg-muted/30 hover:bg-muted/50 flex flex-col items-center justify-center gap-2 rounded-lg border py-4 transition-colors hover:border-white/20">
+                        <button
+                          onClick={() =>
+                            selectedClient &&
+                            archiveMutation.mutate({
+                              clientId: selectedClient.id,
+                            })
+                          }
+                          disabled={archiveMutation.isPending}
+                          className="border-border bg-muted/30 hover:bg-muted/50 flex flex-col items-center justify-center gap-2 rounded-lg border py-4 transition-colors hover:border-white/20 disabled:opacity-50"
+                        >
                           <div className="bg-muted/50 flex h-8 w-8 items-center justify-center rounded-full">
-                            <List className="h-4 w-4" />
+                            {archiveMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <List className="h-4 w-4" />
+                            )}
                           </div>
                           <span className="text-muted-foreground text-[10px] tracking-widest uppercase">
                             Archive

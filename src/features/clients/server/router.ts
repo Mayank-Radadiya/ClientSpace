@@ -25,12 +25,15 @@ const updateClientSchema = z.object({
 function deriveDisplayStatus(input: {
   dbStatus: "active" | "revoked";
   pendingInvite: boolean;
+  hasAccount: boolean;
   activeProjectCount: number;
   outstandingAmountCents: number;
   lastActivityAt: Date | null;
 }): ClientDisplayStatus {
   if (input.dbStatus === "revoked") return "archived";
   if (input.pendingInvite) return "pending";
+  // Client was added but never signed up — treat as inactive
+  if (!input.hasAccount) return "inactive";
 
   const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
   const isInactiveByActivity =
@@ -53,6 +56,7 @@ export const clientRouter = createTRPCRouter({
       const clientRows = await tx
         .select({
           id: clients.id,
+          userId: clients.userId,
           companyName: clients.companyName,
           contactName: clients.contactName,
           email: clients.email,
@@ -106,7 +110,11 @@ export const clientRouter = createTRPCRouter({
             and(
               eq(projects.orgId, ctx.orgId),
               inArray(projects.clientId, clientIds),
-              inArray(projects.status, ["in_progress", "review"]),
+              inArray(projects.status, [
+                "not_started",
+                "in_progress",
+                "review",
+              ]),
             ),
           )
           .groupBy(projects.clientId),
@@ -163,7 +171,11 @@ export const clientRouter = createTRPCRouter({
             .where(
               and(
                 eq(projects.orgId, ctx.orgId),
-                inArray(projects.status, ["in_progress", "review"]),
+                inArray(projects.status, [
+                  "not_started",
+                  "in_progress",
+                  "review",
+                ]),
               ),
             ),
           tx
@@ -204,6 +216,7 @@ export const clientRouter = createTRPCRouter({
         const displayStatus = deriveDisplayStatus({
           dbStatus: row.dbStatus,
           pendingInvite,
+          hasAccount: row.userId !== null,
           activeProjectCount,
           outstandingAmountCents,
           lastActivityAt,
@@ -254,7 +267,10 @@ export const clientRouter = createTRPCRouter({
           })
           .from(projects)
           .where(
-            and(eq(projects.orgId, ctx.orgId), eq(projects.clientId, input.clientId)),
+            and(
+              eq(projects.orgId, ctx.orgId),
+              eq(projects.clientId, input.clientId),
+            ),
           )
           .orderBy(desc(projects.updatedAt));
       });
@@ -275,7 +291,10 @@ export const clientRouter = createTRPCRouter({
           })
           .from(invoices)
           .where(
-            and(eq(invoices.orgId, ctx.orgId), eq(invoices.clientId, input.clientId)),
+            and(
+              eq(invoices.orgId, ctx.orgId),
+              eq(invoices.clientId, input.clientId),
+            ),
           )
           .orderBy(desc(invoices.updatedAt));
       });
@@ -295,7 +314,10 @@ export const clientRouter = createTRPCRouter({
           .from(activityLogs)
           .innerJoin(projects, eq(activityLogs.projectId, projects.id))
           .where(
-            and(eq(activityLogs.orgId, ctx.orgId), eq(projects.clientId, input.clientId)),
+            and(
+              eq(activityLogs.orgId, ctx.orgId),
+              eq(projects.clientId, input.clientId),
+            ),
           )
           .orderBy(desc(activityLogs.createdAt))
           .limit(100);
@@ -314,12 +336,18 @@ export const clientRouter = createTRPCRouter({
 
       return withRLS(ctx, async (tx) => {
         const existing = await tx.query.clients.findFirst({
-          where: and(eq(clients.id, input.clientId), eq(clients.orgId, ctx.orgId)),
+          where: and(
+            eq(clients.id, input.clientId),
+            eq(clients.orgId, ctx.orgId),
+          ),
           columns: { id: true },
         });
 
         if (!existing) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Client not found.",
+          });
         }
 
         const [updated] = await tx
@@ -336,6 +364,42 @@ export const clientRouter = createTRPCRouter({
           });
 
         return updated;
+      });
+    }),
+
+  archiveClient: protectedProcedure
+    .input(z.object({ clientId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.role !== "owner" && ctx.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only owner/admin can archive client records.",
+        });
+      }
+
+      return withRLS(ctx, async (tx) => {
+        const existing = await tx.query.clients.findFirst({
+          where: and(
+            eq(clients.id, input.clientId),
+            eq(clients.orgId, ctx.orgId),
+          ),
+          columns: { id: true },
+        });
+
+        if (!existing) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Client not found.",
+          });
+        }
+
+        const [archived] = await tx
+          .update(clients)
+          .set({ status: "revoked" })
+          .where(eq(clients.id, input.clientId))
+          .returning({ id: clients.id });
+
+        return archived;
       });
     }),
 });

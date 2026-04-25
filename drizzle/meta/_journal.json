@@ -29,6 +29,13 @@
       "when": 1775966400000,
       "tag": "0003_comments_soft_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776996230866,
+      "tag": "0004_funny_thena",
+      "breakpoints": true
     }
   ]
 }
