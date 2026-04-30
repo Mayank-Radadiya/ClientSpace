@@ -16,7 +16,10 @@ export function useFileDelete({ projectId, onSuccess }: UseFileDeleteOptions) {
     trpc.file.deleteAsset.useMutation({
       onSuccess: async () => {
         // Invalidate the assets cache so the deleted file is removed from the list
-        await utils.file.getAssets.invalidate({ projectId });
+        await Promise.all([
+          utils.file.getAssets.invalidate({ projectId }),
+          utils.dashboard.getMetrics.invalidate(),
+        ]);
         onSuccess?.();
       },
     });

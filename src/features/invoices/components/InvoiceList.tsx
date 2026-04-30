@@ -137,9 +137,6 @@ export function InvoiceList({
     { status: undefined },
     {
       enabled: !projectId,
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: true,
     },
   );
 
@@ -147,9 +144,6 @@ export function InvoiceList({
     { projectId: projectId! },
     {
       enabled: !!projectId,
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: true,
     },
   );
 

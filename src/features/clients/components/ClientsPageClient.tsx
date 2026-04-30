@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { trpc } from "@/lib/trpc/client";
 
-import type { ClientBootstrapStats, ClientListItem } from "../client.types";
 import { useClientPermissions } from "../hooks/useClientPermissions";
 import { useClients } from "../hooks/useClients";
 import { useClientSheet } from "../hooks/useClientSheet";
@@ -20,28 +19,24 @@ import { ClientDetailSheet } from "./ClientDetailSheet";
 type Role = "owner" | "admin" | "member" | "client";
 
 type ClientsPageClientProps = {
-  initialClients: ClientListItem[];
-  initialStats: ClientBootstrapStats;
   role: Role;
 };
 
 export function ClientsPageClient({
-  initialClients,
-  initialStats,
   role,
 }: ClientsPageClientProps) {
+  const utils = trpc.useUtils();
   const permissions = useClientPermissions(role);
 
-  const { data, isFetching, refetch } = trpc.clients.getBootstrap.useQuery(
-    undefined,
-    {
-      initialData: { clients: initialClients, stats: initialStats },
-      refetchOnWindowFocus: true,
-    },
-  );
+  const { data, isFetching, isLoading } = trpc.clients.getBootstrap.useQuery();
 
-  const clients = data?.clients ?? initialClients;
-  const stats = data?.stats ?? initialStats;
+  const clients = data?.clients ?? [];
+  const stats = data?.stats ?? {
+    totalClients: 0,
+    activeClients: 0,
+    activeProjects: 0,
+    outstandingInvoicesCents: 0,
+  };
 
   const {
     view,
@@ -102,6 +97,35 @@ export function ClientsPageClient({
     [stats.activeProjects],
   );
 
+  if (isLoading) {
+    return (
+      <div className="bg-background border-border text-foreground relative mb-8 min-h-[calc(100vh-2rem)] w-full overflow-hidden rounded-2xl border p-6 shadow-lg md:p-10">
+        <div className="relative z-10 space-y-10">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="bg-muted h-8 w-48 animate-pulse rounded-lg" />
+              <div className="bg-muted h-4 w-72 animate-pulse rounded-lg" />
+            </div>
+            <div className="bg-muted h-10 w-36 animate-pulse rounded-xl" />
+          </div>
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-muted h-28 animate-pulse rounded-xl" />
+            ))}
+          </div>
+          {/* Cards skeleton */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-muted h-40 animate-pulse rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background border-border text-foreground relative mb-8 min-h-[calc(100vh-2rem)] w-full overflow-hidden rounded-2xl border p-6 shadow-lg md:p-10">
       {/* Glow effects specific to this page */}
@@ -149,7 +173,7 @@ export function ClientsPageClient({
             visibleClients={visibleClients}
             openClient={openClient}
             permissions={permissions}
-            onClientArchived={() => refetch()}
+            onClientArchived={() => utils.clients.getBootstrap.invalidate()}
           />
         )}
 
@@ -184,7 +208,7 @@ export function ClientsPageClient({
         projectsQuery={projectsQuery}
         invoicesQuery={invoicesQuery}
         activityQuery={activityQuery}
-        onClientArchived={() => refetch()}
+        onClientArchived={() => utils.clients.getBootstrap.invalidate()}
       />
     </div>
   );

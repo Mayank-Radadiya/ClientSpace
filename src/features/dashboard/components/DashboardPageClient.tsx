@@ -25,7 +25,9 @@ export function DashboardPageClient({ userName }: DashboardPageClientProps) {
     trpc.dashboard.getRecentProjects.useQuery();
 
   const { data: dashboardActivity, isLoading: activityLoading } =
-    trpc.activity.dashboard.useQuery({ limit: 20 });
+    trpc.activity.dashboard.useQuery({ limit: 20 }, {
+      staleTime: 60_000, // Activity data: shorter window since it changes frequently
+    });
 
   // Default data for loading state
   const defaultMetrics = {

@@ -3,12 +3,8 @@
 
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { getQueryKey } from "@trpc/react-query";
 import { withRLS } from "@/db/createDrizzleClient";
 import { clients, projects } from "@/db/schema";
-import { trpc } from "@/lib/trpc/client";
-import { getQueryClient } from "@/lib/trpc/query-client";
 import { createTRPCContext } from "@/lib/trpc/init";
 import { InvoicesPageClient } from "@/features/invoices/components/InvoicesPageClient";
 
@@ -18,9 +14,8 @@ export default async function InvoicesPage() {
   const ctx = await createTRPCContext();
   if (!ctx) redirect("/onboarding");
 
-  const queryClient = getQueryClient();
-
-  // Fetch clients (for InvoiceBuilder dropdown) + prefetch invoices in parallel
+  // Only fetch lightweight dropdown data server-side
+  // The heavy invoice list data is handled client-side by React Query cache
   const [orgClients, orgProjects] = await Promise.all([
     withRLS(ctx, async (tx) =>
       tx
@@ -48,13 +43,11 @@ export default async function InvoicesPage() {
   const isOwnerOrAdmin = ctx.role === "owner" || ctx.role === "admin";
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <InvoicesPageClient
-        clients={orgClients}
-        projects={orgProjects}
-        isOwnerOrAdmin={isOwnerOrAdmin}
-        userRole={ctx.role}
-      />
-    </HydrationBoundary>
+    <InvoicesPageClient
+      clients={orgClients}
+      projects={orgProjects}
+      isOwnerOrAdmin={isOwnerOrAdmin}
+      userRole={ctx.role}
+    />
   );
 }

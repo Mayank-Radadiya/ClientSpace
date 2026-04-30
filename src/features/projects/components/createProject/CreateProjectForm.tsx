@@ -104,9 +104,15 @@ export function CreateProjectForm({
   // tRPC mutation for creating project
   const createProjectMutation = trpc.project.create.useMutation({
     onSuccess: async () => {
-      // Invalidate queries to refresh data
-      await utils.project.getAll.invalidate();
-      await utils.project.getBootstrap.invalidate();
+      // Invalidate queries affected by a new project
+      await Promise.all([
+        utils.project.getAll.invalidate(),
+        utils.project.getBootstrap.invalidate(),
+        utils.dashboard.getMetrics.invalidate(),
+        utils.dashboard.getRecentProjects.invalidate(),
+        utils.analytics.getDashboardStats.invalidate(),
+        utils.clients.getBootstrap.invalidate(),
+      ]);
 
       // Show success toast
       toast.dismiss();

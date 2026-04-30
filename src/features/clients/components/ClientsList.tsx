@@ -36,8 +36,16 @@ export function ClientsList({
   permissions,
   onClientArchived,
 }: ClientsListProps) {
+  const utils = trpc.useUtils();
+
   const archiveMutation = trpc.clients.archiveClient.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Targeted invalidation — only the queries affected by client status change
+      await Promise.all([
+        utils.clients.getBootstrap.invalidate(),
+        utils.dashboard.getMetrics.invalidate(),
+        utils.analytics.getDashboardStats.invalidate(),
+      ]);
       onClientArchived();
     },
   });

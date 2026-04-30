@@ -31,7 +31,14 @@ export function DeleteProjectDialog({
 
   const deleteMutation = trpc.project.delete.useMutation({
     onSuccess: async () => {
-      await utils.project.getAll.invalidate();
+      await Promise.all([
+        utils.project.getAll.invalidate(),
+        utils.project.getBootstrap.invalidate(),
+        utils.dashboard.getMetrics.invalidate(),
+        utils.dashboard.getRecentProjects.invalidate(),
+        utils.analytics.getDashboardStats.invalidate(),
+        utils.clients.getBootstrap.invalidate(),
+      ]);
       toast.success(`"${projectName}" deleted`);
       setOpen(false);
       onDeleted?.();

@@ -17,9 +17,8 @@ export const SidebarUserContainer = memo(() => {
 
   const { data: profile } = trpc.auth.me.useQuery(undefined, {
     enabled: !!user,
-    staleTime: 10 * 60 * 1000,
+    staleTime: Infinity, // Profile data: only changes on explicit update
     gcTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {

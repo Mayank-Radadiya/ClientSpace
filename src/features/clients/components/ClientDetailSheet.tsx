@@ -34,8 +34,15 @@ export function ClientDetailSheet({
   activityQuery,
   onClientArchived,
 }: DetailSheetProps) {
+  const utils = trpc.useUtils();
+
   const archiveMutation = trpc.clients.archiveClient.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      await Promise.all([
+        utils.clients.getBootstrap.invalidate(),
+        utils.dashboard.getMetrics.invalidate(),
+        utils.analytics.getDashboardStats.invalidate(),
+      ]);
       onClientArchived();
       setIsOpen(false);
     },
