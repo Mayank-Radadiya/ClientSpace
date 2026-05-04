@@ -1,8 +1,14 @@
 "use client";
 
 import React, { useMemo, useState, useTransition } from "react";
-import { AlertCircleIcon, ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  AlertCircleIcon,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  FileText,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { gooeyToast } from "goey-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,7 +17,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableHead,
   TableHeader,
   TableRow,
@@ -24,6 +29,7 @@ import { InvoiceCard } from "./InvoiceCard";
 import { InvoiceTableSkeleton } from "./InvoiceTableSkeleton";
 import { InvoiceBulkActionBar } from "./InvoiceBulkActionBar";
 import { InvoiceFinancialSummary } from "./InvoiceFinancialSummary";
+import { InvoicePreviewPanel } from "./InvoicePreviewPanel";
 import type {
   InvoiceFilterStatus,
   InvoiceSortBy,
@@ -109,14 +115,28 @@ function EmptyTabState({
   const copy = copyMap[status] ?? copyMap.all;
 
   return (
-    <div className="border-border/70 bg-muted/10 flex min-h-[240px] flex-col items-center justify-center rounded-lg border border-dashed px-6 py-8 text-center">
-      <h3 className="text-base font-semibold">{copy.title}</h3>
-      <p className="text-muted-foreground mt-1 max-w-md text-sm">
+    <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] px-6 py-12 text-center shadow-sm">
+      <div className="relative mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-[var(--inv-border)] bg-[var(--inv-surface-elevated)]">
+        {/* Geometric Line Art Abstract */}
+        <div className="absolute inset-2 rounded-full border border-[var(--inv-accent-primary)] opacity-20" />
+        <div className="absolute inset-4 rounded-full border border-[var(--inv-accent-primary)] opacity-40" />
+        <FileText
+          className="h-8 w-8 text-[var(--inv-accent-primary)]"
+          strokeWidth={1.5}
+        />
+      </div>
+      <h3 className="font-display text-xl font-bold tracking-tight text-[var(--inv-text-primary)]">
+        {copy.title}
+      </h3>
+      <p className="font-data mt-3 max-w-sm text-[13px] leading-relaxed text-[var(--inv-text-secondary)]">
         {copy.subtitle}
       </p>
       {status === "draft" && onCreateClick && (
-        <Button className="mt-4" onClick={onCreateClick}>
-          Create invoice
+        <Button
+          className="mt-8 h-10 rounded-full bg-[var(--inv-accent-primary)] px-6 font-medium tracking-wide text-white transition-all hover:scale-105 hover:bg-[var(--inv-accent-hover)] active:scale-95"
+          onClick={onCreateClick}
+        >
+          Create Invoice
         </Button>
       )}
     </div>
@@ -153,6 +173,7 @@ export function InvoiceList({
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkPending, startBulkTransition] = useTransition();
+  const [previewInvoiceId, setPreviewInvoiceId] = useState<string | null>(null);
 
   const filteredData = useMemo(() => {
     if (!data) return [] as InvoiceData[];
@@ -296,22 +317,26 @@ export function InvoiceList({
       <button
         type="button"
         onClick={() => onSortChange?.(key)}
-        className={
-          "group inline-flex items-center gap-1 text-left text-xs tracking-[0.08em] uppercase"
-        }
+        className="group font-data inline-flex items-center gap-1 text-left text-[11px] tracking-[0.08em] uppercase transition-colors hover:text-[var(--inv-text-primary)]"
         aria-label={`Sort by ${label}`}
       >
-        <span className={cn(active ? "text-primary" : "text-muted-foreground")}>
+        <span
+          className={cn(
+            active
+              ? "font-bold text-[var(--inv-accent-primary)]"
+              : "text-[var(--inv-text-secondary)]",
+          )}
+        >
           {label}
         </span>
         {active ? (
           sortDir === "asc" ? (
-            <ArrowUp className="text-primary h-3.5 w-3.5" />
+            <ArrowUp className="h-3 w-3 text-[var(--inv-accent-primary)]" />
           ) : (
-            <ArrowDown className="text-primary h-3.5 w-3.5" />
+            <ArrowDown className="h-3 w-3 text-[var(--inv-accent-primary)]" />
           )
         ) : (
-          <ArrowUpDown className="text-muted-foreground/0 group-hover:text-muted-foreground h-3.5 w-3.5" />
+          <ArrowUpDown className="h-3 w-3 text-[var(--inv-text-muted)] opacity-0 transition-opacity group-hover:opacity-50" />
         )}
       </button>
     );
@@ -319,14 +344,14 @@ export function InvoiceList({
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+      <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
         <AlertCircleIcon className="h-4 w-4 shrink-0" />
-        <span>Failed to load invoices.</span>
+        <span className="font-medium">Failed to load invoices.</span>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={() => void refetch()}
-          className="ml-auto text-red-700 dark:text-red-300"
+          className="ml-auto border-red-500/30 text-red-600 hover:bg-red-500/10 dark:text-red-400"
         >
           Try again
         </Button>
@@ -349,21 +374,24 @@ export function InvoiceList({
         </div>
         <div className="grid gap-3 md:hidden">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i} className="p-4">
+            <div
+              key={i}
+              className="rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] p-4"
+            >
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <div className="space-y-2">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-3 w-32" />
+                    <Skeleton className="h-4 w-20 opacity-20" />
+                    <Skeleton className="h-3 w-32 opacity-20" />
                   </div>
-                  <Skeleton className="h-5 w-16 rounded-sm" />
+                  <Skeleton className="h-5 w-16 rounded-sm opacity-20" />
                 </div>
                 <div className="flex justify-between">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-24 opacity-20" />
+                  <Skeleton className="h-4 w-24 opacity-20" />
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
@@ -451,53 +479,53 @@ export function InvoiceList({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
         className={cn(
-          "bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm",
+          "overflow-hidden rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] shadow-md",
           tableLayoutClass("desktop"),
         )}
       >
         {showEmpty ? (
-          <div className="p-4">
-            <EmptyTabState
-              status={statusFilter}
-              onCreateClick={onCreateClick}
-            />
-          </div>
+          <EmptyTabState status={statusFilter} onCreateClick={onCreateClick} />
         ) : (
           <Table>
-            {/* <TableCaption>
-              {userRole === "client"
-                ? "List of invoices available for viewing and downloading."
-                : "Invoice register with status, due dates, and payment actions."}
-            </TableCaption> */}
-            <TableHeader className="bg-muted/30">
-              <TableRow className="hover:bg-transparent">
+            <TableHeader className="border-b border-[var(--inv-border)] bg-[var(--inv-surface-elevated)]">
+              <TableRow className="border-0 hover:bg-transparent">
                 <TableHead scope="col" className="w-[40px] pl-4">
                   <Checkbox
                     checked={allSelected}
                     indeterminate={indeterminate}
                     onCheckedChange={handleSelectAllChange}
                     aria-label="Select all invoices"
+                    className="border-[var(--inv-border)] text-white data-[state=checked]:border-[var(--inv-accent-primary)] data-[state=checked]:bg-[var(--inv-accent-primary)]"
                   />
                 </TableHead>
-                <TableHead scope="col" className="w-[140px] font-medium">
+                <TableHead scope="col" className="w-[140px]">
                   {renderSortHeader("Invoice #", "number")}
                 </TableHead>
-                <TableHead scope="col" className="min-w-[180px] font-medium">
+                <TableHead
+                  scope="col"
+                  className="font-data min-w-[180px] text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                >
                   Client
                 </TableHead>
-                <TableHead scope="col" className="font-medium">
+                <TableHead scope="col">
                   {renderSortHeader("Issued", "issued")}
                 </TableHead>
-                <TableHead scope="col" className="font-medium">
+                <TableHead scope="col">
                   {renderSortHeader("Due", "due")}
                 </TableHead>
-                <TableHead scope="col" className="font-medium">
+                <TableHead scope="col" className="text-right">
                   {renderSortHeader("Amount", "amount")}
                 </TableHead>
-                <TableHead scope="col" className="font-medium">
+                <TableHead
+                  scope="col"
+                  className="font-data text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                >
                   Status
                 </TableHead>
-                <TableHead scope="col" className="text-right font-medium">
+                <TableHead
+                  scope="col"
+                  className="font-data text-right text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                >
                   Actions
                 </TableHead>
               </TableRow>
@@ -512,6 +540,7 @@ export function InvoiceList({
                     handleRowSelectChange(invoice.id, checked)
                   }
                   onStatusUpdate={() => void refetch()}
+                  onClickRow={() => setPreviewInvoiceId(invoice.id)}
                 />
               ))}
             </TableBody>
@@ -524,48 +553,50 @@ export function InvoiceList({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
         className={cn(
-          "bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm",
+          "overflow-hidden rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] shadow-md",
           tableLayoutClass("tablet"),
         )}
       >
         {showEmpty ? (
-          <div className="p-4">
-            <EmptyTabState
-              status={statusFilter}
-              onCreateClick={onCreateClick}
-            />
-          </div>
+          <EmptyTabState status={statusFilter} onCreateClick={onCreateClick} />
         ) : (
           <Table>
-            <TableCaption>
-              Compact invoices table for medium screens.
-            </TableCaption>
-            <TableHeader className="bg-muted/30">
-              <TableRow className="hover:bg-transparent">
+            <TableHeader className="border-b border-[var(--inv-border)] bg-[var(--inv-surface-elevated)]">
+              <TableRow className="border-0 hover:bg-transparent">
                 <TableHead scope="col" className="w-[40px] pl-4">
                   <Checkbox
                     checked={allSelected}
                     indeterminate={indeterminate}
                     onCheckedChange={handleSelectAllChange}
                     aria-label="Select all invoices"
+                    className="border-[var(--inv-border)] text-white data-[state=checked]:border-[var(--inv-accent-primary)] data-[state=checked]:bg-[var(--inv-accent-primary)]"
                   />
                 </TableHead>
-                <TableHead scope="col" className="w-[140px] font-medium">
+                <TableHead scope="col" className="w-[140px]">
                   {renderSortHeader("Invoice #", "number")}
                 </TableHead>
-                <TableHead scope="col" className="min-w-[180px] font-medium">
+                <TableHead
+                  scope="col"
+                  className="font-data min-w-[180px] text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                >
                   Client
                 </TableHead>
-                <TableHead scope="col" className="font-medium">
+                <TableHead scope="col">
                   {renderSortHeader("Due", "due")}
                 </TableHead>
-                <TableHead scope="col" className="font-medium">
+                <TableHead scope="col" className="text-right">
                   {renderSortHeader("Amount", "amount")}
                 </TableHead>
-                <TableHead scope="col" className="font-medium">
+                <TableHead
+                  scope="col"
+                  className="font-data text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                >
                   Status
                 </TableHead>
-                <TableHead scope="col" className="text-right font-medium">
+                <TableHead
+                  scope="col"
+                  className="font-data text-right text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                >
                   Action
                 </TableHead>
               </TableRow>
@@ -580,6 +611,7 @@ export function InvoiceList({
                     handleRowSelectChange(invoice.id, checked)
                   }
                   onStatusUpdate={() => void refetch()}
+                  onClickRow={() => setPreviewInvoiceId(invoice.id)}
                 />
               ))}
             </TableBody>
@@ -605,6 +637,11 @@ export function InvoiceList({
           ))
         )}
       </motion.div>
+
+      <InvoicePreviewPanel
+        invoiceId={previewInvoiceId}
+        onClose={() => setPreviewInvoiceId(null)}
+      />
     </div>
   );
 }

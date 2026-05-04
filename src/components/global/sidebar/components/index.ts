@@ -35,3 +35,5 @@ export { SidebarUserContainer } from "./SidebarUserContainer";
 
 // Constants
 export { NAV_ITEMS } from "./Constants";
+
+export { ThemeToggle } from "./ThemeToggle";

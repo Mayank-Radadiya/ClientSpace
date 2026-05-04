@@ -24,6 +24,7 @@ import {
   UpgradeProButton,
   NAV_ITEMS,
   SidebarUserContainer,
+  ThemeToggle,
 } from "./components";
 import { OrgDropdown } from "../org-switcher/OrgDropdown";
 

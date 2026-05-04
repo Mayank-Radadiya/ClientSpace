@@ -32,24 +32,28 @@ export function InvoiceBulkActionBar({
     <AnimatePresence>
       {selectedCount > 0 && (
         <motion.div
-          initial={{ y: 28, opacity: 0, scale: 0.95 }}
+          initial={{ y: 40, opacity: 0, scale: 0.95 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 28, opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          exit={{ y: 40, opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
-            "bg-background fixed right-4 bottom-6 left-4 z-50 rounded-2xl border p-1.5 shadow-xl md:right-auto md:left-1/2 md:w-max md:-translate-x-1/2 md:rounded-full",
-            "motion-reduce:transform-none motion-reduce:transition-none",
+            "fixed right-4 bottom-6 left-4 z-50 rounded-2xl p-1.5 shadow-2xl md:right-auto md:left-1/2 md:w-max md:-translate-x-1/2 md:rounded-full",
+            "bg-[var(--inv-surface)]/80 backdrop-blur-xl border border-[var(--inv-border)]",
+            "motion-reduce:transform-none motion-reduce:transition-none"
           )}
         >
-          <div className="flex flex-wrap items-center justify-center gap-1 md:flex-nowrap">
-            <div className="flex items-center gap-2 px-2 py-1">
-              <span className="bg-primary/10 text-primary inline-flex h-6 items-center rounded-full px-2.5 text-xs font-medium tracking-tight">
+          {/* Subtle Inner Glow */}
+          <div className="absolute inset-0 rounded-inherit border border-white/5 pointer-events-none" />
+
+          <div className="relative flex flex-wrap items-center justify-center gap-1 md:flex-nowrap">
+            <div className="flex items-center gap-3 px-3 py-1">
+              <span className="bg-[var(--inv-accent-primary)] text-white inline-flex h-7 items-center rounded-full px-3 font-data text-xs font-semibold tracking-wide">
                 {selectedCount} selected
               </span>
               {canSelectAll && (
                 <button
                   type="button"
-                  className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-4 transition-colors hover:underline"
+                  className="font-data text-[var(--inv-text-muted)] hover:text-[var(--inv-text-primary)] text-xs font-medium underline-offset-4 transition-colors hover:underline"
                   onClick={onSelectAll}
                 >
                   Select all
@@ -57,53 +61,53 @@ export function InvoiceBulkActionBar({
               )}
             </div>
 
-            <div className="bg-border mx-1 hidden h-5 w-px md:block" />
+            <div className="bg-[var(--inv-border)] mx-1 hidden h-6 w-px md:block" />
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 px-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onSend}
-                className="h-8 rounded-full px-3 text-xs font-medium transition-colors"
+                className="h-9 rounded-full px-3 font-data text-xs font-medium text-[var(--inv-text-secondary)] hover:bg-[var(--inv-surface-elevated)] hover:text-[var(--inv-text-primary)] transition-colors"
               >
-                <Send className="text-muted-foreground mr-1.5 h-3.5 w-3.5" />
+                <Send className="mr-1.5 h-3.5 w-3.5" />
                 Send
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onDownload}
-                className="h-8 rounded-full px-3 text-xs font-medium transition-colors"
+                className="h-9 rounded-full px-3 font-data text-xs font-medium text-[var(--inv-text-secondary)] hover:bg-[var(--inv-surface-elevated)] hover:text-[var(--inv-text-primary)] transition-colors"
               >
-                <FileDown className="text-muted-foreground mr-1.5 h-3.5 w-3.5" />
+                <FileDown className="mr-1.5 h-3.5 w-3.5" />
                 Download
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onMarkPaid}
-                className="h-8 rounded-full bg-green-500/10 px-3 text-xs font-medium text-green-500 transition-colors"
+                className="h-9 rounded-full px-3 font-data text-xs font-medium text-[var(--inv-status-paid)] hover:bg-[var(--inv-status-paid)]/10 transition-colors"
               >
-                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 text-green-500" />
+                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
                 Mark paid
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onDelete}
-                className="hover:bg-destructive/10 hover:text-destructive h-8 rounded-full bg-red-500/10 px-3 text-xs font-medium text-red-500 transition-colors"
+                className="h-9 rounded-full px-3 font-data text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors"
               >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5 text-red-500" />
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                 Delete
               </Button>
             </div>
 
-            <div className="bg-border mx-1 hidden h-5 w-px md:block" />
+            <div className="bg-[var(--inv-border)] mx-1 hidden h-6 w-px md:block" />
 
             <button
               type="button"
               onClick={onClearSelection}
-              className="text-muted-foreground hover:bg-muted hover:text-foreground hidden h-8 w-8 items-center justify-center rounded-full transition-colors md:flex"
+              className="text-[var(--inv-text-muted)] hover:bg-[var(--inv-surface-elevated)] hover:text-[var(--inv-text-primary)] hidden h-9 w-9 items-center justify-center rounded-full transition-colors md:flex"
               aria-label="Clear invoice selection"
             >
               <X className="h-4 w-4" />

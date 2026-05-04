@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import {
   AlertTriangle,
   CheckCircle2,
   Copy,
+  CopyPlus,
   Eye,
   FileDownIcon,
   Loader2,
@@ -12,7 +12,6 @@ import {
   Pencil,
   Send,
   Trash2,
-  CopyPlus,
 } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 import { gooeyToast } from "goey-toast";
@@ -62,6 +61,7 @@ interface InvoiceRowProps {
   isSelected?: boolean;
   onSelectChange?: (selected: boolean) => void;
   onStatusUpdate?: () => void;
+  onClickRow?: () => void;
 }
 
 const STATUS_VISUALS: Record<
@@ -72,39 +72,46 @@ const STATUS_VISUALS: Record<
     badge: string;
     labelClass?: string;
     pulse?: boolean;
+    borderColor?: string;
   }
 > = {
   draft: {
     label: "Draft",
-    dot: "bg-zinc-500 dark:bg-zinc-400",
-    badge: "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300",
+    dot: "bg-[var(--inv-status-draft)]",
+    badge: "bg-[var(--inv-status-draft)]/10 text-[var(--inv-status-draft)]",
+    borderColor: "border-[var(--inv-status-draft)]/30",
   },
   sent: {
     label: "Sent",
-    dot: "bg-blue-500 dark:bg-blue-400",
-    badge: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+    dot: "bg-[var(--inv-status-sent)]",
+    badge: "bg-[var(--inv-status-sent)]/10 text-[var(--inv-status-sent)]",
+    borderColor: "border-[var(--inv-status-sent)]/30",
+    pulse: true,
   },
   viewed: {
     label: "Viewed",
-    dot: "bg-violet-500 dark:bg-violet-400",
-    badge: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    dot: "bg-violet-500",
+    badge: "bg-violet-500/10 text-violet-500",
+    borderColor: "border-violet-500/30",
   },
   paid: {
     label: "Paid",
-    dot: "bg-emerald-500 dark:bg-emerald-400",
-    badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    dot: "bg-[var(--inv-status-paid)]",
+    badge: "bg-[var(--inv-status-paid)]/10 text-[var(--inv-status-paid)]",
+    borderColor: "border-[var(--inv-status-paid)]/30",
   },
   overdue: {
     label: "Overdue",
-    dot: "bg-red-500 dark:bg-red-400",
-    badge: "bg-red-500/10 text-red-700 dark:text-red-300",
-    pulse: true,
+    dot: "bg-[var(--inv-status-overdue)]",
+    badge: "bg-[var(--inv-status-overdue)]/10 text-[var(--inv-status-overdue)]",
+    borderColor: "border-[var(--inv-status-overdue)]/30",
   },
   cancelled: {
     label: "Cancelled",
-    dot: "bg-zinc-600 dark:bg-zinc-500",
-    badge: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400",
+    dot: "bg-zinc-500",
+    badge: "bg-zinc-500/10 text-zinc-500",
     labelClass: "line-through",
+    borderColor: "border-zinc-500/30",
   },
 };
 
@@ -143,30 +150,14 @@ function initialsFromName(name: string): string {
   return `${parts[0]![0]}${parts[1]![0]}`.toUpperCase();
 }
 
-function avatarColorKey(seed: string): string {
-  const palette = [
-    "from-sky-500/25 to-cyan-500/25 text-sky-800 dark:text-sky-500",
-    "from-emerald-500/25 to-teal-500/25 text-emerald-800 dark:text-emerald-500",
-    "from-amber-500/25 to-orange-500/25 text-amber-800 dark:text-amber-500",
-    "from-pink-500/25 to-rose-500/25 text-pink-800 dark:text-pink-500",
-    "from-indigo-500/25 to-blue-500/25 text-indigo-800 dark:text-indigo-500",
-  ];
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i);
-    hash |= 0;
-  }
-  const idx = Math.abs(hash) % palette.length;
-  return palette[idx] ?? palette[0]!;
-}
-
 function StatusBadge({ status }: { status: InvoiceUiStatus }) {
   const cfg = STATUS_VISUALS[status];
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.06em]",
         cfg.badge,
+        cfg.borderColor
       )}
       aria-label={`Invoice status ${cfg.label}`}
     >
@@ -174,7 +165,7 @@ function StatusBadge({ status }: { status: InvoiceUiStatus }) {
         className={cn(
           "inline-block h-1.5 w-1.5 rounded-full",
           cfg.dot,
-          cfg.pulse && "invoice-overdue-pulse motion-reduce:animate-none",
+          cfg.pulse && "inv-animate-pulse-sent"
         )}
       />
       <span className={cfg.labelClass}>{cfg.label}</span>
@@ -187,6 +178,7 @@ export function InvoiceRow({
   isSelected,
   onSelectChange,
   onStatusUpdate,
+  onClickRow,
 }: InvoiceRowProps) {
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isActionPending, startActionTransition] = useTransition();
@@ -196,7 +188,6 @@ export function InvoiceRow({
   const clientName = deriveClientName(invoice);
   const email = invoice.clientEmail ?? "No email";
   const avatar = initialsFromName(clientName);
-  const avatarClass = avatarColorKey(clientName || invoice.id);
   const issuedDate = formatDate(invoice.issuedDate || invoice.dueDate);
   const dueDate = formatDate(invoice.dueDate);
   const invoiceCode = `INV-${invoice.number}`;
@@ -221,26 +212,21 @@ export function InvoiceRow({
           label: "Send",
           next: "sent" as const,
           icon: Send,
-          style:
-            "bg-blue-500/10 text-blue-700 hover:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30",
         }
       : status === "sent" || status === "overdue"
         ? {
             label: "Mark paid",
             next: "paid" as const,
             icon: CheckCircle2,
-            style:
-              "bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30",
           }
         : {
             label: "View",
             next: null,
             icon: Eye,
-            style:
-              "bg-zinc-500/10 text-zinc-700 hover:bg-zinc-500/20 dark:text-zinc-400 dark:hover:bg-zinc-500/30",
           };
 
-  const runStatusAction = () => {
+  const runStatusAction = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!primaryAction.next) {
       window.open(
         `/api/invoices/${invoice.id}/pdf`,
@@ -265,7 +251,8 @@ export function InvoiceRow({
     });
   };
 
-  const copyInvoiceNumber = async () => {
+  const copyInvoiceNumber = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(invoiceCode);
       setCopied(true);
@@ -277,17 +264,20 @@ export function InvoiceRow({
 
   return (
     <TableRow
+      onClick={onClickRow}
       className={cn(
-        "group data-[state=selected]:bg-muted/40 h-11",
-        isSelected && "bg-muted/30",
+        "group cursor-pointer border-b border-[var(--inv-border)] transition-colors duration-150 ease-out",
+        "hover:bg-[var(--inv-accent-subtle)]",
+        isSelected && "bg-[var(--inv-accent-subtle)] shadow-[inset_2px_0_0_var(--inv-accent-primary)]",
       )}
       data-state={isSelected ? "selected" : undefined}
     >
-      <TableCell className="w-[40px] pl-4">
+      <TableCell className="w-[40px] pl-4" onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={isSelected}
           onCheckedChange={(checked) => onSelectChange?.(!!checked)}
           aria-label={`Select invoice ${invoiceCode}`}
+          className="border-[var(--inv-border)] data-[state=checked]:bg-[var(--inv-accent-primary)] data-[state=checked]:border-[var(--inv-accent-primary)] text-white"
         />
       </TableCell>
 
@@ -295,24 +285,21 @@ export function InvoiceRow({
         <TooltipProvider delayDuration={100}>
           <Tooltip open={copied ? true : undefined}>
             <TooltipTrigger asChild>
-              <div className="inline-flex items-center gap-1">
-                <Link
-                  href={`/invoices/${invoice.id}`}
-                  className="text-muted-foreground hover:text-primary font-mono text-sm font-medium"
-                >
+              <div className="inline-flex items-center gap-2">
+                <span className="font-data text-sm font-medium text-[var(--inv-text-primary)]">
                   {invoiceCode}
-                </Link>
+                </span>
                 <button
                   type="button"
                   onClick={copyInvoiceNumber}
-                  className="text-muted-foreground hover:text-foreground inline-flex"
+                  className="opacity-0 transition-opacity duration-200 group-hover:opacity-100 text-[var(--inv-text-muted)] hover:text-[var(--inv-accent-primary)]"
                   aria-label={`Copy ${invoiceCode}`}
                 >
                   <Copy className="h-3.5 w-3.5" />
                 </button>
               </div>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="bg-[var(--inv-surface-elevated)] border-[var(--inv-border)] text-[var(--inv-text-primary)]">
               {copied ? "Copied" : "Copy invoice number"}
             </TooltipContent>
           </Tooltip>
@@ -320,48 +307,45 @@ export function InvoiceRow({
       </TableCell>
 
       <TableCell className="min-w-[180px]">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div
-            className={cn(
-              "hidden h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br text-[11px] font-semibold text-black lg:flex dark:text-white",
-              avatarClass,
-            )}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4F7FFF]/20 to-[#4F7FFF]/40 text-[#4F7FFF] dark:text-[#6B95FF] text-[11px] font-semibold"
             aria-hidden
           >
             {avatar}
           </div>
           <div className="min-w-0">
-            <div className="text-foreground/95 truncate text-sm font-medium">
+            <div className="truncate font-display text-sm font-medium text-[var(--inv-text-primary)]">
               {clientName}
             </div>
-            <div className="text-muted-foreground hidden truncate text-xs lg:block">
+            <div className="truncate font-data text-[12px] text-[var(--inv-text-muted)]">
               {email}
             </div>
           </div>
         </div>
       </TableCell>
 
-      <TableCell className="text-muted-foreground text-sm">
-        {issuedDate}
+      <TableCell className="font-data text-sm text-[var(--inv-text-secondary)]">
+        {issuedDate === "--" ? <span className="text-[var(--inv-text-muted)]">—</span> : issuedDate}
       </TableCell>
 
       <TableCell>
         <span
           className={cn(
-            "inline-flex items-center gap-1 text-sm",
-            urgency === "overdue" && "text-rose-600 dark:text-rose-400",
-            urgency === "soon" && "text-amber-600 dark:text-amber-400",
-            urgency === "paid" && "text-muted-foreground line-through",
-            urgency === "normal" && "text-foreground/90",
+            "inline-flex items-center gap-1.5 font-data text-sm",
+            urgency === "overdue" && "text-[var(--inv-status-overdue)]",
+            urgency === "soon" && "text-[var(--inv-status-pending)]",
+            urgency === "paid" && "text-[var(--inv-text-muted)] line-through",
+            urgency === "normal" && "text-[var(--inv-text-secondary)]",
           )}
         >
           {urgency === "overdue" && <AlertTriangle className="h-3.5 w-3.5" />}
-          {dueDate}
+          {dueDate === "--" ? <span className="text-[var(--inv-text-muted)]">—</span> : dueDate}
         </span>
       </TableCell>
 
-      <TableCell>
-        <span className="text-sm font-medium tabular-nums">
+      <TableCell className="text-right">
+        <span className="font-metrics text-[18px] font-medium tracking-wide text-[var(--inv-text-primary)]">
           {formatCents(invoice.amountCents, invoice.currency as Currency)}
         </span>
       </TableCell>
@@ -370,17 +354,14 @@ export function InvoiceRow({
         <StatusBadge status={status} />
       </TableCell>
 
-      <TableCell className="text-right">
+      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-end gap-2">
           <Button
             size="sm"
-            variant="ghost"
+            variant="outline"
             onClick={runStatusAction}
             disabled={isActionPending}
-            className={cn(
-              "h-8 gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors",
-              primaryAction.style,
-            )}
+            className="h-8 gap-1.5 rounded-full border-[var(--inv-accent-primary)] bg-transparent text-[var(--inv-accent-primary)] transition-colors hover:bg-[var(--inv-accent-primary)] hover:text-white dark:hover:text-white"
             aria-label={`${primaryAction.label} ${invoiceCode}`}
           >
             {isActionPending ? (
@@ -390,8 +371,7 @@ export function InvoiceRow({
             )}
             <span
               className={cn(
-                "hidden lg:inline",
-                primaryAction.label === "View" && "inline",
+                "hidden lg:inline font-medium tracking-wide"
               )}
             >
               {primaryAction.label}
@@ -403,38 +383,44 @@ export function InvoiceRow({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="hidden lg:inline-flex"
+                className="hidden h-8 w-8 text-[var(--inv-text-secondary)] hover:bg-[var(--inv-surface-elevated)] lg:inline-flex"
                 aria-label={`Open actions for ${invoiceCode}`}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px]">
+            <DropdownMenuContent align="end" className="w-[180px] bg-[var(--inv-surface)]/90 backdrop-blur-md border-[var(--inv-border)] shadow-xl">
               <DropdownMenuItem
+                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
                 onClick={() => gooeyToast.info("Edit coming soon")}
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
+                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
                 onClick={() => gooeyToast.info("Duplicate coming soon")}
               >
-                <CopyPlus className="h-4 w-4" />
+                <CopyPlus className="h-4 w-4 mr-2" />
                 Duplicate
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem 
+                asChild
+                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
+              >
                 <a
                   href={`/api/invoices/${invoice.id}/pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <FileDownIcon className="h-4 w-4" />
+                  <FileDownIcon className="h-4 w-4 mr-2" />
                   Download PDF
                 </a>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-[var(--inv-border)]" />
               <DropdownMenuItem
-                variant="destructive"
+                className="cursor-pointer text-red-500 focus:bg-red-500/10 focus:text-red-600 dark:text-red-400 dark:focus:text-red-300"
                 disabled={isDeleting}
                 onClick={(e) => {
                   e.preventDefault();
@@ -450,9 +436,9 @@ export function InvoiceRow({
                 }}
               >
                 {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4 mr-2" />
                 )}
                 Delete
               </DropdownMenuItem>

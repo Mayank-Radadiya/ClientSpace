@@ -1,11 +1,19 @@
 "use client";
 
-import { Calendar, ArrowUpDown, Search, X } from "lucide-react";
+import { Calendar, ChevronDown, Download, Search, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { InvoiceFilterStatus } from "../hooks/useInvoiceFilters";
 import { STATUS_LABELS } from "../schemas";
+import { motion } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 
 type InvoiceUiStatus = InvoiceFilterStatus;
 
@@ -35,7 +43,7 @@ interface InvoiceToolbarProps {
 }
 
 function renderSortText(sortBy: "number" | "issued" | "due" | "amount") {
-  if (sortBy === "number") return "Invoice #";
+  if (sortBy === "number") return "Number";
   if (sortBy === "issued") return "Issued";
   if (sortBy === "due") return "Due";
   return "Amount";
@@ -64,142 +72,152 @@ export function InvoiceToolbar({
   onSortByChange,
   children,
 }: InvoiceToolbarProps) {
-  const resolvedSubtitle = subtitle ?? `${totalCount} invoices`;
+  const resolvedSubtitle = subtitle ?? `${String(totalCount).padStart(2, "0")} invoice${totalCount !== 1 ? "s" : ""}`;
+  const [dateRange, setDateRange] = useState("This month");
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="font-display text-[42px] font-extrabold leading-none tracking-tight text-[var(--inv-text-primary)]">
+            {title}
+          </h1>
+          <p className="font-data mt-2 text-sm text-[var(--inv-text-muted)]">
             {resolvedSubtitle}
           </p>
         </div>
-        {children && <div className="shrink-0">{children}</div>}
-      </div>
-
-      <div className="border-border/70 bg-card/80 hide-scrollbar flex overflow-x-auto rounded-xl border px-2 py-1">
-        {statusCounts.map((item) => {
-          const isAll = item.key === "all";
-          const isKnownStatus = ["draft", "sent", "paid", "overdue"].includes(
-            item.key,
-          );
-          const isActive = item.key === status;
-          const disabled =
-            item.disabled || (item.count === 0 && !isAll) || !isKnownStatus;
-
-          return (
-            <button
-              key={item.key}
-              type="button"
-              disabled={disabled}
-              onClick={() => onStatusChange(item.key as InvoiceFilterStatus)}
-              className={cn(
-                "relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
-                isActive
-                  ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                disabled &&
-                  "hover:text-muted-foreground cursor-not-allowed opacity-45 hover:bg-transparent",
-              )}
-              aria-label={`${item.label} (${item.count})`}
-            >
-              <span className="font-medium">
-                {item.key === "all"
-                  ? "All"
-                  : (STATUS_LABELS[item.key as keyof typeof STATUS_LABELS] ??
-                    item.label)}
-              </span>
-              <span
-                className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[11px] tabular-nums",
-                  isActive
-                    ? "bg-primary/20 text-primary"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                {item.count}
-              </span>
-              {isActive && (
-                <span className="bg-primary absolute right-2 bottom-0 left-2 h-px rounded-full" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="relative w-full lg:max-w-[60%]">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <Input
-            type="text"
-            placeholder="Search invoices..."
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="h-9 pr-9 pl-9"
-          />
-          {search && (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className="absolute top-1/2 right-1 -translate-y-1/2"
-              onClick={() => onSearchChange("")}
-              aria-label="Clear search"
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
-
-        <div className="flex flex-1 items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 px-2 py-4"
-              onClick={() => onSortByChange?.(sortBy)}
-            >
-              <ArrowUpDown className="h-4 w-4" />
-              Sort: {renderSortText(sortBy)}{" "}
-              {sortDir === "asc" ? "(ASC)" : "(DESC)"}
-            </Button>
-            {hasActiveFilters && (
+        <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 px-2 py-4"
-                onClick={onResetFilters}
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 border-[var(--inv-border)] bg-[var(--inv-surface)] text-[var(--inv-text-secondary)] hover:bg-[var(--inv-surface-elevated)]"
               >
-                <X className="h-3.5 w-3.5" />
-                Reset
+                <Download className="h-4 w-4" />
+                <span className="sr-only">Export Invoices</span>
               </Button>
-            )}
-          </div>
-
-          <div className="text-muted-foreground ml-auto text-sm">
-            {filteredCount !== totalCount && hasActiveFilters ? (
-              <span>
-                <span className="text-foreground font-semibold tabular-nums">
-                  {filteredCount}
-                </span>{" "}
-                invoices
-              </span>
-            ) : (
-              <span>
-                <span className="text-foreground font-semibold tabular-nums">
-                  {totalCount}
-                </span>{" "}
-                invoices
-              </span>
-            )}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40 border-[var(--inv-border)] bg-[var(--inv-surface)]">
+              <DropdownMenuItem className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]">Export as CSV</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]">Export as PDF</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]">Export as Excel</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {children && <div className="shrink-0">{children}</div>}
         </div>
       </div>
 
-      <p className="sr-only" aria-live="polite">
-        Sorted by {renderSortText(sortBy)}{" "}
-        {sortDir === "asc" ? "ascending" : "descending"}
-      </p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="hide-scrollbar relative flex overflow-x-auto rounded-full border border-[var(--inv-border)] bg-[var(--inv-surface)] p-1">
+          {statusCounts.map((item) => {
+            const isAll = item.key === "all";
+            const isKnownStatus = ["draft", "sent", "paid", "overdue"].includes(item.key);
+            const isActive = item.key === status;
+            const disabled = item.disabled || (item.count === 0 && !isAll) || !isKnownStatus;
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                disabled={disabled}
+                onClick={() => onStatusChange(item.key as InvoiceFilterStatus)}
+                className={cn(
+                  "relative flex items-center gap-2 rounded-full px-5 py-2 text-sm transition-colors duration-250 ease-out",
+                  isActive
+                    ? "text-white"
+                    : "text-[var(--inv-text-secondary)] hover:text-[var(--inv-text-primary)]",
+                  disabled && "cursor-not-allowed opacity-40 hover:text-[var(--inv-text-secondary)]"
+                )}
+                aria-label={`${item.label} (${item.count})`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-0 rounded-full bg-[var(--inv-accent-primary)]"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10 font-medium">
+                  {item.key === "all"
+                    ? "All"
+                    : (STATUS_LABELS[item.key as keyof typeof STATUS_LABELS] ?? item.label)}
+                </span>
+                <span
+                  className={cn(
+                    "relative z-10 font-data text-[10px] tabular-nums align-super -mt-1"
+                  )}
+                >
+                  {item.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-1 items-center justify-end gap-3 lg:max-w-xl">
+          <div className="relative w-full max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--inv-text-muted)]" />
+            <Input
+              type="text"
+              placeholder="Search invoices..."
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="font-data h-10 w-full border-[var(--inv-border)] bg-white/40 pl-9 pr-4 text-sm text-[var(--inv-text-primary)] placeholder:text-[var(--inv-text-muted)] focus:border-[var(--inv-accent-primary)] focus:ring-1 focus:ring-[var(--inv-accent-primary)] dark:bg-white/5"
+            />
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-10 border-[var(--inv-border)] bg-[var(--inv-surface)] px-3 text-[var(--inv-text-secondary)] hover:bg-[var(--inv-surface-elevated)]"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {dateRange}
+                <ChevronDown className="ml-2 h-3 w-3 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40 border-[var(--inv-border)] bg-[var(--inv-surface)]">
+              {["This week", "This month", "This quarter", "Custom range"].map((range) => (
+                <DropdownMenuItem
+                  key={range}
+                  onClick={() => setDateRange(range)}
+                  className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
+                >
+                  {range}
+                  {dateRange === range && <Check className="ml-auto h-4 w-4 text-[var(--inv-accent-primary)]" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu onOpenChange={setIsSortOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-10 rounded-full border-[var(--inv-border)] bg-[var(--inv-surface)] px-4 text-[var(--inv-text-secondary)] hover:bg-[var(--inv-surface-elevated)]"
+              >
+                Sort: {renderSortText(sortBy)} ({sortDir === "asc" ? "ASC" : "DESC"})
+                <ChevronDown className={cn("ml-2 h-3 w-3 transition-transform duration-200", isSortOpen && "rotate-180")} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 border-[var(--inv-border)] bg-[var(--inv-surface)] p-1">
+              {(["number", "issued", "due", "amount"] as const).map((key) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => onSortByChange?.(key)}
+                  className="cursor-pointer rounded-md text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
+                >
+                  <span className="flex-1">{renderSortText(key)}</span>
+                  {sortBy === key && <Check className="h-4 w-4 text-[var(--inv-accent-primary)]" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
     </div>
   );
 }
