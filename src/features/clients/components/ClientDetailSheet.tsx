@@ -74,15 +74,15 @@ export function ClientDetailSheet({
                   visible: {
                     y: 0,
                     opacity: 1,
-                    transition: { ease: CUBIC_BEZIER },
+                    transition: { ease: CUBIC_BEZIER, duration: 0.2 },
                   },
                 }}
-                className="mb-10 flex items-start gap-6"
+                className="mb-8 flex items-start gap-6"
               >
                 {/* Typographic Avatar */}
-                <div className="border-border bg-muted relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border shadow-xl">
+                <div className="border-border bg-muted relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border shadow-sm">
                   <div className="absolute inset-0" />
-                  <span className="text-3xl font-bold text-(--obs-gold)">
+                  <span className="text-2xl font-bold text-foreground">
                     {(
                       selectedClient.companyName ||
                       selectedClient.contactName ||
@@ -113,28 +113,27 @@ export function ClientDetailSheet({
                   visible: {
                     y: 0,
                     opacity: 1,
-                    transition: { ease: CUBIC_BEZIER },
+                    transition: { ease: CUBIC_BEZIER, duration: 0.2 },
                   },
                 }}
-                className="mb-10 grid grid-cols-2 gap-4"
+                className="mb-8 grid grid-cols-2 gap-4"
               >
+                <div className="border-border bg-muted/30 relative overflow-hidden rounded-2xl border p-5 backdrop-blur-sm">
+                  <p className="text-muted-foreground mb-2 text-[10px] tracking-[0.2em] uppercase">
+                    Outstanding
+                  </p>
+                  <p className="text-primary text-[36px] leading-none font-(--font-metrics)">
+                    {formatCents(selectedClient.outstandingAmountCents)}
+                  </p>
+                </div>
                 <div className="border-border bg-muted/30 rounded-2xl border p-5 backdrop-blur-sm">
                   <p className="text-muted-foreground mb-2 text-[10px] tracking-[0.2em] uppercase">
                     Projects
                   </p>
-                  <p className="text-foreground text-[40px] leading-none font-(--font-metrics)">
+                  <p className="text-foreground text-[36px] leading-none font-(--font-metrics)">
                     <AnimatedCounter
                       value={selectedClient.activeProjectCount}
                     />
-                  </p>
-                </div>
-                <div className="border-border bg-muted/30 relative overflow-hidden rounded-2xl border p-5 backdrop-blur-sm">
-                  <div className="via-primary absolute top-0 right-0 h-full w-1 bg-linear-to-b from-transparent to-transparent opacity-30" />
-                  <p className="text-muted-foreground mb-2 text-[10px] tracking-[0.2em] uppercase">
-                    Outstanding
-                  </p>
-                  <p className="text-primary text-[34px] leading-none font-(--font-metrics)">
-                    {formatCents(selectedClient.outstandingAmountCents)}
                   </p>
                 </div>
               </motion.div>
@@ -146,10 +145,10 @@ export function ClientDetailSheet({
                   visible: {
                     y: 0,
                     opacity: 1,
-                    transition: { ease: CUBIC_BEZIER },
+                    transition: { ease: CUBIC_BEZIER, duration: 0.2 },
                   },
                 }}
-                className="border-border mb-8 flex w-full items-center gap-6 border-b"
+                className="border-border mb-6 flex w-full items-center gap-6 border-b"
               >
                 {(
                   [
@@ -163,9 +162,9 @@ export function ClientDetailSheet({
                     key={t}
                     onClick={() => setTab(t)}
                     className={cn(
-                      "relative pb-4 text-[11px] font-bold tracking-[0.15em] uppercase transition-colors",
+                      "relative pb-3 text-[11px] font-bold tracking-[0.15em] uppercase transition-colors",
                       tab === t
-                        ? "text-primary"
+                        ? "text-foreground"
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
@@ -173,7 +172,7 @@ export function ClientDetailSheet({
                     {tab === t && (
                       <motion.div
                         layoutId="tab-indicator"
-                        className="bg-primary absolute bottom-0 left-0 h-[2px] w-full shadow-sm"
+                        className="bg-foreground absolute bottom-0 left-0 h-[2px] w-full"
                       />
                     )}
                   </button>
@@ -182,9 +181,9 @@ export function ClientDetailSheet({
 
               <motion.div
                 key={tab}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, ease: CUBIC_BEZIER }}
+                transition={{ duration: 0.15, ease: CUBIC_BEZIER }}
                 className="space-y-6"
               >
                 {tab === "overview" && (
@@ -229,6 +228,14 @@ export function ClientDetailSheet({
                             Edit
                           </span>
                         </button>
+                        <button className="group border-border bg-muted/30 flex flex-col items-center justify-center gap-2 rounded-lg border py-4 transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400">
+                          <div className="bg-muted/50 flex h-8 w-8 items-center justify-center rounded-full group-hover:bg-red-500/20">
+                            <div className="h-1.5 w-1.5 rounded-full bg-[muted-foreground] group-hover:bg-red-400" />
+                          </div>
+                          <span className="text-muted-foreground text-[10px] tracking-widest uppercase group-hover:text-red-400">
+                            Delete
+                          </span>
+                        </button>
                         <button
                           onClick={() =>
                             selectedClient &&
@@ -248,14 +255,6 @@ export function ClientDetailSheet({
                           </div>
                           <span className="text-muted-foreground text-[10px] tracking-widest uppercase">
                             Archive
-                          </span>
-                        </button>
-                        <button className="group border-border bg-muted/30 flex flex-col items-center justify-center gap-2 rounded-lg border py-4 transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400">
-                          <div className="bg-muted/50 flex h-8 w-8 items-center justify-center rounded-full group-hover:bg-red-500/20">
-                            <div className="h-1.5 w-1.5 rounded-full bg-[muted-foreground] group-hover:bg-red-400" />
-                          </div>
-                          <span className="text-muted-foreground text-[10px] tracking-widest uppercase group-hover:text-red-400">
-                            Delete
                           </span>
                         </button>
                       </div>

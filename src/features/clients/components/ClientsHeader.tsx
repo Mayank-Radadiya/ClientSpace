@@ -1,91 +1,147 @@
-import { Search, LayoutGrid, List } from "lucide-react";
-import { Input } from "@/components/ui/input";
+"use client";
+
+import { LayoutGrid, List, Download, Upload, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { InviteClientDialog } from "./InviteClientDialog";
-import { PaddedNumber } from "./PaddedNumber";
 
 type ClientsHeaderProps = {
-  counts: { all: number; active: number };
-  search: string;
-  setSearch: (value: string) => void;
   view: "grid" | "list";
   setView: (view: "grid" | "list") => void;
-  canInviteClient: boolean;
+  search: string;
+  setSearch: (s: string) => void;
+  onAddClient: () => void;
+  onInviteClient: () => void;
+  onExport?: () => void;
+  role: "owner" | "admin" | "member" | "client";
 };
 
 export function ClientsHeader({
-  counts,
-  search,
-  setSearch,
   view,
   setView,
-  canInviteClient,
+  search,
+  setSearch,
+  onAddClient,
+  onInviteClient,
+  onExport,
+  role,
 }: ClientsHeaderProps) {
-  return (
-    <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-      <div className="space-y-2">
-        <h1 className="text-5xl font-(--font-display) tracking-tight">
-          Clients
-        </h1>
-        <p className="text-muted-foreground flex items-center gap-2 text-sm font-(--font-data) tracking-widest uppercase">
-          <span className="text-foreground inline-block min-w-[20px] text-center font-bold">
-            <PaddedNumber value={counts.all} />
-          </span>{" "}
-          client
-          <span className="mx-1 opacity-50">·</span>
-          <span className="inline-block min-w-[20px] text-center font-bold text-green-500">
-            <PaddedNumber value={counts.active} />
-          </span>{" "}
-          active
-        </p>
-      </div>
+  const canManage = role === "owner" || role === "admin";
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        {/* Search Bar */}
-        <div className="group relative w-full sm:w-[320px]">
-          <Search className="text-muted-foreground group-focus-within:text-primary absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 transition-colors" />
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search records..."
-            className="border-border bg-muted/50 placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary h-11 rounded-xl pl-11 text-sm font-(--font-data) backdrop-blur-md transition-all focus-visible:ring-1"
-          />
+  return (
+    <header className="mb-6">
+      {/* Title row */}
+      <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground font-[var(--font-display)]">
+            Clients
+          </h1>
+          <p className="mt-1 text-[13px] text-muted-foreground font-[var(--font-data)]">
+            Manage your client relationships, projects, and invoices
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Grid / List Switcher */}
-          <div className="border-border bg-muted/30 flex h-11 items-center rounded-xl border p-1 backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          {/* Export */}
+          {canManage && onExport && (
             <button
-              type="button"
-              onClick={() => setView("grid")}
-              className={cn(
-                "flex h-full w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-all duration-200",
-                view === "grid"
-                  ? "bg-accent text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
+              onClick={onExport}
+              className="flex items-center gap-1.5 rounded-xl border border-[rgba(255,255,255,0.08)] px-3.5 py-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-muted-foreground transition-all hover:border-[rgba(255,255,255,0.15)] hover:text-foreground font-[var(--font-data)]"
+              title="Export clients"
             >
-              <LayoutGrid className="h-4 w-4" />
+              <Download className="h-3.5 w-3.5" />
+              Export
             </button>
-            <button
-              type="button"
-              onClick={() => setView("list")}
-              className={cn(
-                "flex h-full w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-all duration-200",
-                view === "list"
-                  ? "bg-accent text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <List className="h-4 w-4" />
-            </button>
-          </div>
-
-          {canInviteClient && (
-            <div className="*:border-border *:bg-muted *:text-primary h-11 transition-all *:h-full *:rounded-xl *:text-xs *:font-(--font-data) *:tracking-widest *:uppercase hover:*:bg-transparent hover:*:shadow-sm">
-              <InviteClientDialog />
-            </div>
           )}
+
+          {/* Invite */}
+          {canManage && (
+            <button
+              onClick={onInviteClient}
+              className="flex items-center gap-1.5 rounded-xl border border-[rgba(255,255,255,0.08)] px-3.5 py-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-muted-foreground transition-all hover:border-[rgba(255,255,255,0.15)] hover:text-foreground font-[var(--font-data)]"
+              title="Invite by email"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Invite
+            </button>
+          )}
+
+          {/* Add Client — primary CTA */}
+          {canManage && (
+            <button
+              id="add-client-btn"
+              onClick={onAddClient}
+              className="group relative overflow-hidden flex items-center gap-2 rounded-xl bg-[#4F7FFF] px-5 py-2.5 text-[12px] font-bold tracking-[0.12em] uppercase text-white shadow-lg shadow-[rgba(79,127,255,0.25)] transition-all hover:bg-[#6B95FF] hover:shadow-[rgba(79,127,255,0.35)] hover:scale-[1.02] active:scale-95 font-[var(--font-data)]"
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
+              <Plus className="h-4 w-4" />
+              <span className="relative z-10">Add Client</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Search + View toggle row */}
+      <div className="flex items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-1 max-w-sm">
+          <svg
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            viewBox="0 0 16 16"
+            fill="none"
+          >
+            <path
+              d="M7 13A6 6 0 1 0 7 1a6 6 0 0 0 0 12zM13 13l2 2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+          <input
+            id="client-search"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search clients..."
+            className="h-10 w-full rounded-xl border border-border bg-muted/50 pl-10 pr-4 text-sm font-[var(--font-data)] text-foreground placeholder-muted-foreground outline-none transition-all focus:border-[#4F7FFF] focus:bg-[rgba(79,127,255,0.04)] focus:ring-0"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
+                <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        <div className="ml-auto flex items-center gap-1 rounded-xl border border-border bg-muted/50 p-1">
+          <button
+            id="view-grid-btn"
+            onClick={() => setView("grid")}
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150",
+              view === "grid"
+                ? "bg-[rgba(79,127,255,0.15)] text-[#4F7FFF]"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+            title="Grid view"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+          <button
+            id="view-list-btn"
+            onClick={() => setView("list")}
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150",
+              view === "list"
+                ? "bg-[rgba(79,127,255,0.15)] text-[#4F7FFF]"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+            title="List view"
+          >
+            <List className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </header>
