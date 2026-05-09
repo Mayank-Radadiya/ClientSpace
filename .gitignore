@@ -49,24 +49,15 @@ docs/
 ctx_tmp
 opencode.json
 .agent
-*.md
+# *.md  # NOTE: do not ignore .md files - AGENTS.md and graphify-out/GRAPH_REPORT.md must be tracked
 .agents
 .opencode
-graphify-out
-
-
-# keep graph outputs, skip heavy/local-only files
-
-# optional: commit for shared extraction speed, skip to keep repo small
+# graphify — commit graph outputs so AI agents read the report across sessions
+# DO NOT ignore graphify-out/ itself; only skip heavy/local-only sub-files:
 graphify-out/cache/
-
-# mtime-based, invalid after git clone - always gitignore this
 graphify-out/manifest.json
-
-# local token tracking, not useful to share
 graphify-out/cost.json
-
-graphify-out
 graphify-tmp
-graphify-venv
 /graphify-tmp
+.graphify-venv
+graphify-venv
