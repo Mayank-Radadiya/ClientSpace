@@ -10,8 +10,9 @@ import { ClientAvatar } from "../components/ClientAvatar";
 import { StatusDropdown } from "../components/StatusDropdown";
 import { EditClientModal } from "../components/EditClientModal";
 import { DeleteClientModal } from "../components/DeleteClientModal";
-import { ToastStack } from "../components/ToastStack";
-import { useToast } from "../hooks/useToast";
+import { ArchiveClientModal } from "../components/ArchiveClientModal";
+import { RestoreClientModal } from "../components/RestoreClientModal";
+import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 import { formatCents, formatRelative } from "../utils/formatters";
 import type { ClientListItem, ClientDisplayStatus } from "../client.types";
 import { ProjectsTab } from "./tabs/ProjectsTab";
@@ -45,11 +46,12 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ClientDetailPage({ clientId, role }: { clientId: string; role: "owner" | "admin" | "member" | "client" }) {
   const router = useRouter();
-  const toast = useToast();
   const utils = trpc.useUtils();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
 
   const { data: client, isLoading, error } = trpc.clients.getClientById.useQuery({ clientId });
 
@@ -66,23 +68,7 @@ export function ClientDetailPage({ clientId, role }: { clientId: string; role: "
     { enabled: activeTab === "activity" || activeTab === "overview" },
   );
 
-  const archiveMutation = trpc.clients.archiveClient.useMutation({
-    onSuccess: () => {
-      utils.clients.getClientById.invalidate({ clientId });
-      utils.clients.getBootstrap.invalidate();
-      toast.success("Client archived");
-    },
-    onError: (err) => toast.error(err.message),
-  });
 
-  const unarchiveMutation = trpc.clients.unarchiveClient.useMutation({
-    onSuccess: () => {
-      utils.clients.getClientById.invalidate({ clientId });
-      utils.clients.getBootstrap.invalidate();
-      toast.success("Client restored to active");
-    },
-    onError: (err) => toast.error(err.message),
-  });
 
   const isArchived = client?.displayStatus === "archived";
   const canManage = role === "owner" || role === "admin";
@@ -197,16 +183,14 @@ export function ClientDetailPage({ clientId, role }: { clientId: string; role: "
               </button>
               {isArchived ? (
                 <button
-                  onClick={() => unarchiveMutation.mutate({ clientId })}
-                  disabled={unarchiveMutation.isPending}
+                  onClick={() => setRestoreOpen(true)}
                   className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors font-[var(--font-data)]"
                 >
                   <ArchiveRestore className="h-3.5 w-3.5" /> Restore
                 </button>
               ) : (
                 <button
-                  onClick={() => archiveMutation.mutate({ clientId })}
-                  disabled={archiveMutation.isPending}
+                  onClick={() => setArchiveOpen(true)}
                   className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-[11px] font-semibold tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors font-[var(--font-data)]"
                 >
                   <Archive className="h-3.5 w-3.5" /> Archive
@@ -265,8 +249,8 @@ export function ClientDetailPage({ clientId, role }: { clientId: string; role: "
         open={editOpen}
         client={clientAsListItem}
         onClose={() => setEditOpen(false)}
-        onSuccess={(msg) => toast.success(msg)}
-        onError={(msg) => toast.error(msg)}
+        onSuccess={(msg: string) => toast.success(msg)}
+        onError={(msg: string) => toast.error(msg)}
         onInvalidate={() => {
           utils.clients.getClientById.invalidate({ clientId });
           utils.clients.getBootstrap.invalidate();
@@ -276,11 +260,32 @@ export function ClientDetailPage({ clientId, role }: { clientId: string; role: "
         open={deleteOpen}
         client={clientAsListItem}
         onClose={() => setDeleteOpen(false)}
-        onSuccess={() => { toast.success("Client deleted"); router.push("/clients"); }}
-        onError={(msg) => toast.error(msg)}
+        onSuccess={(msg: string) => { toast.success(msg); router.push("/clients"); }}
+        onError={(msg: string) => toast.error(msg)}
         onInvalidate={() => utils.clients.getBootstrap.invalidate()}
       />
-      <ToastStack toasts={toast.toasts} onDismiss={toast.dismiss} />
+      <ArchiveClientModal
+        open={archiveOpen}
+        client={clientAsListItem}
+        onClose={() => setArchiveOpen(false)}
+        onSuccess={(msg: string) => toast.success(msg)}
+        onError={(msg: string) => toast.error(msg)}
+        onInvalidate={() => {
+          utils.clients.getClientById.invalidate({ clientId });
+          utils.clients.getBootstrap.invalidate();
+        }}
+      />
+      <RestoreClientModal
+        open={restoreOpen}
+        client={clientAsListItem}
+        onClose={() => setRestoreOpen(false)}
+        onSuccess={(msg: string) => toast.success(msg)}
+        onError={(msg: string) => toast.error(msg)}
+        onInvalidate={() => {
+          utils.clients.getClientById.invalidate({ clientId });
+          utils.clients.getBootstrap.invalidate();
+        }}
+      />
     </div>
   );
 }

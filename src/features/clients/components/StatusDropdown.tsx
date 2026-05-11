@@ -11,23 +11,23 @@ const STATUS_CONFIG: Record<
   { dot: string; badge: string; label: string }
 > = {
   active: {
-    dot: "bg-[#22C55E] shadow-[0_0_6px_rgba(34,197,94,0.4)]",
-    badge: "bg-[rgba(34,197,94,0.10)] text-[#22C55E] border-[rgba(34,197,94,0.20)]",
+    dot: "bg-emerald-500 shadow-emerald-500/40 shadow-sm",
+    badge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20",
     label: "Active",
   },
   inactive: {
-    dot: "bg-[#6B6B7E]",
-    badge: "bg-[rgba(107,107,126,0.10)] text-[#6B6B7E] border-[rgba(107,107,126,0.20)]",
+    dot: "bg-muted-foreground",
+    badge: "bg-muted text-muted-foreground border-border",
     label: "Inactive",
   },
   pending: {
-    dot: "bg-[#F59E0B] shadow-[0_0_6px_rgba(245,158,11,0.4)]",
-    badge: "bg-[rgba(245,158,11,0.10)] text-[#F59E0B] border-[rgba(245,158,11,0.20)]",
+    dot: "bg-amber-500 shadow-amber-500/40 shadow-sm",
+    badge: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
     label: "Pending",
   },
   archived: {
-    dot: "bg-[#3D3D4E]",
-    badge: "bg-[rgba(61,61,78,0.10)] text-[#3D3D4E] border-[rgba(61,61,78,0.20)]",
+    dot: "bg-neutral-500",
+    badge: "bg-neutral-500/10 text-neutral-600 dark:text-neutral-500 border-neutral-500/20",
     label: "Archived",
   },
 };
@@ -76,7 +76,7 @@ export function StatusDropdown({
     <motion.div
       layout
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-[0.15em] uppercase transition-colors duration-200",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-[var(--font-data)] font-bold uppercase transition-colors duration-200",
         config.badge,
         interactive && !disabled && "cursor-pointer hover:opacity-90",
       )}
@@ -121,8 +121,7 @@ export function StatusDropdown({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="absolute top-full right-0 z-50 mt-1 w-[130px] overflow-hidden rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#16161F] py-1 shadow-2xl backdrop-blur-xl"
-            style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)" }}
+            className="bg-popover border-border absolute top-full right-0 z-50 mt-1 w-[130px] overflow-hidden rounded-xl border py-1 shadow-2xl backdrop-blur-xl"
           >
             {ALL_STATUSES.map((s) => {
               const c = STATUS_CONFIG[s];
@@ -130,8 +129,8 @@ export function StatusDropdown({
                 <button
                   key={s}
                   className={cn(
-                    "flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-[0.12em] uppercase transition-colors duration-100 hover:bg-white/5",
-                    s === status ? "text-white" : "text-[#6B6B7E] hover:text-white",
+                    "flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-[0.12em] uppercase transition-colors duration-100 hover:bg-muted",
+                    s === status ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                   onClick={() => {
                     onChange(s);
@@ -141,7 +140,7 @@ export function StatusDropdown({
                   <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", c.dot)} />
                   {c.label}
                   {s === status && (
-                    <svg className="ml-auto h-3 w-3 text-[#4F7FFF]" viewBox="0 0 12 12" fill="none">
+                    <svg className="text-primary ml-auto h-3 w-3" viewBox="0 0 12 12" fill="none">
                       <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   )}

@@ -21,7 +21,6 @@ import { EditClientModal } from "./EditClientModal";
 import { DeleteClientModal } from "./DeleteClientModal";
 import { BulkActionBar } from "./BulkActionBar";
 import { ToastStack } from "./ToastStack";
-import { InviteClientDialog } from "./InviteClientDialog";
 
 import type { ClientListItem, ClientDisplayStatus } from "../client.types";
 
@@ -69,7 +68,6 @@ export function ClientsPageClient({ role }: ClientsPageClientProps) {
 
   // ── Modal state ────────────────────────────────────────────────────────────
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [inviteOpen, setInviteOpen] = useState(false);
   const [editModalClient, setEditModalClient] = useState<ClientListItem | null>(null);
   const [deleteModalClient, setDeleteModalClient] = useState<ClientListItem | null>(null);
 
@@ -188,8 +186,20 @@ export function ClientsPageClient({ role }: ClientsPageClientProps) {
   }
 
   return (
-    <div className="bg-background border-border text-foreground relative mb-8 min-h-[calc(100vh-2rem)] w-full overflow-hidden rounded-2xl border p-6 shadow-lg md:p-10">
-      <div className="relative z-10 space-y-6">
+    <div className="relative min-h-[calc(100vh-2rem)] w-full overflow-hidden rounded-2xl bg-[#F4F4F8] dark:bg-[#0A0A0F] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none md:p-10 transition-colors duration-300">
+      {/* Background gradients */}
+      <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] -translate-y-1/4 translate-x-1/4 rounded-full bg-[radial-gradient(circle,rgba(79,127,255,0.04)_0%,transparent_70%)] dark:hidden" />
+      <div className="pointer-events-none absolute bottom-0 right-0 h-[800px] w-[800px] translate-x-1/4 translate-y-1/4 rounded-full bg-[radial-gradient(circle,rgba(79,127,255,0.06)_0%,transparent_70%)] hidden dark:block" />
+      
+      {/* SVG noise texture */}
+      <div 
+        className="pointer-events-none absolute inset-0 mix-blend-overlay dark:opacity-30 opacity-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }}
+      />
+
+      <div className="relative z-10 space-y-6 max-w-7xl mx-auto">
         <ClientsHeader
           view={view}
           setView={setView}
@@ -197,8 +207,8 @@ export function ClientsPageClient({ role }: ClientsPageClientProps) {
           setSearch={setSearch}
           role={role}
           onAddClient={() => setAddModalOpen(true)}
-          onInviteClient={() => setInviteOpen(true)}
           onExport={handleBulkExport}
+          stats={stats}
         />
 
         <ClientsPremiumStats
@@ -311,14 +321,6 @@ export function ClientsPageClient({ role }: ClientsPageClientProps) {
         onInvalidate={invalidate}
       />
 
-      {/* Invite dialog (legacy - email only flow) */}
-      {inviteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setInviteOpen(false)}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <InviteClientDialog />
-          </div>
-        </div>
-      )}
 
       {/* Bulk action floating bar */}
       <BulkActionBar

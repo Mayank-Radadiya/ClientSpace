@@ -55,38 +55,38 @@ function RowMenu({
     <div ref={ref} className="relative">
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-        className="flex h-7 w-7 items-center justify-center rounded-full text-[#6B6B7E] hover:bg-white/5 hover:text-[#F2F2F5] transition-colors"
+        className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
       >
         <MoreHorizontal className="h-4 w-4" />
       </button>
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-full right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#16161F] py-1 shadow-2xl"
+          className="bg-popover border-border absolute top-full right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border py-1 shadow-2xl"
         >
           <button
-            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] text-[#6B6B7E] hover:bg-white/5 hover:text-[#F2F2F5] transition-colors"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] transition-colors"
             onClick={() => { router.push(`/clients/${client.id}`); setOpen(false); }}
           >
             <Eye className="h-3.5 w-3.5" /> View Profile
           </button>
           {(role === "owner" || role === "admin") && (
             <button
-              className="flex w-full items-center gap-2 px-3 py-2 text-[11px] text-[#6B6B7E] hover:bg-white/5 hover:text-[#F2F2F5] transition-colors"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] transition-colors"
               onClick={() => { onEdit(client); setOpen(false); }}
             >
               <Edit2 className="h-3.5 w-3.5" /> Edit
             </button>
           )}
           <button
-            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] text-[#6B6B7E] hover:bg-white/5 hover:text-[#F2F2F5] transition-colors"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] transition-colors"
             onClick={() => { router.push(`/invoices/new?clientId=${client.id}`); setOpen(false); }}
           >
             <FileText className="h-3.5 w-3.5" /> Create Invoice
           </button>
           {(role === "owner" || role === "admin") && client.displayStatus !== "archived" && (
             <button
-              className="flex w-full items-center gap-2 px-3 py-2 text-[11px] text-[#6B6B7E] hover:bg-white/5 hover:text-[#F2F2F5] transition-colors"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] transition-colors"
               onClick={() => { onArchive(client); setOpen(false); }}
             >
               <Archive className="h-3.5 w-3.5" /> Archive
@@ -94,9 +94,9 @@ function RowMenu({
           )}
           {(role === "owner" || role === "admin") && (
             <>
-              <div className="my-1 border-t border-[rgba(255,255,255,0.05)]" />
+              <div className="border-border my-1 border-t" />
               <button
-                className="flex w-full items-center gap-2 px-3 py-2 text-[11px] text-[#EF4444] hover:bg-[rgba(239,68,68,0.06)] transition-colors"
+                className="hover:bg-destructive/10 text-destructive flex w-full items-center gap-2 px-3 py-2 text-[11px] transition-colors"
                 onClick={() => { onDelete(client); setOpen(false); }}
               >
                 <Trash2 className="h-3.5 w-3.5" /> Delete
@@ -128,31 +128,31 @@ export function ClientsList({
     <div className="overflow-hidden rounded-2xl border border-border">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-border bg-[rgba(255,255,255,0.01)]">
+          <tr className="border-border bg-muted/30 border-b">
             {/* Select all */}
             <th className="w-12 px-4 py-3" onClick={onToggleAll}>
               <div className={cn(
                 "mx-auto flex h-5 w-5 cursor-pointer items-center justify-center rounded border-2 transition-all duration-150",
                 allSelected
-                  ? "border-[#4F7FFF] bg-[#4F7FFF]"
+                  ? "border-primary bg-primary"
                   : someSelected
-                    ? "border-[#4F7FFF] bg-transparent"
-                    : "border-[rgba(255,255,255,0.2)] bg-transparent hover:border-[#4F7FFF]",
+                    ? "border-primary bg-transparent"
+                    : "border-border bg-transparent hover:border-primary",
               )}>
                 {allSelected ? (
-                  <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                  <svg className="text-primary-foreground h-3 w-3" viewBox="0 0 12 12" fill="none">
                     <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 ) : someSelected ? (
-                  <div className="h-1.5 w-2.5 rounded-sm bg-[#4F7FFF]" />
+                  <div className="bg-primary h-1.5 w-2.5 rounded-sm" />
                 ) : null}
               </div>
             </th>
-            <th className="px-4 py-3 text-left text-[9px] font-bold tracking-[0.22em] text-[#3D3D4E] uppercase font-[var(--font-data)]">Client</th>
-            <th className="px-4 py-3 text-left text-[9px] font-bold tracking-[0.22em] text-[#3D3D4E] uppercase font-[var(--font-data)]">Status</th>
-            <th className="px-4 py-3 text-right text-[9px] font-bold tracking-[0.22em] text-[#3D3D4E] uppercase font-[var(--font-data)]">Projects</th>
-            <th className="px-4 py-3 text-right text-[9px] font-bold tracking-[0.22em] text-[#3D3D4E] uppercase font-[var(--font-data)]">Outstanding</th>
-            <th className="px-4 py-3 text-left text-[9px] font-bold tracking-[0.22em] text-[#3D3D4E] uppercase font-[var(--font-data)]">Last Active</th>
+            <th className="text-muted-foreground px-4 py-3 text-left text-[9px] font-[var(--font-data)] font-bold tracking-[0.22em] uppercase">Client</th>
+            <th className="text-muted-foreground px-4 py-3 text-left text-[9px] font-[var(--font-data)] font-bold tracking-[0.22em] uppercase">Status</th>
+            <th className="text-muted-foreground px-4 py-3 text-right text-[9px] font-[var(--font-data)] font-bold tracking-[0.22em] uppercase">Projects</th>
+            <th className="text-muted-foreground px-4 py-3 text-right text-[9px] font-[var(--font-data)] font-bold tracking-[0.22em] uppercase">Outstanding</th>
+            <th className="text-muted-foreground px-4 py-3 text-left text-[9px] font-[var(--font-data)] font-bold tracking-[0.22em] uppercase">Last Active</th>
             <th className="w-12 px-4 py-3" />
           </tr>
         </thead>
@@ -166,10 +166,10 @@ export function ClientsList({
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.15, delay: index * 0.025, ease: CUBIC_BEZIER }}
                 className={cn(
-                  "group border-b border-[rgba(255,255,255,0.03)] cursor-pointer transition-colors duration-100",
+                  "border-border group cursor-pointer border-b transition-colors duration-100",
                   isSelected
-                    ? "bg-[rgba(79,127,255,0.05)]"
-                    : "hover:bg-[rgba(255,255,255,0.02)]",
+                    ? "bg-primary/5"
+                    : "hover:bg-muted/30",
                   client.displayStatus === "archived" && "opacity-60",
                 )}
                 onClick={() => router.push(`/clients/${client.id}`)}
@@ -179,11 +179,11 @@ export function ClientsList({
                   <div className={cn(
                     "mx-auto flex h-5 w-5 cursor-pointer items-center justify-center rounded border-2 transition-all duration-150",
                     isSelected
-                      ? "border-[#4F7FFF] bg-[#4F7FFF]"
-                      : "border-[rgba(255,255,255,0.15)] bg-transparent hover:border-[#4F7FFF]",
+                      ? "border-primary bg-primary"
+                      : "border-border bg-transparent hover:border-primary",
                   )}>
                     {isSelected && (
-                      <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                      <svg className="text-primary-foreground h-3 w-3" viewBox="0 0 12 12" fill="none">
                         <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
@@ -200,10 +200,10 @@ export function ClientsList({
                       size="sm"
                     />
                     <div className="min-w-0">
-                      <p className="truncate text-[13px] font-semibold text-[#F2F2F5] font-[var(--font-display)]">
+                      <p className="text-foreground truncate text-[13px] font-[var(--font-display)] font-semibold">
                         {client.companyName || client.email}
                       </p>
-                      <p className="truncate text-[11px] text-[#6B6B7E] font-[var(--font-data)]">
+                      <p className="text-muted-foreground truncate text-[11px] font-[var(--font-data)]">
                         {client.contactName ? `${client.contactName} · ` : ""}{client.email}
                       </p>
                     </div>
@@ -220,7 +220,7 @@ export function ClientsList({
 
                 {/* Projects */}
                 <td className="px-4 py-4 text-right">
-                  <span className="text-[18px] font-[var(--font-metrics)] text-[#F2F2F5]">
+                  <span className="text-foreground text-[18px] font-[var(--font-metrics)]">
                     {client.activeProjectCount}
                   </span>
                 </td>
@@ -229,7 +229,7 @@ export function ClientsList({
                 <td className="px-4 py-4 text-right">
                   <span className={cn(
                     "text-[13px] font-[var(--font-metrics)]",
-                    client.outstandingAmountCents > 0 ? "text-[#F59E0B]" : "text-[#3D3D4E]",
+                    client.outstandingAmountCents > 0 ? "text-amber-500" : "text-muted-foreground",
                   )}>
                     {client.outstandingAmountCents > 0 ? formatCents(client.outstandingAmountCents) : "—"}
                   </span>
@@ -237,17 +237,17 @@ export function ClientsList({
 
                 {/* Last active */}
                 <td className="px-4 py-4">
-                  <span className="text-[11px] text-[#6B6B7E] font-[var(--font-data)]">
+                  <span className="text-muted-foreground text-[11px] font-[var(--font-data)]">
                     {formatRelative(client.lastActivityAt)}
                   </span>
                 </td>
 
                 {/* Actions */}
                 <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={() => router.push(`/clients/${client.id}`)}
-                      className="rounded-lg border border-[rgba(79,127,255,0.3)] px-2.5 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase text-[#4F7FFF] hover:bg-[rgba(79,127,255,0.1)] transition-colors font-[var(--font-data)]"
+                      className="border-primary/30 text-primary hover:bg-primary/10 rounded-lg border px-2.5 py-1.5 text-[10px] font-[var(--font-data)] font-bold tracking-[0.15em] uppercase transition-colors"
                     >
                       View
                     </button>

@@ -68,11 +68,9 @@ export function OverviewTab({ client, projectsQuery, invoicesQuery, activityQuer
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {[
             { label: "Email", value: client.email },
-            { label: "Invited", value: client.invitedAt ? new Date(client.invitedAt).toLocaleDateString() : "—" },
             { label: "Last Active", value: formatRelative(client.lastActivityAt) },
             { label: "Revenue", value: formatCents(client.totalRevenueCents) },
             { label: "Outstanding", value: client.outstandingAmountCents > 0 ? formatCents(client.outstandingAmountCents) : "—" },
-            { label: "Invite Status", value: client.pendingInvite ? "Invite Pending" : "Accepted" },
           ].map(({ label, value }) => (
             <div key={label}>
               <dt className="text-[10px] font-bold tracking-[0.15em] text-muted-foreground uppercase font-[var(--font-data)]">{label}</dt>

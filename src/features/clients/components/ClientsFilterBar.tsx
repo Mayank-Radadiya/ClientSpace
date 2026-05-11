@@ -1,5 +1,6 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
 import {
   Select,
   SelectContent,
@@ -8,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { statusLabel } from "../utils/formatters";
-import { PaddedNumber } from "./PaddedNumber";
 import type { ClientDisplayStatus } from "../client.types";
 
 type ClientsFilterBarProps = {
@@ -28,6 +28,15 @@ type ClientsFilterBarProps = {
   ) => void;
 };
 
+const SORT_OPTIONS: Record<string, string> = {
+  last_activity_desc: "Last Activity",
+  name_asc: "Name A→Z",
+  name_desc: "Name Z→A",
+  revenue_desc: "Revenue ↑",
+  outstanding_desc: "Outstanding ↑",
+  last_activity_asc: "Oldest First",
+};
+
 export function ClientsFilterBar({
   counts,
   statusFilter,
@@ -36,89 +45,113 @@ export function ClientsFilterBar({
   sort,
   setSort,
 }: ClientsFilterBarProps) {
+  const tabs = ["all", "active", "inactive", "pending", "archived"] as const;
+
   return (
-    <section className="border-border flex flex-col gap-3 border-b pb-3 md:flex-row md:items-end md:justify-between">
-      <div className="flex flex-wrap items-center gap-2">
-        {(["all", "active", "inactive", "pending", "archived"] as const).map(
-          (status) => {
-            const label = status === "all" ? "All" : statusLabel(status);
-            const count = status === "all" ? counts.all : counts[status];
-            const isActive = statusFilter === status;
-            return (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
+    <section className="flex flex-col gap-4 border-b border-[rgba(0,0,0,0.06)] dark:border-[rgba(255,255,255,0.05)] pb-4 md:flex-row md:items-end md:justify-between">
+      {/* FILTER TABS */}
+      <div className="flex flex-wrap items-center gap-1 rounded-[10px] border border-[rgba(0,0,0,0.06)] dark:border-[rgba(255,255,255,0.05)] bg-black/5 dark:bg-white/5 p-1">
+        {tabs.map((status) => {
+          const label = status === "all" ? "All" : statusLabel(status);
+          const count = status === "all" ? counts.all : counts[status];
+          const isActive = statusFilter === status;
+          
+          return (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={cn(
+                "relative flex h-7 items-center gap-1.5 rounded-[8px] px-3 transition-colors duration-200",
+                isActive ? "text-[#0D0D14] dark:text-[#F2F2F5]" : "text-[#6B6B7E] hover:text-[#0D0D14] dark:hover:text-[#F2F2F5] hover:bg-black/5 dark:hover:bg-white/5"
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 rounded-[8px] bg-[#0A0A0F]/5 dark:bg-white/5"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                />
+              )}
+              <span className="relative z-10 text-[11px] font-[var(--font-data)] tracking-[0.08em] capitalize">
+                {label}
+              </span>
+              <span
                 className={cn(
-                  "font-data)] flex h-8 items-center gap-2 rounded-full border px-3 text-[11px] font-semibold tracking-[0.18em] uppercase transition-all duration-200",
+                  "relative z-10 flex items-center justify-center rounded-[4px] px-1 text-[9px] font-[var(--font-data)] font-bold",
                   isActive
-                    ? "bg-primary text-primary-foreground border-[primary] shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-transparent",
+                    ? "text-[#0D0D14] dark:text-[#F2F2F5] bg-[#0A0A0F]/10 dark:bg-white/10"
+                    : "text-[#6B6B7E] bg-black/5 dark:bg-white/5"
                 )}
               >
-                <span>{label}</span>
-                <span
-                  className={cn(
-                    "text-[10px] font-bold opacity-70",
-                    isActive ? "text-primary-foreground" : "",
-                  )}
-                >
-                  <PaddedNumber value={count} />
-                </span>
-              </button>
-            );
-          },
-        )}
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex items-center gap-4">
-        <span className="font-data)] text-muted-foreground text-[10px] tracking-[0.2em] uppercase">
-          <PaddedNumber value={totalFiltered} /> Results
+      <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
+        {/* RESULTS COUNT */}
+        <span className="font-[var(--font-data)] text-[#6B6B7E] text-[12px]">
+          {statusFilter === "all" && !sort.includes("search") // Approximation if search is passed in
+            ? `Showing ${totalFiltered} clients`
+            : `${totalFiltered} of ${counts.all} clients`}
         </span>
 
+        {/* SORT DROPDOWN */}
         <div className="relative isolate">
           <Select value={sort} onValueChange={(value) => setSort(value as any)}>
-            <SelectTrigger className="border-border bg-muted/50 font-data)] h-8 w-[190px] rounded-full rounded-r-none border border-r-0 px-3 text-[11px] tracking-wide focus:ring-0 focus:ring-offset-0 focus-visible:border-[primary] focus-visible:ring-0 [&>svg]:opacity-0">
-              <SelectValue />
+            <SelectTrigger className="flex h-8 w-[180px] items-center justify-between rounded-full border border-[rgba(0,0,0,0.12)] dark:border-[rgba(255,255,255,0.12)] bg-transparent px-3 text-[11px] font-[var(--font-data)] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 dark:hover:bg-white/5 focus:ring-0 focus-visible:ring-0 [&>svg]:opacity-0">
+              <span className="flex items-center gap-1.5">
+                <span className="opacity-60">↑↓</span> {SORT_OPTIONS[sort] || "Sort by"}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform group-data-[state=open]:rotate-180" />
             </SelectTrigger>
-            <div className="border-border bg-muted/50 pointer-events-none absolute top-0 right-0 flex h-full w-8 items-center justify-center rounded-r-full border border-l-0">
-              <ChevronDown className="text-muted-foreground group-hover:text-foreground h-3 w-3 transition-transform" />
-            </div>
-            <SelectContent className="border-border bg-popover border shadow-xl">
+            <SelectContent className="w-[200px] overflow-hidden rounded-[12px] border border-[rgba(0,0,0,0.08)] dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#16161F] p-1 shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+              <div className="px-2 py-1.5 text-[9px] font-[var(--font-data)] font-bold tracking-widest text-[#6B6B7E] uppercase">
+                Sort by
+              </div>
               <SelectItem
                 value="last_activity_desc"
-                className="font-data)] focus:bg-primary/10 focus:text-primary text-xs"
+                className="flex h-9 cursor-pointer items-center rounded-lg px-2 text-[12px] font-[var(--font-data)] focus:bg-[rgba(59,111,239,0.06)] focus:text-[#3B6FEF] dark:focus:bg-[rgba(79,127,255,0.06)] dark:focus:text-[#4F7FFF]"
               >
-                Last activity
-              </SelectItem>
-              <SelectItem
-                value="last_activity_asc"
-                className="font-data)] focus:bg-primary/10 focus:text-primary text-xs"
-              >
-                Oldest activity
+                Last Activity
               </SelectItem>
               <SelectItem
                 value="name_asc"
-                className="font-data)] focus:bg-primary/10 focus:text-primary text-xs"
+                className="flex h-9 cursor-pointer items-center rounded-lg px-2 text-[12px] font-[var(--font-data)] focus:bg-[rgba(59,111,239,0.06)] focus:text-[#3B6FEF] dark:focus:bg-[rgba(79,127,255,0.06)] dark:focus:text-[#4F7FFF]"
               >
-                Name A-Z
+                Name A→Z
               </SelectItem>
               <SelectItem
                 value="name_desc"
-                className="font-data)] focus:bg-primary/10 focus:text-primary text-xs"
+                className="flex h-9 cursor-pointer items-center rounded-lg px-2 text-[12px] font-[var(--font-data)] focus:bg-[rgba(59,111,239,0.06)] focus:text-[#3B6FEF] dark:focus:bg-[rgba(79,127,255,0.06)] dark:focus:text-[#4F7FFF]"
               >
-                Name Z-A
+                Name Z→A
+              </SelectItem>
+              <div className="mt-1 px-2 py-1.5 text-[9px] font-[var(--font-data)] font-bold tracking-widest text-[#6B6B7E] uppercase border-t border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.05)]">
+                Amount
+              </div>
+              <SelectItem
+                value="outstanding_desc"
+                className="flex h-9 cursor-pointer items-center rounded-lg px-2 text-[12px] font-[var(--font-data)] focus:bg-[rgba(59,111,239,0.06)] focus:text-[#3B6FEF] dark:focus:bg-[rgba(79,127,255,0.06)] dark:focus:text-[#4F7FFF]"
+              >
+                Outstanding ↑
               </SelectItem>
               <SelectItem
                 value="revenue_desc"
-                className="font-data)] focus:bg-primary/10 focus:text-primary text-xs"
+                className="flex h-9 cursor-pointer items-center rounded-lg px-2 text-[12px] font-[var(--font-data)] focus:bg-[rgba(59,111,239,0.06)] focus:text-[#3B6FEF] dark:focus:bg-[rgba(79,127,255,0.06)] dark:focus:text-[#4F7FFF]"
               >
-                Revenue (high)
+                Revenue ↑
               </SelectItem>
+              <div className="mt-1 px-2 py-1.5 text-[9px] font-[var(--font-data)] font-bold tracking-widest text-[#6B6B7E] uppercase border-t border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.05)]">
+                Date
+              </div>
               <SelectItem
-                value="outstanding_desc"
-                className="font-data)] focus:bg-primary/10 focus:text-primary text-xs"
+                value="last_activity_asc"
+                className="flex h-9 cursor-pointer items-center rounded-lg px-2 text-[12px] font-[var(--font-data)] focus:bg-[rgba(59,111,239,0.06)] focus:text-[#3B6FEF] dark:focus:bg-[rgba(79,127,255,0.06)] dark:focus:text-[#4F7FFF]"
               >
-                Outstanding (high)
+                Oldest First
               </SelectItem>
             </SelectContent>
           </Select>

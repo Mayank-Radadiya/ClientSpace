@@ -123,30 +123,30 @@ export const SidebarLink = memo(function SidebarLink({
     >
       <Link
         href={href}
-        className="mt-1 block w-full outline-offset-2"
+        className="block w-full outline-offset-2"
         onMouseEnter={handleMouseEnter}
       >
         <div
           className={cn(
-            "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold transition-all duration-300 ease-out hover:scale-105",
+            "group relative flex w-full h-[44px] items-center gap-3 rounded-[10px] px-3 font-[var(--font-data)] text-[13px] transition-all duration-200",
             isActive
-              ? "bg-primary/15 text-primary font-black tracking-wide shadow-[0_0_15px_rgba(255,255,255,0.05)] ring-1 ring-white/10"
-              : "text-muted-foreground hover:text-foreground hover:bg-neutral-200 dark:hover:bg-neutral-800/60",
+              ? "bg-[rgba(59,111,239,0.06)] dark:bg-[rgba(79,127,255,0.08)] text-[#0D0D14] dark:text-[#F2F2F5] font-bold"
+              : "text-[#6B6B7E] hover:text-[#0D0D14] dark:hover:text-[#F2F2F5] hover:bg-black/5 dark:hover:bg-white/5",
             className,
           )}
         >
-          {/* Active state indicator */}
+          {/* Active state inside left border */}
           {isActive && (
-            <span className="bg-primary absolute top-1/2 left-0 h-9/10 w-0.5 -translate-y-1/2 rounded-r-full shadow-[0_0_8px_currentColor]" />
+            <span className="absolute left-0 top-1/2 h-[60%] w-[2px] -translate-y-1/2 rounded-r-full bg-[#3B6FEF] dark:bg-[#4F7FFF]" />
           )}
 
           {/* Icon container */}
           <span
             className={cn(
-              "flex shrink-0 items-center justify-center transition-all duration-300 group-hover:scale-110",
+              "flex shrink-0 w-[24px] h-[24px] items-center justify-center transition-all duration-200",
               isActive
-                ? "text-primary scale-110"
-                : "text-muted-foreground group-hover:text-foreground opacity-70 group-hover:opacity-100",
+                ? "text-[#3B6FEF] dark:text-[#4F7FFF]"
+                : "text-[#6B6B7E] group-hover:text-[#0D0D14] dark:group-hover:text-[#F2F2F5]",
             )}
           >
             {icon}

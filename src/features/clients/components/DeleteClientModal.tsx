@@ -54,7 +54,7 @@ export function DeleteClientModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={handleClose}
           />
           <motion.div
@@ -65,36 +65,36 @@ export function DeleteClientModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-[rgba(239,68,68,0.15)] bg-[#111118] shadow-[0_24px_80px_rgba(239,68,68,0.15)]">
+            <div className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-red-500/20 bg-background shadow-xl">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.05)] px-6 py-5">
+              <div className="flex items-center justify-between border-b border-border px-6 py-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(239,68,68,0.12)]">
-                    <AlertTriangle className="h-4.5 w-4.5 text-[#EF4444]" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/10">
+                    <AlertTriangle className="h-4.5 w-4.5 text-red-500" />
                   </div>
-                  <h2 className="text-xl font-extrabold tracking-tight text-[#EF4444] font-[var(--font-display)]">
+                  <h2 className="text-xl font-extrabold tracking-tight text-red-500 font-[var(--font-display)]">
                     Delete Client?
                   </h2>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[#6B6B7E] hover:bg-white/5 hover:text-[#F2F2F5] transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               <div className="px-6 py-5 space-y-5">
-                <p className="text-[14px] leading-relaxed text-[#6B6B7E] font-[var(--font-data)]">
+                <p className="text-[14px] leading-relaxed text-muted-foreground font-[var(--font-data)]">
                   This will permanently delete{" "}
-                  <span className="font-bold text-[#F2F2F5]">{displayName}</span>{" "}
+                  <span className="font-bold text-foreground">{displayName}</span>{" "}
                   and all associated data. This action{" "}
-                  <span className="font-bold text-[#EF4444]">cannot be undone</span>.
+                  <span className="font-bold text-red-500">cannot be undone</span>.
                 </p>
 
                 {/* Warnings */}
-                <div className="space-y-2 rounded-xl border border-[rgba(245,158,11,0.15)] bg-[rgba(245,158,11,0.04)] p-4">
-                  <p className="text-[10px] font-bold tracking-[0.15em] text-[#F59E0B] uppercase mb-3 font-[var(--font-data)]">
+                <div className="space-y-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <p className="text-[10px] font-bold tracking-[0.15em] text-amber-500 uppercase mb-3 font-[var(--font-data)]">
                     What will be deleted:
                   </p>
                   {[
@@ -104,23 +104,23 @@ export function DeleteClientModal({
                     "Activity history will be lost",
                   ].map((warning) => (
                     <div key={warning} className="flex items-start gap-2">
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-[#F59E0B]" />
-                      <p className="text-[12px] text-[#F59E0B] font-[var(--font-data)]">{warning}</p>
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />
+                      <p className="text-[12px] text-amber-600 dark:text-amber-500 font-[var(--font-data)]">{warning}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Confirm input */}
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-[#6B6B7E] uppercase font-[var(--font-data)]">
-                    Type <span className="text-[#EF4444] font-mono">DELETE</span> to confirm
+                  <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase font-[var(--font-data)]">
+                    Type <span className="text-red-500 font-mono">DELETE</span> to confirm
                   </label>
                   <input
                     className={cn(
-                      "w-full rounded-xl border px-4 py-3 text-sm font-mono text-[#F2F2F5] placeholder-[#3D3D4E] outline-none transition-all duration-150",
+                      "w-full rounded-xl border px-4 py-3 text-sm font-mono text-foreground placeholder-muted-foreground outline-none transition-all duration-150",
                       confirmText === "DELETE"
-                        ? "border-[#EF4444] bg-[rgba(239,68,68,0.06)]"
-                        : "border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] focus:border-[rgba(255,255,255,0.15)]",
+                        ? "border-red-500 bg-red-500/5"
+                        : "border-border bg-muted/30 focus:border-primary/50",
                     )}
                     placeholder="DELETE"
                     value={confirmText}
@@ -134,7 +134,7 @@ export function DeleteClientModal({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="rounded-xl border border-[rgba(255,255,255,0.08)] px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase text-[#6B6B7E] transition-colors hover:border-[rgba(255,255,255,0.15)] hover:text-[#F2F2F5] font-[var(--font-data)]"
+                    className="rounded-xl border border-border px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase text-muted-foreground transition-colors hover:bg-muted hover:text-foreground font-[var(--font-data)]"
                   >
                     Cancel
                   </button>
@@ -144,8 +144,8 @@ export function DeleteClientModal({
                     className={cn(
                       "inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase text-white transition-all font-[var(--font-data)]",
                       canDelete
-                        ? "bg-[#EF4444] hover:bg-[#DC2626] cursor-pointer"
-                        : "bg-[#EF4444]/30 cursor-not-allowed opacity-50",
+                        ? "bg-red-500 hover:bg-red-600 cursor-pointer"
+                        : "bg-red-500/50 cursor-not-allowed",
                     )}
                   >
                     {deleteMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}

@@ -37,22 +37,22 @@ const PAYMENT_TERMS = [
 const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"];
 
 const INPUT_CLASS =
-  "w-full rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm font-[var(--font-data)] text-[#F2F2F5] placeholder-[#3D3D4E] outline-none transition-all duration-150 focus:border-[#4F7FFF] focus:bg-[rgba(79,127,255,0.04)] dark:focus:border-[#4F7FFF]";
+  "w-full rounded-xl border border-border bg-muted/20 px-4 py-3 text-sm font-[var(--font-data)] text-foreground placeholder:text-muted-foreground/60 outline-none transition-all duration-150 focus:border-primary focus:bg-primary/5 dark:focus:border-primary";
 const SELECT_CLASS =
-  "w-full appearance-none rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm font-[var(--font-data)] text-[#F2F2F5] outline-none transition-all duration-150 focus:border-[#4F7FFF] cursor-pointer";
+  "w-full appearance-none rounded-xl border border-border bg-muted/20 px-4 py-3 text-sm font-[var(--font-data)] text-foreground outline-none transition-all duration-150 focus:border-primary cursor-pointer";
 const LABEL_CLASS =
-  "mb-1.5 block text-[10px] font-semibold tracking-[0.18em] text-[#6B6B7E] uppercase font-[var(--font-data)]";
+  "mb-1.5 block text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase font-[var(--font-data)]";
 const SECTION_TITLE_CLASS =
-  "mb-4 flex items-center gap-3 text-[11px] font-bold tracking-[0.2em] text-[#4F7FFF] uppercase font-[var(--font-data)]";
+  "mb-4 flex items-center gap-3 text-[11px] font-bold tracking-[0.2em] text-primary uppercase font-[var(--font-data)]";
 
 function SectionDivider({ num, label }: { num: string; label: string }) {
   return (
     <div className={SECTION_TITLE_CLASS}>
-      <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[rgba(79,127,255,0.3)] text-[9px] text-[#4F7FFF]">
+      <span className="border-primary/30 text-primary flex h-5 w-5 items-center justify-center rounded-full border text-[9px]">
         {num}
       </span>
       {label}
-      <div className="h-px flex-1 bg-[rgba(79,127,255,0.15)]" />
+      <div className="bg-primary/15 h-px flex-1" />
     </div>
   );
 }
@@ -185,15 +185,15 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full max-w-[600px] max-h-[85vh] overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#111118] shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+            <div className="bg-background border-border relative max-h-[85vh] w-full max-w-[600px] overflow-hidden rounded-2xl border shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] px-6 py-5">
-                <h2 className="text-2xl font-extrabold tracking-tight text-[#F2F2F5] font-[var(--font-display)]">
+              <div className="border-border flex items-center justify-between border-b px-6 py-5">
+                <h2 className="text-foreground text-2xl font-[var(--font-display)] font-extrabold tracking-tight">
                   Add Client
                 </h2>
                 <button
                   onClick={handleClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[#6B6B7E] hover:bg-white/5 hover:text-[#F2F2F5] transition-colors"
+                  className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -210,15 +210,15 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                       <div>
                         <label className={LABEL_CLASS}>Company Name *</label>
                         <input
-                          className={cn(INPUT_CLASS, "text-lg", errors.companyName && "border-[#EF4444]")}
+                          className={cn(INPUT_CLASS, "text-lg", errors.companyName && "border-destructive")}
                           placeholder="e.g., Acme Corporation"
                           value={companyName}
                           onChange={(e) => setCompanyName(e.target.value)}
                           onBlur={() => validate()}
                         />
-                        {errors.companyName && <p className="mt-1 text-[11px] text-[#EF4444]">{errors.companyName}</p>}
+                        {errors.companyName && <p className="text-destructive mt-1 text-[11px]">{errors.companyName}</p>}
                         {companyName && (
-                          <p className="mt-1.5 text-[10px] text-[#3D3D4E] font-[var(--font-data)]">
+                          <p className="text-muted-foreground/60 mt-1.5 text-[10px] font-[var(--font-data)]">
                             client/{companyName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}
                           </p>
                         )}
@@ -228,7 +228,7 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                         <div>
                           <label className={LABEL_CLASS}>Website</label>
                           <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-[#3D3D4E] font-[var(--font-data)]">https://</span>
+                            <span className="text-muted-foreground/60 absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-[var(--font-data)]">https://</span>
                             <input
                               className={cn(INPUT_CLASS, "pl-16")}
                               placeholder="acme.com"
@@ -250,7 +250,7 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                                 <option key={i} value={i}>{i}</option>
                               ))}
                             </select>
-                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#3D3D4E]" />
+                            <ChevronDown className="text-muted-foreground/60 pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
                           </div>
                         </div>
                       </div>
@@ -261,22 +261,22 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                         {logoPreview ? (
                           <div className="flex items-center gap-4">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={logoPreview} alt="Logo preview" className="h-16 w-16 rounded-full object-cover border border-[rgba(255,255,255,0.08)]" />
+                            <img src={logoPreview} alt="Logo preview" className="border-border h-16 w-16 rounded-full border object-cover" />
                             <button
                               type="button"
                               onClick={() => setLogoPreview(null)}
-                              className="text-[11px] text-[#EF4444] hover:underline font-[var(--font-data)] tracking-wide"
+                              className="text-destructive text-[11px] font-[var(--font-data)] tracking-wide hover:underline"
                             >
                               Remove
                             </button>
                           </div>
                         ) : (
-                          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[rgba(79,127,255,0.3)] bg-[rgba(79,127,255,0.03)] p-6 transition-colors hover:border-[#4F7FFF] hover:bg-[rgba(79,127,255,0.06)]">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(79,127,255,0.1)] text-[#4F7FFF]">
+                          <label className="border-primary/30 bg-primary/5 hover:border-primary hover:bg-primary/10 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-6 transition-colors">
+                            <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
                               <Plus className="h-5 w-5" />
                             </div>
-                            <span className="text-[11px] text-[#6B6B7E] font-[var(--font-data)]">Drop logo or click to upload</span>
-                            <span className="text-[10px] text-[#3D3D4E]">PNG, JPG, SVG · max 2MB</span>
+                            <span className="text-muted-foreground text-[11px] font-[var(--font-data)]">Drop logo or click to upload</span>
+                            <span className="text-muted-foreground/60 text-[10px]">PNG, JPG, SVG · max 2MB</span>
                             <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
                           </label>
                         )}
@@ -292,24 +292,24 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                         <div>
                           <label className={LABEL_CLASS}>First Name *</label>
                           <input
-                            className={cn(INPUT_CLASS, errors.firstName && "border-[#EF4444]")}
+                            className={cn(INPUT_CLASS, errors.firstName && "border-destructive")}
                             placeholder="Jane"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             onBlur={() => validate()}
                           />
-                          {errors.firstName && <p className="mt-1 text-[11px] text-[#EF4444]">{errors.firstName}</p>}
+                          {errors.firstName && <p className="text-destructive mt-1 text-[11px]">{errors.firstName}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLASS}>Last Name *</label>
                           <input
-                            className={cn(INPUT_CLASS, errors.lastName && "border-[#EF4444]")}
+                            className={cn(INPUT_CLASS, errors.lastName && "border-destructive")}
                             placeholder="Smith"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             onBlur={() => validate()}
                           />
-                          {errors.lastName && <p className="mt-1 text-[11px] text-[#EF4444]">{errors.lastName}</p>}
+                          {errors.lastName && <p className="text-destructive mt-1 text-[11px]">{errors.lastName}</p>}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -317,13 +317,13 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                           <label className={LABEL_CLASS}>Email *</label>
                           <input
                             type="email"
-                            className={cn(INPUT_CLASS, errors.email && "border-[#EF4444]")}
+                            className={cn(INPUT_CLASS, errors.email && "border-destructive")}
                             placeholder="jane@acme.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             onBlur={() => validate()}
                           />
-                          {errors.email && <p className="mt-1 text-[11px] text-[#EF4444]">{errors.email}</p>}
+                          {errors.email && <p className="text-destructive mt-1 text-[11px]">{errors.email}</p>}
                         </div>
                         <div>
                           <label className={LABEL_CLASS}>Phone</label>
@@ -353,11 +353,11 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                     <button
                       type="button"
                       onClick={() => setContactsOpen((v) => !v)}
-                      className="flex w-full items-center gap-3 text-[11px] font-bold tracking-[0.2em] text-[#6B6B7E] uppercase font-[var(--font-data)] hover:text-[#F2F2F5] transition-colors"
+                      className="text-muted-foreground hover:text-foreground flex w-full items-center gap-3 text-[11px] font-[var(--font-data)] font-bold tracking-[0.2em] uppercase transition-colors"
                     >
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[rgba(107,107,126,0.3)] text-[9px]">03</span>
+                      <span className="border-muted/30 flex h-5 w-5 items-center justify-center rounded-full border text-[9px]">03</span>
                       Additional Contacts
-                      <div className="h-px flex-1 bg-[rgba(107,107,126,0.15)]" />
+                      <div className="bg-muted/30 h-px flex-1" />
                       <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", contactsOpen && "rotate-180")} />
                     </button>
 
@@ -372,10 +372,10 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                         >
                           <div className="mt-4 space-y-3">
                             {extraContacts.map((contact, i) => (
-                              <div key={contact.id} className="rounded-xl border border-[rgba(255,255,255,0.06)] p-4">
+                              <div key={contact.id} className="border-border rounded-xl border p-4">
                                 <div className="mb-3 flex items-center justify-between">
-                                  <span className="text-[10px] text-[#6B6B7E] font-[var(--font-data)] tracking-widest uppercase">Contact {i + 2}</span>
-                                  <button type="button" onClick={() => removeContact(contact.id)} className="text-[#EF4444] hover:opacity-80">
+                                  <span className="text-muted-foreground text-[10px] font-[var(--font-data)] tracking-widest uppercase">Contact {i + 2}</span>
+                                  <button type="button" onClick={() => removeContact(contact.id)} className="text-destructive hover:opacity-80">
                                     <Minus className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
@@ -390,7 +390,7 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                             <button
                               type="button"
                               onClick={addContact}
-                              className="flex items-center gap-2 text-[11px] text-[#4F7FFF] hover:text-[#6B95FF] transition-colors font-[var(--font-data)] tracking-wide"
+                              className="text-primary hover:text-primary/80 flex items-center gap-2 text-[11px] font-[var(--font-data)] tracking-wide transition-colors"
                             >
                               <Plus className="h-3.5 w-3.5" />
                               Add Another Contact
@@ -417,8 +417,8 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                               className={cn(
                                 "flex-1 rounded-xl border px-4 py-2.5 text-[11px] font-semibold tracking-[0.15em] uppercase transition-all duration-150 font-[var(--font-data)]",
                                 status === s
-                                  ? "border-[#4F7FFF] bg-[rgba(79,127,255,0.12)] text-[#4F7FFF]"
-                                  : "border-[rgba(255,255,255,0.06)] text-[#6B6B7E] hover:border-[rgba(255,255,255,0.12)] hover:text-[#F2F2F5]",
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground",
                               )}
                             >
                               {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -434,7 +434,7 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                             <select className={SELECT_CLASS} value={currency} onChange={(e) => setCurrency(e.target.value)}>
                               {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
                             </select>
-                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#3D3D4E]" />
+                            <ChevronDown className="text-muted-foreground/60 pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
                           </div>
                         </div>
                         <div>
@@ -443,7 +443,7 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                             <select className={SELECT_CLASS} value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)}>
                               {PAYMENT_TERMS.map((pt) => <option key={pt.value} value={pt.value}>{pt.label}</option>)}
                             </select>
-                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#3D3D4E]" />
+                            <ChevronDown className="text-muted-foreground/60 pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
                           </div>
                         </div>
                       </div>
@@ -453,15 +453,15 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                         <label className={LABEL_CLASS}>Tags</label>
                         <div className={cn(INPUT_CLASS, "flex min-h-[44px] flex-wrap gap-1.5 p-2")}>
                           {tags.map((tag) => (
-                            <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-[rgba(79,127,255,0.12)] px-2.5 py-1 text-[11px] text-[#4F7FFF]">
+                            <span key={tag} className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px]">
                               {tag}
-                              <button type="button" onClick={() => removeTag(tag)} className="hover:text-white">
+                              <button type="button" onClick={() => removeTag(tag)} className="hover:text-primary/80">
                                 <X className="h-2.5 w-2.5" />
                               </button>
                             </span>
                           ))}
                           <input
-                            className="flex-1 min-w-[100px] bg-transparent text-[13px] text-[#F2F2F5] placeholder-[#3D3D4E] outline-none"
+                            className="text-foreground placeholder:text-muted-foreground/60 min-w-[100px] flex-1 bg-transparent text-[13px] outline-none"
                             placeholder={tags.length === 0 ? "Type + Enter to add tags" : "Add more..."}
                             value={tagInput}
                             onChange={(e) => setTagInput(e.target.value)}
@@ -480,21 +480,21 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
                         />
-                        <p className="mt-1 text-[10px] text-[#3D3D4E] font-[var(--font-data)]">Only visible to your team</p>
+                        <p className="text-muted-foreground/60 mt-1 text-[10px] font-[var(--font-data)]">Only visible to your team</p>
                       </div>
 
                       {/* Send invite toggle */}
-                      <div className="flex items-center justify-between rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-3">
+                      <div className="border-border bg-muted/10 flex items-center justify-between rounded-xl border px-4 py-3">
                         <div>
-                          <p className="text-[13px] font-medium text-[#F2F2F5]">Send email invitation</p>
-                          <p className="text-[11px] text-[#6B6B7E] font-[var(--font-data)]">Client receives a portal invite link</p>
+                          <p className="text-foreground text-[13px] font-medium">Send email invitation</p>
+                          <p className="text-muted-foreground text-[11px] font-[var(--font-data)]">Client receives a portal invite link</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setSendInvite((v) => !v)}
                           className={cn(
                             "relative h-6 w-11 rounded-full transition-colors duration-200",
-                            sendInvite ? "bg-[#4F7FFF]" : "bg-[rgba(255,255,255,0.1)]",
+                            sendInvite ? "bg-primary" : "bg-muted",
                           )}
                         >
                           <span
@@ -510,18 +510,18 @@ export function AddClientModal({ open, onClose, onSuccess, onError }: AddClientM
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 border-t border-[rgba(255,255,255,0.06)] px-6 py-4">
+                <div className="border-border flex items-center justify-end gap-3 border-t px-6 py-4">
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="rounded-xl border border-[rgba(255,255,255,0.08)] px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase text-[#6B6B7E] transition-colors hover:border-[rgba(255,255,255,0.15)] hover:text-[#F2F2F5] font-[var(--font-data)]"
+                    className="border-border text-muted-foreground hover:border-muted-foreground/30 hover:text-foreground rounded-xl border px-5 py-2.5 text-[12px] font-[var(--font-data)] font-semibold tracking-[0.15em] uppercase transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#4F7FFF] px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase text-white transition-all hover:bg-[#6B95FF] disabled:opacity-60 font-[var(--font-data)]"
+                    className="bg-primary hover:bg-primary/80 inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-[12px] font-[var(--font-data)] font-bold tracking-[0.15em] text-white uppercase transition-all disabled:opacity-60"
                   >
                     {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
                     {submitting ? "Saving..." : "Save Client →"}
