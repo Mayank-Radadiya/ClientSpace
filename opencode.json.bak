@@ -1,0 +1,99 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "model": "anthropic/claude-sonnet-4-5",
+  "small_model": "anthropic/claude-haiku-4-5",
+
+  "plugin": [
+    "@slkiser/opencode-quota"
+  ],
+
+  "$comment_skills": "Curated skill packs — see guide for rationale",
+  "skills": {
+    "always_active": [
+      "zipai-optimizer",
+      "react-patterns",
+      "nextjs-best-practices",
+      "frontend-design",
+      "backend-architect",
+      "api-patterns",
+      "error-handling-patterns",
+      "systematic-debugging"
+    ],
+    "auto_invoke": {
+      "on_error":         "systematic-debugging",
+      "on_new_component": "frontend-design",
+      "on_schema_change": "systematic-debugging",
+      "on_new_route":     "error-handling-patterns",
+      "on_test_failure":  "webapp-testing",
+      "pre_merge":        "code-reviewer"
+    }
+  },
+
+  "$comment_mcp": "MCP servers — Tier 1 always, Tier 2 project-specific",
+  "mcp": {
+    "context-mode": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "context-mode-mcp"]
+    },
+    "playwright": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "supabase": {
+      "type": "local",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "{env:DATABASE_URL}"
+      ]
+    },
+    "github": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "{env:GITHUB_TOKEN}"
+      }
+    }
+  },
+
+  "$comment_context_mode": "Auto-index commands with output > 20 lines",
+  "context_mode": {
+    "auto_index_threshold": 20,
+    "search_on_error": true
+  },
+
+  "$comment_token_budget": "Per-task token targets from the optimization guide",
+  "token_budget": {
+    "simple_fix":    5000,
+    "component":    20000,
+    "api_endpoint": 15000,
+    "feature":      70000,
+    "page":         90000,
+    "auth_system":  50000,
+    "db_schema":    10000,
+    "architecture": 25000
+  },
+
+  "$comment_permissions": "Ask before destructive DB ops; allow browser automation",
+  "permission": {
+    "ask": "allow",
+    "mcp": {
+      "supabase":   "ask",
+      "github":     "allow",
+      "playwright": "allow"
+    }
+  },
+
+  "$comment_format": "Auto-format on edit",
+  "format": {
+    "*.ts":   "npx prettier --write",
+    "*.tsx":  "npx prettier --write",
+    "*.css":  "npx prettier --write",
+    "*.json": "npx prettier --write"
+  }
+}
