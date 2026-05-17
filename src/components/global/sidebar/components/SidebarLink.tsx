@@ -128,22 +128,22 @@ export const SidebarLink = memo(function SidebarLink({
       >
         <div
           className={cn(
-            "group relative flex w-full h-[44px] items-center gap-3 rounded-[10px] px-3 font-[var(--font-data)] text-[13px] transition-all duration-200",
+            "group relative flex h-[44px] w-full items-center gap-3 rounded-[10px] px-3 text-[13px] transition-all duration-200",
             isActive
-              ? "bg-[rgba(59,111,239,0.06)] dark:bg-[rgba(79,127,255,0.08)] text-[#0D0D14] dark:text-[#F2F2F5] font-bold"
-              : "text-[#6B6B7E] hover:text-[#0D0D14] dark:hover:text-[#F2F2F5] hover:bg-black/5 dark:hover:bg-white/5",
+              ? "bg-[rgba(59,111,239,0.06)] font-bold text-[#0D0D14] dark:bg-[rgba(79,127,255,0.08)] dark:text-[#F2F2F5]"
+              : "text-[#6B6B7E] hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]",
             className,
           )}
         >
           {/* Active state inside left border */}
           {isActive && (
-            <span className="absolute left-0 top-1/2 h-[60%] w-[2px] -translate-y-1/2 rounded-r-full bg-[#3B6FEF] dark:bg-[#4F7FFF]" />
+            <span className="absolute top-1/2 left-0 h-[60%] w-[2px] -translate-y-1/2 rounded-r-full bg-[#3B6FEF] dark:bg-[#4F7FFF]" />
           )}
 
           {/* Icon container */}
           <span
             className={cn(
-              "flex shrink-0 w-[24px] h-[24px] items-center justify-center transition-all duration-200",
+              "flex h-[24px] w-[24px] shrink-0 items-center justify-center transition-all duration-200",
               isActive
                 ? "text-[#3B6FEF] dark:text-[#4F7FFF]"
                 : "text-[#6B6B7E] group-hover:text-[#0D0D14] dark:group-hover:text-[#F2F2F5]",

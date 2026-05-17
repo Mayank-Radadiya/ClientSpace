@@ -12,7 +12,8 @@ const STATUS_CONFIG: Record<
 > = {
   active: {
     dot: "bg-emerald-500 shadow-emerald-500/40 shadow-sm",
-    badge: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20",
+    badge:
+      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20",
     label: "Active",
   },
   inactive: {
@@ -22,17 +23,24 @@ const STATUS_CONFIG: Record<
   },
   pending: {
     dot: "bg-amber-500 shadow-amber-500/40 shadow-sm",
-    badge: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
+    badge:
+      "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
     label: "Pending",
   },
   archived: {
     dot: "bg-neutral-500",
-    badge: "bg-neutral-500/10 text-neutral-600 dark:text-neutral-500 border-neutral-500/20",
+    badge:
+      "bg-neutral-500/10 text-neutral-600 dark:text-neutral-500 border-neutral-500/20",
     label: "Archived",
   },
 };
 
-const ALL_STATUSES: ClientDisplayStatus[] = ["active", "inactive", "pending", "archived"];
+const ALL_STATUSES: ClientDisplayStatus[] = [
+  "active",
+  "inactive",
+  "pending",
+  "archived",
+];
 
 type StatusDropdownProps = {
   status: ClientDisplayStatus;
@@ -76,7 +84,7 @@ export function StatusDropdown({
     <motion.div
       layout
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-[var(--font-data)] font-bold uppercase transition-colors duration-200",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase transition-colors duration-200",
         config.badge,
         interactive && !disabled && "cursor-pointer hover:opacity-90",
       )}
@@ -87,7 +95,10 @@ export function StatusDropdown({
       }}
     >
       <span
-        className={cn("h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-200", config.dot)}
+        className={cn(
+          "h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-200",
+          config.dot,
+        )}
       />
       <motion.span
         key={status}
@@ -99,11 +110,20 @@ export function StatusDropdown({
       </motion.span>
       {interactive && onChange && (
         <svg
-          className={cn("h-2.5 w-2.5 transition-transform duration-150", open && "rotate-180")}
+          className={cn(
+            "h-2.5 w-2.5 transition-transform duration-150",
+            open && "rotate-180",
+          )}
           viewBox="0 0 10 6"
           fill="none"
         >
-          <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M1 1l4 4 4-4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       )}
     </motion.div>
@@ -112,7 +132,11 @@ export function StatusDropdown({
   if (!interactive || !onChange) return badge;
 
   return (
-    <div ref={ref} className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+    <div
+      ref={ref}
+      className="relative inline-block"
+      onClick={(e) => e.stopPropagation()}
+    >
       {badge}
       <AnimatePresence>
         {open && (
@@ -129,19 +153,33 @@ export function StatusDropdown({
                 <button
                   key={s}
                   className={cn(
-                    "flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-[0.12em] uppercase transition-colors duration-100 hover:bg-muted",
-                    s === status ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                    "hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-[0.12em] uppercase transition-colors duration-100",
+                    s === status
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                   onClick={() => {
                     onChange(s);
                     setOpen(false);
                   }}
                 >
-                  <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", c.dot)} />
+                  <span
+                    className={cn("h-1.5 w-1.5 shrink-0 rounded-full", c.dot)}
+                  />
                   {c.label}
                   {s === status && (
-                    <svg className="text-primary ml-auto h-3 w-3" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      className="text-primary ml-auto h-3 w-3"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                    >
+                      <path
+                        d="M2 6l3 3 5-5"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   )}
                 </button>

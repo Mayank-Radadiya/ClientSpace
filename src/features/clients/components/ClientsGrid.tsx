@@ -66,17 +66,17 @@ function MoreMenu({
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-black/5 dark:bg-white/5 text-[#6B6B7E] transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+        className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-black/5 text-[#6B6B7E] transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
       >
         <MoreHorizontal className="h-4 w-4" />
       </button>
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-full right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[rgba(0,0,0,0.08)] dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[#16161F] py-1 shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
+          className="absolute top-full right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[rgba(0,0,0,0.08)] bg-white py-1 shadow-[0_8px_32px_rgba(0,0,0,0.2)] dark:border-[rgba(255,255,255,0.08)] dark:bg-[#16161F]"
         >
           <button
-            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#0D0D14] dark:hover:text-[#F2F2F5]"
+            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
             onClick={() => {
               router.push(`/clients/${client.id}`);
               setOpen(false);
@@ -86,7 +86,7 @@ function MoreMenu({
           </button>
           {(role === "owner" || role === "admin") && (
             <button
-              className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#0D0D14] dark:hover:text-[#F2F2F5]"
+              className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
               onClick={() => {
                 onEdit(client);
                 setOpen(false);
@@ -96,7 +96,7 @@ function MoreMenu({
             </button>
           )}
           <button
-            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#0D0D14] dark:hover:text-[#F2F2F5]"
+            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
             onClick={() => {
               router.push(`/invoices/new?clientId=${client.id}`);
               setOpen(false);
@@ -107,7 +107,7 @@ function MoreMenu({
           {(role === "owner" || role === "admin") &&
             client.displayStatus !== "archived" && (
               <button
-                className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#0D0D14] dark:hover:text-[#F2F2F5]"
+                className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
                 onClick={() => {
                   onArchive(client);
                   setOpen(false);
@@ -154,9 +154,9 @@ function GridCard({
   const formatName = (name: string) => {
     return name
       .toLowerCase()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   return (
@@ -165,11 +165,11 @@ function GridCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.04, ease: CUBIC_BEZIER }}
       className={cn(
-        "group relative flex flex-col bg-white dark:bg-[#111118] overflow-hidden rounded-[16px] border transition-all duration-180 ease-out",
+        "group relative flex flex-col overflow-hidden rounded-[16px] border bg-white transition-all duration-180 ease-out dark:bg-[#111118]",
         selected
           ? "border-[rgba(79,127,255,0.4)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]"
-          : "border-[rgba(0,0,0,0.07)] dark:border-[rgba(255,255,255,0.06)] hover:border-[rgba(79,127,255,0.4)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]",
-        hovered ? "-translate-y-[2px]" : "",
+          : "border-[rgba(0,0,0,0.07)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-[rgba(79,127,255,0.4)] dark:border-[rgba(255,255,255,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]",
+        hovered && "translate-y-[-2px]",
         client.displayStatus === "archived" && "opacity-60",
       )}
       onMouseEnter={() => setHovered(true)}
@@ -185,7 +185,7 @@ function GridCard({
       <div className="flex items-center justify-between px-5 pt-5 pb-2">
         <div
           className={cn(
-            "transition-opacity duration-150 z-10",
+            "z-10 transition-opacity duration-150",
             hovered || selected ? "opacity-100" : "opacity-0",
           )}
           onClick={(e) => {
@@ -197,12 +197,16 @@ function GridCard({
             className={cn(
               "flex h-4 w-4 cursor-pointer items-center justify-center rounded-[4px] border transition-all duration-150 active:scale-95",
               selected
-                ? "border-[#3B6FEF] bg-[#3B6FEF] dark:border-[#4F7FFF] dark:bg-[#4F7FFF] scale-110"
-                : "border-[rgba(0,0,0,0.3)] dark:border-[rgba(255,255,255,0.3)] hover:border-[#3B6FEF] dark:hover:border-[#4F7FFF]",
+                ? "scale-110 border-[#3B6FEF] bg-[#3B6FEF] dark:border-[#4F7FFF] dark:bg-[#4F7FFF]"
+                : "border-[rgba(0,0,0,0.3)] hover:border-[#3B6FEF] dark:border-[rgba(255,255,255,0.3)] dark:hover:border-[#4F7FFF]",
             )}
           >
             {selected && (
-              <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 12 12" fill="none">
+              <svg
+                className="h-2.5 w-2.5 text-white"
+                viewBox="0 0 12 12"
+                fill="none"
+              >
                 <path
                   d="M2 6l3 3 5-5"
                   stroke="currentColor"
@@ -214,7 +218,7 @@ function GridCard({
             )}
           </div>
         </div>
-        
+
         {/* If not hovered and not selected, keep space but hide checkbox */}
         {!hovered && !selected && <div className="h-4 w-4" />}
 
@@ -230,9 +234,9 @@ function GridCard({
       </div>
 
       {/* Card Body */}
-      <div className="px-5 pb-5 flex-1 flex flex-col">
+      <div className="flex flex-1 flex-col px-5 pb-5">
         {/* ROW 2: Identity */}
-        <div className="mb-4 flex flex-col items-center text-center gap-3">
+        <div className="mb-4 flex flex-col items-center gap-3 text-center">
           <ClientAvatar
             companyName={client.companyName}
             contactName={client.contactName}
@@ -240,29 +244,34 @@ function GridCard({
             size="lg" // Larger avatar size 48px
           />
           <div className="min-w-0">
-            <h3 className="truncate text-[17px] font-[var(--font-display)] font-semibold tracking-tight text-[#0D0D14] dark:text-[#F2F2F5]">
+            <h3 className="truncate text-[17px] font-semibold tracking-tight text-[#0D0D14] dark:text-[#F2F2F5]">
               {client.companyName || client.email}
             </h3>
-            <p className="truncate text-[12px] font-[var(--font-data)] text-[#6B6B7E]">
-              {client.contactName ? formatName(client.contactName) : client.email}
+            <p className="truncate text-[12px] text-[#6B6B7E]">
+              {client.contactName
+                ? formatName(client.contactName)
+                : client.email}
             </p>
-            <p className="truncate text-[11px] font-[var(--font-data)] text-[#A0A0B0] dark:text-[#6B6B7E] mt-0.5 max-w-[220px]">
+            <p className="mt-0.5 max-w-[220px] truncate text-[11px] text-[#A0A0B0] dark:text-[#6B6B7E]">
               {client.email}
             </p>
           </div>
         </div>
 
         {/* ROW 3: Status Badge */}
-        <div className="mb-4 flex justify-start" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="mb-4 flex justify-start"
+          onClick={(e) => e.stopPropagation()}
+        >
           <StatusDropdown status={client.displayStatus} interactive={false} />
         </div>
 
         {/* ROW 4: Tags */}
         <div className="mb-4 flex flex-wrap justify-start gap-1.5">
-          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] font-[var(--font-data)] text-[#3B6FEF] dark:text-[#4F7FFF]">
+          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[#3B6FEF] dark:text-[#4F7FFF]">
             VIP
           </span>
-          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] font-[var(--font-data)] text-[#3B6FEF] dark:text-[#4F7FFF]">
+          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[#3B6FEF] dark:text-[#4F7FFF]">
             Tech
           </span>
         </div>
@@ -271,21 +280,21 @@ function GridCard({
 
         {/* ROW 5: KPI Cells */}
         <div className="mb-4 grid grid-cols-2 gap-2">
-          <div className="rounded-[8px] border border-[rgba(0,0,0,0.07)] dark:border-[rgba(255,255,255,0.06)] px-3 py-2.5">
-            <p className="mb-1 text-[10px] font-[var(--font-data)] tracking-[0.08em] text-[#6B6B7E] uppercase">
+          <div className="rounded-[8px] border border-[rgba(0,0,0,0.07)] px-3 py-2.5 dark:border-[rgba(255,255,255,0.06)]">
+            <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
               Projects
             </p>
-            <p className="text-[22px] leading-none font-[var(--font-metrics)] text-[#0D0D14] dark:text-[#F2F2F5]">
+            <p className="text-[22px] leading-none font-(--font-metrics) text-[#0D0D14] dark:text-[#F2F2F5]">
               {client.activeProjectCount}
             </p>
           </div>
-          <div className="rounded-[8px] border border-[rgba(0,0,0,0.07)] dark:border-[rgba(255,255,255,0.06)] px-3 py-2.5">
-            <p className="mb-1 text-[10px] font-[var(--font-data)] tracking-[0.08em] text-[#6B6B7E] uppercase">
+          <div className="rounded-[8px] border border-[rgba(0,0,0,0.07)] px-3 py-2.5 dark:border-[rgba(255,255,255,0.06)]">
+            <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
               Outstanding
             </p>
             <p
               className={cn(
-                "text-[22px] leading-none font-[var(--font-metrics)]",
+                "text-[22px] leading-none font-(--font-metrics)",
                 client.outstandingAmountCents > 0
                   ? "text-[#F59E0B]"
                   : "text-[#0D0D14] dark:text-[#6B6B7E]",
@@ -299,7 +308,7 @@ function GridCard({
         </div>
 
         {/* ROW 6: Footer Meta */}
-        <div className="flex items-center gap-1.5 text-[#6B6B7E] font-[var(--font-data)] text-[11px] mb-8">
+        <div className="mb-8 flex items-center gap-1.5 text-[11px] text-[#6B6B7E]">
           <Clock className="h-3 w-3" />
           <span>{formatRelative(client.lastActivityAt)}</span>
         </div>
@@ -308,7 +317,7 @@ function GridCard({
       {/* ROW 7: Hover quick actions */}
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x divide-[rgba(0,0,0,0.07)] dark:divide-[rgba(255,255,255,0.06)] border-t border-[rgba(0,0,0,0.07)] dark:border-[rgba(255,255,255,0.06)] bg-[#F8F8FC] dark:bg-[#1A1A24] transition-all duration-180 ease-out",
+          "absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x divide-[rgba(0,0,0,0.07)] border-t border-[rgba(0,0,0,0.07)] bg-[#F8F8FC] transition-all duration-180 ease-out dark:divide-[rgba(255,255,255,0.06)] dark:border-[rgba(255,255,255,0.06)] dark:bg-[#1A1A24]",
           hovered
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-2 opacity-0",
@@ -320,30 +329,30 @@ function GridCard({
             if (role === "owner" || role === "admin") onEdit(client);
           }}
           disabled={role !== "owner" && role !== "admin"}
-          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] hover:bg-black/5 hover:text-[#0D0D14] disabled:opacity-50 dark:hover:bg-white/5 dark:hover:text-[#F2F2F5] transition-colors"
+          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] disabled:opacity-50 dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
         >
           <Edit2 className="h-4 w-4 transition-colors group-hover/btn:text-[#3B6FEF] dark:group-hover/btn:text-[#4F7FFF]" />
-          <span className="text-[11px] font-[var(--font-data)] uppercase">Edit</span>
+          <span className="text-[11px] uppercase">Edit</span>
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
             router.push(`/invoices/new?clientId=${client.id}`);
           }}
-          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5] transition-colors"
+          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
         >
           <FileText className="h-4 w-4 transition-colors group-hover/btn:text-[#3B6FEF] dark:group-hover/btn:text-[#4F7FFF]" />
-          <span className="text-[11px] font-[var(--font-data)] uppercase">Invoice</span>
+          <span className="text-[11px] uppercase">Invoice</span>
         </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
             router.push(`/clients/${client.id}`);
           }}
-          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#3B6FEF] dark:text-[#4F7FFF] hover:bg-[#3B6FEF]/10 dark:hover:bg-[#4F7FFF]/10 transition-colors"
+          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#3B6FEF] transition-colors hover:bg-[#3B6FEF]/10 dark:text-[#4F7FFF] dark:hover:bg-[#4F7FFF]/10"
         >
           <Eye className="h-4 w-4" />
-          <span className="text-[11px] font-[var(--font-data)] uppercase">View</span>
+          <span className="text-[11px] uppercase">View</span>
         </button>
       </div>
     </motion.div>

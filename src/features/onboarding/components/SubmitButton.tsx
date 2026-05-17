@@ -17,7 +17,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         )}
       </span>
-      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent" />
     </Button>
   );
 }

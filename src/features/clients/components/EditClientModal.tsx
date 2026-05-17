@@ -17,9 +17,9 @@ type EditClientModalProps = {
 };
 
 const INPUT_CLASS =
-  "w-full rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm font-[var(--font-data)] text-foreground placeholder-muted-foreground outline-none transition-all duration-150 focus:border-primary focus:bg-primary/5";
+  "w-full rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm  text-foreground placeholder-muted-foreground outline-none transition-all duration-150 focus:border-primary focus:bg-primary/5";
 const LABEL_CLASS =
-  "mb-1.5 block text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase font-[var(--font-data)]";
+  "mb-1.5 block text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase ";
 
 export function EditClientModal({
   open,
@@ -89,48 +89,63 @@ export function EditClientModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full max-w-[480px] overflow-hidden rounded-2xl border border-border bg-background shadow-xl">
+            <div className="border-border bg-background relative w-full max-w-[480px] overflow-hidden rounded-2xl border shadow-xl">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-border px-6 py-5">
-                <h2 className="text-2xl font-extrabold tracking-tight text-foreground font-[var(--font-display)]">
+              <div className="border-border flex items-center justify-between border-b px-6 py-5">
+                <h2 className="text-foreground text-2xl font-extrabold tracking-tight">
                   Edit Client
                 </h2>
                 <button
                   onClick={onClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 px-6 py-5">
                 <div>
                   <label className={LABEL_CLASS}>Company Name *</label>
                   <input
-                    className={cn(INPUT_CLASS, errors.companyName && "border-red-500")}
+                    className={cn(
+                      INPUT_CLASS,
+                      errors.companyName && "border-red-500",
+                    )}
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     onBlur={validate}
                     placeholder="Company name"
                   />
-                  {errors.companyName && <p className="mt-1 text-[11px] text-red-500">{errors.companyName}</p>}
+                  {errors.companyName && (
+                    <p className="mt-1 text-[11px] text-red-500">
+                      {errors.companyName}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className={LABEL_CLASS}>Contact Name *</label>
                   <input
-                    className={cn(INPUT_CLASS, errors.contactName && "border-red-500")}
+                    className={cn(
+                      INPUT_CLASS,
+                      errors.contactName && "border-red-500",
+                    )}
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     onBlur={validate}
                     placeholder="Contact name"
                   />
-                  {errors.contactName && <p className="mt-1 text-[11px] text-red-500">{errors.contactName}</p>}
+                  {errors.contactName && (
+                    <p className="mt-1 text-[11px] text-red-500">
+                      {errors.contactName}
+                    </p>
+                  )}
                 </div>
 
-                <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
-                  <p className="text-[11px] text-muted-foreground font-[var(--font-data)]">
-                    Email: <span className="text-foreground">{client.email}</span>
+                <div className="border-border bg-muted/30 rounded-xl border px-4 py-3">
+                  <p className="text-muted-foreground text-[11px]">
+                    Email:{" "}
+                    <span className="text-foreground">{client.email}</span>
                     <span className="ml-2 opacity-50">(cannot be changed)</span>
                   </p>
                 </div>
@@ -139,16 +154,18 @@ export function EditClientModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-xl border border-border px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase text-muted-foreground transition-colors hover:bg-muted hover:text-foreground font-[var(--font-data)]"
+                    className="border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl border px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={updateMutation.isPending}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-60 font-[var(--font-data)]"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase transition-all disabled:opacity-60"
                   >
-                    {updateMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    {updateMutation.isPending && (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    )}
                     {updateMutation.isPending ? "Saving..." : "Save Changes →"}
                   </button>
                 </div>

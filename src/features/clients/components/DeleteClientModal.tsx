@@ -39,7 +39,11 @@ export function DeleteClientModal({
   });
 
   const canDelete = confirmText === "DELETE";
-  const displayName = client?.companyName ?? client?.contactName ?? client?.email ?? "this client";
+  const displayName =
+    client?.companyName ??
+    client?.contactName ??
+    client?.email ??
+    "this client";
 
   function handleClose() {
     setConfirmText("");
@@ -65,36 +69,41 @@ export function DeleteClientModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-red-500/20 bg-background shadow-xl">
+            <div className="bg-background relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-red-500/20 shadow-xl">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-border px-6 py-5">
+              <div className="border-border flex items-center justify-between border-b px-6 py-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/10">
                     <AlertTriangle className="h-4.5 w-4.5 text-red-500" />
                   </div>
-                  <h2 className="text-xl font-extrabold tracking-tight text-red-500 font-[var(--font-display)]">
+                  <h2 className="text-xl font-extrabold tracking-tight text-red-500">
                     Delete Client?
                   </h2>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="px-6 py-5 space-y-5">
-                <p className="text-[14px] leading-relaxed text-muted-foreground font-[var(--font-data)]">
+              <div className="space-y-5 px-6 py-5">
+                <p className="text-muted-foreground text-[14px] leading-relaxed">
                   This will permanently delete{" "}
-                  <span className="font-bold text-foreground">{displayName}</span>{" "}
+                  <span className="text-foreground font-bold">
+                    {displayName}
+                  </span>{" "}
                   and all associated data. This action{" "}
-                  <span className="font-bold text-red-500">cannot be undone</span>.
+                  <span className="font-bold text-red-500">
+                    cannot be undone
+                  </span>
+                  .
                 </p>
 
                 {/* Warnings */}
                 <div className="space-y-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-                  <p className="text-[10px] font-bold tracking-[0.15em] text-amber-500 uppercase mb-3 font-[var(--font-data)]">
+                  <p className="mb-3 text-[10px] font-bold tracking-[0.15em] text-amber-500 uppercase">
                     What will be deleted:
                   </p>
                   {[
@@ -104,20 +113,23 @@ export function DeleteClientModal({
                     "Activity history will be lost",
                   ].map((warning) => (
                     <div key={warning} className="flex items-start gap-2">
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />
-                      <p className="text-[12px] text-amber-600 dark:text-amber-500 font-[var(--font-data)]">{warning}</p>
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                      <p className="text-[12px] text-amber-600 dark:text-amber-500">
+                        {warning}
+                      </p>
                     </div>
                   ))}
                 </div>
 
                 {/* Confirm input */}
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase font-[var(--font-data)]">
-                    Type <span className="text-red-500 font-mono">DELETE</span> to confirm
+                  <label className="text-muted-foreground mb-1.5 block text-[11px] font-semibold tracking-[0.15em] uppercase">
+                    Type <span className="font-mono text-red-500">DELETE</span>{" "}
+                    to confirm
                   </label>
                   <input
                     className={cn(
-                      "w-full rounded-xl border px-4 py-3 text-sm font-mono text-foreground placeholder-muted-foreground outline-none transition-all duration-150",
+                      "text-foreground placeholder-muted-foreground w-full rounded-xl border px-4 py-3 font-mono text-sm transition-all duration-150 outline-none",
                       confirmText === "DELETE"
                         ? "border-red-500 bg-red-500/5"
                         : "border-border bg-muted/30 focus:border-primary/50",
@@ -134,21 +146,25 @@ export function DeleteClientModal({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="rounded-xl border border-border px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase text-muted-foreground transition-colors hover:bg-muted hover:text-foreground font-[var(--font-data)]"
+                    className="border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl border px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase transition-colors"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={() => client && deleteMutation.mutate({ clientId: client.id })}
+                    onClick={() =>
+                      client && deleteMutation.mutate({ clientId: client.id })
+                    }
                     disabled={!canDelete || deleteMutation.isPending}
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase text-white transition-all font-[var(--font-data)]",
+                      "inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] text-white uppercase transition-all",
                       canDelete
-                        ? "bg-red-500 hover:bg-red-600 cursor-pointer"
-                        : "bg-red-500/50 cursor-not-allowed",
+                        ? "cursor-pointer bg-red-500 hover:bg-red-600"
+                        : "cursor-not-allowed bg-red-500/50",
                     )}
                   >
-                    {deleteMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    {deleteMutation.isPending && (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    )}
                     Delete Client
                   </button>
                 </div>

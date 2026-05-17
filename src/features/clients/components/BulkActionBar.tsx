@@ -36,7 +36,7 @@ export function BulkActionBar({
           <div className="bg-popover/90 border-border flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-xl">
             {/* Count pill */}
             <div className="bg-primary/15 border-primary/25 flex items-center gap-2 rounded-full border px-3 py-1.5">
-              <span className="text-primary text-[11px] font-[var(--font-data)] font-bold tracking-[0.15em] uppercase">
+              <span className="text-primary text-[11px] font-bold tracking-[0.15em] uppercase">
                 {count} selected
               </span>
             </div>
@@ -47,7 +47,7 @@ export function BulkActionBar({
             <button
               onClick={onArchive}
               disabled={archiving}
-              className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-[var(--font-data)] font-semibold tracking-[0.12em] uppercase transition-all disabled:opacity-50"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all disabled:opacity-50"
             >
               <Archive className="h-3.5 w-3.5" />
               Archive
@@ -55,7 +55,7 @@ export function BulkActionBar({
 
             <button
               onClick={onExport}
-              className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-[var(--font-data)] font-semibold tracking-[0.12em] uppercase transition-all"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all"
             >
               <Download className="h-3.5 w-3.5" />
               Export
@@ -65,7 +65,7 @@ export function BulkActionBar({
               onClick={onDelete}
               disabled={deleting}
               className={cn(
-                "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-[var(--font-data)] font-semibold tracking-[0.12em] uppercase transition-all",
+                "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all",
                 "text-destructive hover:bg-destructive/10 disabled:opacity-50",
               )}
             >

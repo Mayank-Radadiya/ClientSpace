@@ -24,7 +24,7 @@ function SubmitButton() {
       <span className="relative z-10 flex items-center justify-center gap-2 font-medium text-white">
         {pending ? "Creating account..." : "Create Account & Accept"}
       </span>
-      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent" />
     </Button>
   );
 }

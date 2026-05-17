@@ -28,14 +28,20 @@ export function ArchiveClientModal({
     onSuccess: () => {
       onInvalidate();
       onClose();
-      onSuccess(`${client?.companyName ?? client?.email} archived successfully`);
+      onSuccess(
+        `${client?.companyName ?? client?.email} archived successfully`,
+      );
     },
     onError: (err) => {
       onError(err.message || "Failed to archive client");
     },
   });
 
-  const displayName = client?.companyName ?? client?.contactName ?? client?.email ?? "this client";
+  const displayName =
+    client?.companyName ??
+    client?.contactName ??
+    client?.email ??
+    "this client";
 
   function handleClose() {
     onClose();
@@ -60,33 +66,36 @@ export function ArchiveClientModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full max-w-[440px] overflow-hidden rounded-2xl border border-border bg-background shadow-xl">
+            <div className="border-border bg-background relative w-full max-w-[440px] overflow-hidden rounded-2xl border shadow-xl">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-border px-6 py-5">
+              <div className="border-border flex items-center justify-between border-b px-6 py-5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <Archive className="h-4.5 w-4.5 text-primary" />
+                  <div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full">
+                    <Archive className="text-primary h-4.5 w-4.5" />
                   </div>
-                  <h2 className="text-xl font-extrabold tracking-tight text-foreground font-[var(--font-display)]">
+                  <h2 className="text-foreground text-xl font-extrabold tracking-tight">
                     Archive Client?
                   </h2>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-8 w-8 items-center justify-center rounded-full transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="px-6 py-5 space-y-5">
-                <p className="text-[14px] leading-relaxed text-muted-foreground font-[var(--font-data)]">
+              <div className="space-y-5 px-6 py-5">
+                <p className="text-muted-foreground text-[14px] leading-relaxed">
                   Are you sure you want to archive{" "}
-                  <span className="font-bold text-foreground">{displayName}</span>?
+                  <span className="text-foreground font-bold">
+                    {displayName}
+                  </span>
+                  ?
                 </p>
 
-                <div className="space-y-2 rounded-xl border border-border bg-muted/50 p-4">
-                  <p className="text-[10px] font-bold tracking-[0.15em] text-foreground uppercase mb-3 font-[var(--font-data)]">
+                <div className="border-border bg-muted/50 space-y-2 rounded-xl border p-4">
+                  <p className="text-foreground mb-3 text-[10px] font-bold tracking-[0.15em] uppercase">
                     What happens next:
                   </p>
                   {[
@@ -95,8 +104,10 @@ export function ArchiveClientModal({
                     "Existing projects remain untouched",
                   ].map((info) => (
                     <div key={info} className="flex items-start gap-2">
-                      <Archive className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
-                      <p className="text-[12px] text-muted-foreground font-[var(--font-data)]">{info}</p>
+                      <Archive className="text-muted-foreground mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      <p className="text-muted-foreground text-[12px]">
+                        {info}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -106,19 +117,23 @@ export function ArchiveClientModal({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="rounded-xl border border-border px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase text-muted-foreground transition-colors hover:bg-muted hover:text-foreground font-[var(--font-data)]"
+                    className="border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl border px-5 py-2.5 text-[12px] font-semibold tracking-[0.15em] uppercase transition-colors"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={() => client && archiveMutation.mutate({ clientId: client.id })}
+                    onClick={() =>
+                      client && archiveMutation.mutate({ clientId: client.id })
+                    }
                     disabled={archiveMutation.isPending}
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase text-primary-foreground transition-all font-[var(--font-data)]",
-                      "bg-primary hover:bg-primary/90 cursor-pointer"
+                      "text-primary-foreground inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase transition-all",
+                      "bg-primary hover:bg-primary/90 cursor-pointer",
                     )}
                   >
-                    {archiveMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    {archiveMutation.isPending && (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    )}
                     Archive Client
                   </button>
                 </div>

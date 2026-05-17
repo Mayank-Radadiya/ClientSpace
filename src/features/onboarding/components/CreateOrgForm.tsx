@@ -139,7 +139,7 @@ export function CreateOrganizationForm() {
                     className="text-foreground text-4xl font-bold tracking-tight"
                   >
                     Build your <br />
-                    <span className="from-primary bg-gradient-to-r via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    <span className="from-primary bg-linear-to-r via-indigo-400 to-purple-400 bg-clip-text text-transparent">
                       empire
                     </span>
                   </motion.h1>

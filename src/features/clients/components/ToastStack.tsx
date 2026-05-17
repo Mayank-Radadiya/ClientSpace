@@ -17,8 +17,18 @@ const TYPE_STYLES: Record<
     bar: "bg-emerald-500",
     bg: "border-emerald-500/15",
     icon: (
-      <svg className="text-emerald-500 h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none">
-        <path d="M3 8l3.5 3.5 6.5-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <svg
+        className="h-4 w-4 shrink-0 text-emerald-500"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M3 8l3.5 3.5 6.5-7"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
   },
@@ -26,8 +36,17 @@ const TYPE_STYLES: Record<
     bar: "bg-destructive",
     bg: "border-destructive/15",
     icon: (
-      <svg className="text-destructive h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none">
-        <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <svg
+        className="text-destructive h-4 w-4 shrink-0"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M4 4l8 8M12 4l-8 8"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
@@ -35,9 +54,18 @@ const TYPE_STYLES: Record<
     bar: "bg-primary",
     bg: "border-primary/15",
     icon: (
-      <svg className="text-primary h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none">
+      <svg
+        className="text-primary h-4 w-4 shrink-0"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
         <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M8 7v4M8 5.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path
+          d="M8 7v4M8 5.5v.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
@@ -45,9 +73,23 @@ const TYPE_STYLES: Record<
     bar: "bg-amber-500",
     bg: "border-amber-500/15",
     icon: (
-      <svg className="text-amber-500 h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none">
-        <path d="M8 2L1 14h14L8 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M8 6v4M8 11.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <svg
+        className="h-4 w-4 shrink-0 text-amber-500"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M8 2L1 14h14L8 2z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8 6v4M8 11.5v.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
       </svg>
     ),
   },
@@ -73,14 +115,19 @@ export function ToastStack({ toasts, onDismiss }: ToastStackProps) {
               )}
             >
               {/* Left accent bar */}
-              <div className={cn("absolute top-0 left-0 h-full w-[3px]", style.bar)} />
+              <div
+                className={cn(
+                  "absolute top-0 left-0 h-full w-[3px]",
+                  style.bar,
+                )}
+              />
 
               {/* Icon */}
               <div className="mt-0.5 ml-2">{style.icon}</div>
 
               {/* Content */}
-              <div className="flex-1 min-w-0">
-                <p className="text-foreground text-[13px] font-[var(--font-data)] font-medium leading-snug">
+              <div className="min-w-0 flex-1">
+                <p className="text-foreground text-[13px] leading-snug font-medium">
                   {toast.message}
                 </p>
                 {toast.undoLabel && toast.onUndo && (
@@ -103,7 +150,12 @@ export function ToastStack({ toasts, onDismiss }: ToastStackProps) {
                 aria-label="Dismiss"
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <path
+                    d="M2 2l10 10M12 2L2 12"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
             </motion.div>

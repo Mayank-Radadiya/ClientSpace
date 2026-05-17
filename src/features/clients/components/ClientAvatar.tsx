@@ -20,11 +20,11 @@ const SIZE_CLASSES = {
 // Generate a consistent gradient based on the initial letter
 function getGradient(initial: string): string {
   const char = initial.toUpperCase();
-  if (char >= 'A' && char <= 'E') return "from-[#3B6FEF] to-[#6B95FF]";
-  if (char >= 'F' && char <= 'J') return "from-[#0D9488] to-[#2DD4BF]";
-  if (char >= 'K' && char <= 'O') return "from-[#7C3AED] to-[#A78BFA]";
-  if (char >= 'P' && char <= 'T') return "from-[#E11D48] to-[#FB7185]";
-  if (char >= 'U' && char <= 'Z') return "from-[#D97706] to-[#FCD34D]";
+  if (char >= "A" && char <= "E") return "from-[#3B6FEF] to-[#6B95FF]";
+  if (char >= "F" && char <= "J") return "from-[#0D9488] to-[#2DD4BF]";
+  if (char >= "K" && char <= "O") return "from-[#7C3AED] to-[#A78BFA]";
+  if (char >= "P" && char <= "T") return "from-[#E11D48] to-[#FB7185]";
+  if (char >= "U" && char <= "Z") return "from-[#D97706] to-[#FCD34D]";
   return "from-[#3B6FEF] to-[#6B95FF]";
 }
 
@@ -65,10 +65,10 @@ export function ClientAvatar({
   return (
     <div
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-full bg-linear-to-br font-[var(--font-display)] font-bold text-white select-none",
+        "relative flex shrink-0 items-center justify-center rounded-full bg-linear-to-br font-bold text-white select-none",
         sizeClass,
         gradient,
-        onClick && "cursor-pointer hover:opacity-90 transition-opacity",
+        onClick && "cursor-pointer transition-opacity hover:opacity-90",
       )}
       onClick={onClick}
       title={displayName}
