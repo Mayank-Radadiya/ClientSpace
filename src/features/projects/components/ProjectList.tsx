@@ -17,7 +17,6 @@ import { EmptyProjects } from "@/features/projects/components/EmptyProjects";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { ProjectCardSkeleton } from "./project-card/ProjectCardSkeleton";
-import { OBSIDIAN } from "./project-card/ProjectCard.constants";
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -139,12 +138,13 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
       ) : (
         projects.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration: 0.3,
-              delay: 0.12,
-              ease: OBSIDIAN.cubic,
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              delay: 0.15,
             }}
           >
             <ProjectsStats stats={stats} />
@@ -158,7 +158,7 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
           className={cn(
             "grid w-full gap-4",
             viewMode === "grid"
-              ? "grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
+              ? "grid-cols-[repeat(auto-fill,minmax(340px,1fr))]"
               : "grid-cols-1",
           )}
         >
@@ -172,19 +172,20 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
             className={cn(
               "grid w-full gap-4",
               viewMode === "grid"
-                ? "grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
+                ? "grid-cols-[repeat(auto-fill,minmax(340px,1fr))]"
                 : "grid-cols-1",
             )}
           >
             {projects.map((project, idx) => (
               <motion.div
                 key={project.id}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.3,
-                  delay: 0.3 + idx * 0.04,
-                  ease: OBSIDIAN.cubic,
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 20,
+                  delay: 0.25 + idx * 0.05,
                 }}
               >
                 <ProjectCard project={project} viewMode={viewMode} />
@@ -201,11 +202,12 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
                 disabled={isFetchingNextPage}
                 className={cn(
                   "flex h-[40px] items-center gap-2 rounded-[10px] border px-5",
-                  "font-(--font-data) text-[12px] tracking-[0.04em] uppercase",
-                  "border-[#E2E2EA] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-                  "transition-all duration-180",
-                  "hover:border-[rgba(79,127,255,0.3)] hover:text-[#4F7FFF]",
-                  "dark:border-[rgba(255,255,255,0.08)] dark:bg-[#111118]",
+                  "font-(--font-data) text-[11px] tracking-widest uppercase",
+                  "transition-all duration-200",
+                  "border-[#EBEBF0] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
+                  "hover:border-[rgba(0,144,255,0.3)] hover:text-[#0090FF]",
+                  "dark:border-white/5 dark:bg-transparent dark:text-gray-400 dark:shadow-none",
+                  "dark:hover:border-[#0090FF]/30 dark:hover:text-[#00C8FF]",
                   "disabled:opacity-50",
                 )}
               >

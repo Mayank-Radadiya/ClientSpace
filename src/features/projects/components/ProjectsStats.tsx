@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { OBSIDIAN } from "./project-card/ProjectCard.constants";
 
 type ProjectStats = {
   total: number;
@@ -61,7 +60,8 @@ type SubLabelDef = {
 type StatCardDef = {
   key: "total" | "inProgress" | "completed" | "overdue" | "completion";
   label: string;
-  lineColor: string;
+  /** Top-border accent color (only for overdue card) */
+  topBorderColor?: string;
   sub: SubLabelDef;
 };
 
@@ -69,13 +69,11 @@ const STAT_CARDS: StatCardDef[] = [
   {
     key: "total",
     label: "TOTAL PROJECTS",
-    lineColor: "#4F7FFF",
     sub: { getText: (s) => `${s.total} added this month` },
   },
   {
     key: "inProgress",
     label: "IN PROGRESS",
-    lineColor: "#4F7FFF",
     sub: {
       getText: (s) =>
         `${Math.min(s.inProgress, 2)} approaching deadline`,
@@ -86,13 +84,12 @@ const STAT_CARDS: StatCardDef[] = [
   {
     key: "completed",
     label: "COMPLETED",
-    lineColor: "#22C55E",
     sub: { getText: (s) => `${s.completed} this month` },
   },
   {
     key: "overdue",
     label: "OVERDUE",
-    lineColor: "#EF4444",
+    topBorderColor: "#EF4444",
     sub: {
       getText: (s) => `${s.overdue} need attention`,
       dotColor: "#EF4444",
@@ -102,7 +99,6 @@ const STAT_CARDS: StatCardDef[] = [
   {
     key: "completion",
     label: "COMPLETION",
-    lineColor: "#4F7FFF",
     sub: { getText: () => "" },
   },
 ];
@@ -170,77 +166,66 @@ function StatCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        duration: 0.3,
-        delay: 0.12 + index * 0.06,
-        ease: OBSIDIAN.cubic,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+        delay: 0.05 * index,
       }}
       className={cn(
-        "group relative overflow-hidden rounded-[12px] border",
+        "group relative overflow-hidden rounded-xl border",
         "px-[22px] py-[20px]",
-        "transition-all duration-180 ease-out",
-        "border-[#EBEBF0] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]",
-        "dark:border-[rgba(255,255,255,0.06)] dark:bg-[#111118] dark:shadow-none",
-        "hover:-translate-y-[2px]",
+        "transition-all duration-300 ease-out",
+        // Light
+        "bg-white border-[#EBEBF0] shadow-[0_1px_4px_rgba(0,0,0,0.05)]",
+        "hover:-translate-y-[2px] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
+        // Dark
+        "dark:bg-white/[0.02] dark:backdrop-blur-md dark:border-white/5 dark:shadow-none",
+        "dark:hover:border-white/10",
         isCompletion && "col-span-2 lg:col-span-1",
       )}
     >
-      {/* 2px colored top-edge line */}
-      <div
-        className="absolute top-0 left-0 h-[2px] w-full transition-opacity duration-180 group-hover:opacity-100"
-        style={{ backgroundColor: card.lineColor, opacity: 0.8 }}
-      />
+      {/* Muted top-border line for overdue card */}
+      {card.topBorderColor && (
+        <div
+          className="absolute top-0 left-0 h-[1px] w-full"
+          style={{ backgroundColor: card.topBorderColor, opacity: 0.6 }}
+        />
+      )}
 
       {/* Content */}
       <div className="relative z-10 flex flex-col">
-        {/* Label */}
-        <p className="font-(--font-data) mb-3 text-[11px] tracking-[0.08em] text-[#6B6B7E] uppercase">
+        {/* Label — DM Mono */}
+        <p className="font-(--font-data) mb-3 text-[11px] tracking-widest text-[#6B6B7E] dark:text-gray-400 uppercase">
           {card.label}
         </p>
 
-        {/* Value — Barlow Condensed 48px, tight line-height */}
+        {/* Value — Barlow Condensed, huge */}
         <span
-          className="font-(--font-metrics) text-[48px] leading-[1] text-[#0D0D14] dark:text-[#F2F2F5]"
+          className="font-(--font-metrics) text-[48px] leading-[1] tracking-tight text-[#0D0D14] dark:text-gray-50"
         >
           {isCompletion ? `${animatedValue}%` : animatedValue}
         </span>
 
-        {/* Divider between value and sub-label */}
-        <div className="my-3 h-px w-full bg-[#EBEBF0] dark:bg-[rgba(255,255,255,0.06)]" />
-
         {/* Sub-label / Progress */}
         {isCompletion ? (
-          <div className="space-y-2.5">
-            {/* 6px progress track */}
-            <div className="h-1.5 w-full overflow-hidden rounded-[3px] bg-[#EBEBF0] dark:bg-[rgba(255,255,255,0.06)]">
-              <div
-                className="h-full rounded-[3px] transition-[width] duration-800 ease-out"
-                style={{
-                  width: `${barWidth}%`,
-                  background: "linear-gradient(90deg, #4F7FFF, #6B95FF)",
-                }}
-              />
-            </div>
-            <div className="flex justify-between">
-              <span className="font-(--font-data) text-[11px] text-[#6B6B7E]">
-                {stats.completed} done
-              </span>
-              <span className="font-(--font-data) text-[11px] text-[#6B6B7E]">
-                {stats.total - stats.completed} left
-              </span>
-            </div>
+          <div className="mt-4 space-y-2">
+            {/* Monospace progress string */}
+            <p className="font-(--font-data) text-[11px] tracking-widest text-[#9B9BA8] dark:text-gray-500">
+              [{generateProgressBar(completionRate)}] {stats.completed} done / {stats.total - stats.completed} left
+            </p>
           </div>
         ) : (
           /* Sub-label with optional colored dot */
-          <div className="flex items-center gap-1.5">
+          <div className="mt-3 flex items-center gap-1.5">
             {card.sub.dotColor && (
               <span
-                className="inline-block h-[5px] w-[5px] shrink-0 rounded-full"
+                className="inline-block h-[6px] w-[6px] shrink-0 rounded-full"
                 style={{ backgroundColor: card.sub.dotColor }}
               />
             )}
             <span
-              className="font-(--font-data) text-[12px]"
-              style={{ color: card.sub.textColor || "#6B6B7E" }}
+              className="font-(--font-data) text-[11px] tracking-widest uppercase"
+              style={{ color: card.sub.textColor || "#6B7280" }}
             >
               {card.sub.getText(stats)}
             </span>
@@ -249,6 +234,15 @@ function StatCard({
       </div>
     </motion.div>
   );
+}
+
+/* ─── Progress Bar String Generator ─────────────────────────────────── */
+
+function generateProgressBar(percent: number): string {
+  const totalBlocks = 10;
+  const filled = Math.round((percent / 100) * totalBlocks);
+  const empty = totalBlocks - filled;
+  return "█".repeat(filled) + "·".repeat(empty);
 }
 
 /* ─── Skeleton ──────────────────────────────────────────────────────── */
@@ -260,17 +254,16 @@ export function ProjectsStatsSkeleton() {
         <div
           key={i}
           className={cn(
-            "relative overflow-hidden rounded-[12px] border px-[22px] py-[20px]",
-            "border-[#EBEBF0] bg-white dark:border-[rgba(255,255,255,0.06)] dark:bg-[#111118]",
+            "relative overflow-hidden rounded-xl border px-[22px] py-[20px]",
+            "bg-white border-[#EBEBF0] shadow-[0_1px_4px_rgba(0,0,0,0.05)]",
+            "dark:bg-white/[0.02] dark:backdrop-blur-md dark:border-white/5 dark:shadow-none",
             i === 4 && "col-span-2 lg:col-span-1",
           )}
         >
-          <div className="absolute top-0 left-0 h-[2px] w-full bg-[rgba(79,127,255,0.3)]" />
           <div className="space-y-3">
-            <div className="h-3 w-2/3 animate-pulse rounded bg-[#6B6B7E]/10" />
-            <div className="h-11 w-1/3 animate-pulse rounded-lg bg-[#6B6B7E]/10" />
-            <div className="h-px w-full bg-[#EBEBF0] dark:bg-[rgba(255,255,255,0.06)]" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-[#6B6B7E]/10" />
+            <div className="h-3 w-2/3 animate-pulse rounded bg-[#EBEBF0] dark:bg-white/5" />
+            <div className="h-11 w-1/3 animate-pulse rounded-lg bg-[#EBEBF0] dark:bg-white/5" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-[#EBEBF0] dark:bg-white/5" />
           </div>
         </div>
       ))}

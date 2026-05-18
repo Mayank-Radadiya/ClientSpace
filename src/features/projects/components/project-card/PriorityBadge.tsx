@@ -7,10 +7,10 @@ interface PriorityBadgeProps {
 }
 
 const PRIORITY_LABELS: Record<ProjectPriority, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  urgent: "Critical",
+  low: "LOW",
+  medium: "MED",
+  high: "HIGH",
+  urgent: "CRIT",
 };
 
 export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
@@ -20,13 +20,13 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
     <span
       className={cn(
         "inline-flex items-center gap-1.5",
-        "font-(--font-data) text-[11px] text-[#6B6B7E]",
+        "font-(--font-data) text-[11px] tracking-widest text-gray-400 uppercase",
         className,
       )}
     >
       <span
         className={cn(
-          "h-1.5 w-1.5 shrink-0 rounded-full",
+          "h-[6px] w-[6px] shrink-0 rounded-full",
           config.dot,
           priority === "urgent" && "animate-pulse",
         )}

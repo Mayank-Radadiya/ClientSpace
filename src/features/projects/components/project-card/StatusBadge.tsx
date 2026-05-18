@@ -25,10 +25,10 @@ export function StatusBadge({
   const displayStatus = isOverdue ? "OVERDUE" : STATUS_LABELS[status];
   const config = isOverdue
     ? {
-        bg: "bg-[rgba(239,68,68,0.10)]",
         text: "text-[#EF4444]",
-        border: "border-[rgba(239,68,68,0.25)]",
+        border: "border-[rgba(239,68,68,0.20)]",
         dot: "bg-[#EF4444]",
+        lightBg: "bg-[rgba(239,68,68,0.06)]",
       }
     : STATUS_CONFIG[status];
 
@@ -36,15 +36,17 @@ export function StatusBadge({
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
-        "font-(--font-data) text-[11px] tracking-[0.08em] uppercase",
-        "transition-colors duration-180",
-        config.bg,
+        "font-(--font-data) text-[10px] tracking-widest uppercase",
+        "transition-colors duration-200",
+        // Light: very faint tinted bg
+        "lightBg" in config && config.lightBg,
+        "dark:bg-transparent",
         config.text,
         config.border,
         className,
       )}
     >
-      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", config.dot)} />
+      <span className={cn("h-[5px] w-[5px] shrink-0 rounded-full", config.dot)} />
       {displayStatus}
     </span>
   );

@@ -5,8 +5,6 @@ import {
   Search,
   SlidersHorizontal,
   X,
-  LayoutGrid,
-  List,
   Download,
   Plus,
   ArrowRight,
@@ -16,7 +14,6 @@ import { cn } from "@/lib/utils";
 import {
   PROJECT_STATUSES,
   PROJECT_PRIORITIES,
-  STATUS_LABELS,
   PRIORITY_LABELS,
 } from "../schemas";
 
@@ -41,25 +38,16 @@ type ProjectsHeaderProps = {
   onCreateClick: () => void;
 };
 
-/* ─── Status / Priority pill color mapping ──────────────────────────── */
-
-const STATUS_COLORS: Record<string, string> = {
-  not_started: "#6B6B7E",
-  in_progress: "#4F7FFF",
-  review: "#F59E0B",
-  completed: "#22C55E",
-  on_hold: "#F59E0B",
-  archived: "#6B6B7E",
-};
+/* ─── Priority pill color mapping ────────────────────────────────────── */
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: "#22C55E",
+  low: "#34D399",
   medium: "#F59E0B",
   high: "#EF4444",
   urgent: "#EF4444",
 };
 
-/* ─── Filter Tab config ─────────────────────────────────────────────── */
+/* ─── Filter Tab config ──────────────────────────────────────────────── */
 
 type FilterTab = {
   key: string;
@@ -67,15 +55,15 @@ type FilterTab = {
 };
 
 const FILTER_TABS: FilterTab[] = [
-  { key: "all", label: "All" },
-  { key: "not_started", label: "Not Started" },
-  { key: "in_progress", label: "In Progress" },
-  { key: "on_hold", label: "On Hold" },
-  { key: "completed", label: "Completed" },
-  { key: "overdue", label: "Overdue" },
+  { key: "all", label: "ALL" },
+  { key: "not_started", label: "NOT STARTED" },
+  { key: "in_progress", label: "ACTIVE" },
+  { key: "on_hold", label: "ON HOLD" },
+  { key: "completed", label: "DONE" },
+  { key: "overdue", label: "OVERDUE" },
 ];
 
-/* ─── Component ─────────────────────────────────────────────────────── */
+/* ─── Component ──────────────────────────────────────────────────────── */
 
 export function ProjectsHeader({
   filters,
@@ -135,7 +123,6 @@ export function ProjectsHeader({
     if (tabKey === "all") {
       onFiltersChange({ ...filters, status: [] });
     } else if (tabKey === "overdue") {
-      // Overdue is special — not a real status, handled in ProjectList
       onFiltersChange({ ...filters, status: [] });
     } else {
       onFiltersChange({
@@ -171,29 +158,27 @@ export function ProjectsHeader({
     <div className="space-y-5">
       {/* ─── Title Row ──────────────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
       >
         <div>
-          <h1 className="font-(--font-display) text-[38px] font-[800] leading-none tracking-[-0.02em] text-[#0D0D14] dark:text-[#F2F2F5]">
+          <h1 className="text-[38px] leading-none font-[800] tracking-[-0.02em] text-[#0D0D14] dark:text-gray-50">
             Projects
           </h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.04, duration: 0.25 }}
-            className="font-(--font-data) mt-2 text-[13px] text-[#6B6B7E]"
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="mt-2.5 text-[11px] font-(--font-data) tracking-widest text-[#6B6B7E] uppercase dark:text-gray-400"
           >
             {totalCount} {totalCount === 1 ? "project" : "projects"} ·{" "}
             {activeCount} active
             {overdueCount > 0 ? (
               <>
                 {" · "}
-                <span className="text-[#EF4444]">
-                  {overdueCount} overdue
-                </span>
+                <span className="text-[#EF4444]">{overdueCount} overdue</span>
               </>
             ) : (
               <> · 0 overdue</>
@@ -203,57 +188,64 @@ export function ProjectsHeader({
 
         {/* Right action group */}
         <div className="flex items-center gap-3">
-          {/* Export button */}
+          {/* Export ghost button */}
           <button
             type="button"
             className={cn(
               "flex h-[40px] items-center gap-2 rounded-[10px] border px-4",
-              "font-(--font-data) text-[12px] tracking-[0.04em] uppercase",
-              "transition-all duration-180",
-              "border-[#E2E2EA] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.08)]",
+              "text-[11px] font-(--font-data) tracking-widest uppercase",
+              "transition-all duration-200",
+              "border-[#EBEBF0] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
               "hover:bg-[#FAFAFA] hover:text-[#0D0D14]",
-              "dark:border-[rgba(255,255,255,0.10)] dark:bg-[#16161F] dark:shadow-none",
-              "dark:hover:bg-[#1A1A26] dark:hover:text-[#F2F2F5]",
+              "dark:border-white/5 dark:bg-transparent dark:text-gray-400 dark:shadow-none",
+              "dark:hover:border-white/10 dark:hover:bg-transparent dark:hover:text-gray-50",
             )}
           >
             <Download className="h-3.5 w-3.5" />
-            Export
+            Export ↓
           </button>
 
-          {/* New Project CTA */}
+          {/* + New Project CTA — gradient works both themes */}
           <button
             type="button"
             onClick={onCreateClick}
             className={cn(
               "group/cta flex h-[40px] items-center gap-2 rounded-[10px] px-5",
-              "font-(--font-data) text-[12px] tracking-[0.04em] uppercase",
-              "transition-all duration-180",
-              "bg-[#3B6FEF] text-white shadow-[0_2px_8px_rgba(59,111,239,0.30)]",
-              "hover:bg-[#4F7FFF] hover:shadow-[0_4px_16px_rgba(59,111,239,0.35)]",
-              "dark:bg-[#4F7FFF] dark:shadow-[0_2px_8px_rgba(79,127,255,0.25)]",
-              "dark:hover:bg-[#6B95FF]",
+              "text-[12px] font-bold tracking-wide",
+              "transition-all duration-200",
+              "bg-gradient-to-r from-[#00F7FF] to-[#0090FF] text-black",
+              "shadow-[0_2px_12px_rgba(0,144,255,0.30)]",
+              "hover:shadow-[0_4px_20px_rgba(0,144,255,0.45)]",
+              "hover:brightness-110",
             )}
           >
             <Plus className="h-3.5 w-3.5" />
             New Project
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-180 group-hover/cta:translate-x-[3px]" />
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover/cta:translate-x-[3px]" />
           </button>
         </div>
       </motion.div>
 
-      {/* ─── Search + Filter + Toggle Row ───────────────────────── */}
+      {/* ─── Search + Filter Row ─────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+        transition={{
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          delay: 0.05,
+        }}
         className="flex flex-col gap-3 sm:flex-row sm:items-center"
       >
         {/* Search bar */}
         <div className="group relative flex-1">
           <Search
             className={cn(
-              "pointer-events-none absolute top-1/2 left-4 z-20 h-4 w-4 -translate-y-1/2 transition-colors duration-180",
-              searchFocused ? "text-[#4F7FFF]" : "text-[#6B6B7E]",
+              "pointer-events-none absolute top-1/2 left-4 z-20 h-4 w-4 -translate-y-1/2 transition-colors duration-200",
+              searchFocused
+                ? "text-[#0090FF]"
+                : "text-[#9B9BA8] dark:text-gray-500",
             )}
           />
           <input
@@ -265,13 +257,15 @@ export function ProjectsHeader({
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             className={cn(
-              "h-[42px] w-full rounded-[10px] border pl-11 pr-16",
-              "font-(--font-data) text-[13px] text-[#0D0D14] placeholder:text-[#9B9BA8] dark:text-[#F2F2F5]",
-              "transition-all duration-180 outline-none",
-              "bg-white border-[#E2E2EA] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-              "dark:bg-[#111118] dark:border-[rgba(255,255,255,0.08)] dark:shadow-none",
+              "h-[42px] w-full rounded-[10px] border pr-16 pl-11",
+              "text-[12px] font-(--font-data)",
+              "text-[#0D0D14] placeholder:text-[#9B9BA8]",
+              "dark:text-gray-50 dark:placeholder:text-gray-600",
+              "transition-all duration-200 outline-none",
+              "border-[#EBEBF0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
+              "dark:border-transparent dark:bg-white/[0.03] dark:shadow-none",
               searchFocused &&
-                "border-[#4F7FFF] shadow-[0_0_0_2px_rgba(79,127,255,0.15)] dark:border-[#4F7FFF]",
+                "border-[#0090FF] shadow-[0_0_0_2px_rgba(0,144,255,0.12)] dark:border-[#00F7FF]/40 dark:shadow-[0_0_0_1px_rgba(0,247,255,0.15)]",
             )}
           />
           <div className="absolute top-1/2 right-3 -translate-y-1/2">
@@ -282,13 +276,13 @@ export function ProjectsHeader({
                   setLocalSearch("");
                   onFiltersChange({ ...filters, search: "" });
                 }}
-                className="rounded-md p-1 text-[#6B6B7E] transition-colors hover:text-[#0D0D14] dark:hover:text-[#F2F2F5]"
+                className="rounded-md p-1 text-[#6B6B7E] transition-colors hover:text-[#0D0D14] dark:text-gray-500 dark:hover:text-gray-50"
               >
                 <X className="h-4 w-4" />
               </button>
             ) : (
               !searchFocused && (
-                <span className="font-(--font-data) rounded border border-[#E2E2EA] px-1.5 py-0.5 text-[10px] text-[#9B9BA8] dark:border-[rgba(255,255,255,0.08)]">
+                <span className="rounded border border-[#EBEBF0] px-1.5 py-0.5 text-[10px] font-(--font-data) text-[#9B9BA8] dark:border-white/5 dark:text-gray-500">
                   ⌘K
                 </span>
               )
@@ -296,83 +290,50 @@ export function ProjectsHeader({
           </div>
         </div>
 
-        {/* Filters + View toggle */}
+        {/* Filters button */}
         <div className="flex items-center gap-2">
-          {/* Filters button */}
           <button
             type="button"
             onClick={() => setFiltersOpen(!filtersOpen)}
             className={cn(
               "flex h-[42px] items-center gap-2 rounded-[10px] border px-4",
-              "font-(--font-data) text-[12px] tracking-[0.04em] uppercase",
-              "transition-all duration-180",
+              "text-[11px] font-(--font-data) tracking-widest uppercase",
+              "transition-all duration-200",
               filtersOpen || activeFilterCount > 0
-                ? "border-[#4F7FFF] bg-[rgba(79,127,255,0.08)] text-[#4F7FFF]"
+                ? "border-[#0090FF]/30 bg-[rgba(0,144,255,0.08)] text-[#0090FF] dark:text-[#00C8FF]"
                 : cn(
-                    "border-[#E2E2EA] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-                    "hover:border-[rgba(79,127,255,0.3)]",
-                    "dark:border-[rgba(255,255,255,0.08)] dark:bg-[#111118] dark:shadow-none",
+                    "border-[#EBEBF0] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
+                    "hover:border-[rgba(0,144,255,0.3)]",
+                    "dark:border-white/5 dark:bg-transparent dark:text-gray-400 dark:shadow-none",
+                    "dark:hover:border-white/10 dark:hover:text-gray-50",
                   ),
             )}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Filters
             {activeFilterCount > 0 && (
-              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#4F7FFF] px-1 font-(--font-data) text-[10px] font-bold text-white">
+              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#0090FF] px-1 text-[10px] font-(--font-data) font-bold text-white dark:text-black">
                 {activeFilterCount}
               </span>
             )}
           </button>
-
-          {/* Grid / List toggle */}
-          <div
-            className={cn(
-              "flex h-[42px] items-center rounded-[10px] border p-1",
-              "border-[#E2E2EA] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-              "dark:border-[rgba(255,255,255,0.08)] dark:bg-[#111118] dark:shadow-none",
-            )}
-          >
-            <button
-              type="button"
-              onClick={() => onViewModeChange("grid")}
-              className={cn(
-                "rounded-[8px] p-2 transition-all duration-180",
-                viewMode === "grid"
-                  ? "bg-[#F0F0F5] text-[#0D0D14] shadow-[0_1px_4px_rgba(0,0,0,0.10)] dark:bg-[#16161F] dark:text-[#F2F2F5]"
-                  : "text-[#6B6B7E] hover:text-[#0D0D14] dark:hover:text-[#F2F2F5]",
-              )}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onViewModeChange("list")}
-              className={cn(
-                "rounded-[8px] p-2 transition-all duration-180",
-                viewMode === "list"
-                  ? "bg-[#F0F0F5] text-[#0D0D14] shadow-[0_1px_4px_rgba(0,0,0,0.10)] dark:bg-[#16161F] dark:text-[#F2F2F5]"
-                  : "text-[#6B6B7E] hover:text-[#0D0D14] dark:hover:text-[#F2F2F5]",
-              )}
-            >
-              <List className="h-4 w-4" />
-            </button>
-          </div>
         </div>
       </motion.div>
 
-      {/* ─── Filter Tabs ────────────────────────────────────────── */}
+      {/* ─── Filter Tabs (Translucent Pill Container) ────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 6 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
         className={cn(
-          "inline-flex items-center rounded-[10px] border p-1",
+          "inline-flex items-center rounded-xl border p-1",
           "border-[#EBEBF0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]",
-          "dark:border-[rgba(255,255,255,0.06)] dark:bg-[#111118] dark:shadow-none",
+          "dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none dark:backdrop-blur-sm",
         )}
       >
         {FILTER_TABS.map((tab) => {
-          const isActive = activeTab === tab.key || (tab.key === "all" && activeTab === "all");
+          const isActive =
+            activeTab === tab.key || (tab.key === "all" && activeTab === "all");
           const count = getTabCount(tab.key);
 
           return (
@@ -382,21 +343,26 @@ export function ProjectsHeader({
               onClick={() => handleTabClick(tab.key)}
               className={cn(
                 "relative flex items-center gap-1.5 rounded-[8px] px-3 py-1.5",
-                "font-(--font-data) text-[13px]",
+                "text-[11px] font-(--font-data) tracking-widest uppercase",
                 "transition-all duration-200",
                 isActive
                   ? cn(
-                      "bg-white text-[#0D0D14] shadow-[0_1px_4px_rgba(0,0,0,0.10)]",
-                      "dark:bg-[#16161F] dark:text-[#F2F2F5] dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)]",
+                      "bg-[#F0F0F5] text-[#0D0D14] shadow-[0_1px_4px_rgba(0,0,0,0.08)]",
+                      "dark:bg-white/10 dark:text-gray-50 dark:shadow-none",
                     )
-                  : "text-[#6B6B7E] hover:text-[#0D0D14] hover:bg-[rgba(0,0,0,0.03)] dark:hover:text-[#F2F2F5] dark:hover:bg-[rgba(255,255,255,0.04)]",
+                  : cn(
+                      "text-[#6B6B7E] hover:bg-[rgba(0,0,0,0.03)] hover:text-[#0D0D14]",
+                      "dark:text-gray-500 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
+                    ),
               )}
             >
               {tab.label}
               <span
                 className={cn(
-                  "font-(--font-data) text-[11px]",
-                  isActive ? "text-[#4F7FFF]" : "text-[#9B9BA8]",
+                  "text-[10px] font-(--font-data)",
+                  isActive
+                    ? "text-[#0090FF] dark:text-[#00C8FF]"
+                    : "text-[#9B9BA8] dark:text-gray-600",
                 )}
               >
                 {count}
@@ -406,7 +372,7 @@ export function ProjectsHeader({
         })}
       </motion.div>
 
-      {/* ─── Priority Filter Panel (expandable) ─────────────────── */}
+      {/* ─── Priority Filter Panel (expandable) ───────────────────── */}
       <AnimatePresence>
         {filtersOpen && (
           <motion.div
@@ -418,15 +384,15 @@ export function ProjectsHeader({
           >
             <div
               className={cn(
-                "rounded-[12px] border p-5",
+                "rounded-xl border p-5",
                 "border-[#EBEBF0] bg-[#FAFAFA]",
-                "dark:border-[rgba(255,255,255,0.06)] dark:bg-[#16161F]",
+                "dark:border-white/5 dark:bg-[#1A1D27]/50 dark:backdrop-blur-md",
               )}
             >
               <div className="space-y-4">
                 {/* Priority pills */}
                 <div>
-                  <p className="font-(--font-data) mb-2 text-[11px] tracking-[0.08em] text-[#6B6B7E] uppercase">
+                  <p className="mb-2 text-[11px] font-(--font-data) tracking-widest text-[#6B6B7E] uppercase dark:text-gray-400">
                     Priority
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -440,16 +406,17 @@ export function ProjectsHeader({
                           onClick={() => handlePriorityToggle(priority)}
                           className={cn(
                             "rounded-full border px-3 py-1.5",
-                            "font-(--font-data) text-[11px] tracking-[0.04em]",
-                            "transition-all duration-180",
+                            "text-[11px] font-(--font-data) tracking-widest uppercase",
+                            "transition-all duration-200",
                             isSelected
-                              ? "border-transparent text-white"
-                              : "border-[#EBEBF0] text-[#6B6B7E] hover:border-[rgba(79,127,255,0.3)] dark:border-[rgba(255,255,255,0.08)]",
+                              ? "border-transparent font-bold text-black"
+                              : cn(
+                                  "border-[#EBEBF0] text-[#6B6B7E] hover:border-[rgba(0,144,255,0.3)]",
+                                  "dark:border-white/5 dark:text-gray-400 dark:hover:border-white/10",
+                                ),
                           )}
                           style={
-                            isSelected
-                              ? { backgroundColor: color }
-                              : undefined
+                            isSelected ? { backgroundColor: color } : undefined
                           }
                         >
                           {PRIORITY_LABELS[priority]}
@@ -461,14 +428,15 @@ export function ProjectsHeader({
 
                 {/* Clear */}
                 {activeFilterCount > 0 && (
-                  <div className="flex items-center justify-between border-t border-[#EBEBF0] pt-3 dark:border-[rgba(255,255,255,0.06)]">
-                    <span className="font-(--font-data) text-[12px] text-[#6B6B7E]">
-                      {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active
+                  <div className="flex items-center justify-between border-t border-[#EBEBF0] pt-3 dark:border-white/5">
+                    <span className="text-[11px] font-(--font-data) tracking-widest text-[#6B6B7E] uppercase dark:text-gray-400">
+                      {activeFilterCount} filter
+                      {activeFilterCount > 1 ? "s" : ""} active
                     </span>
                     <button
                       type="button"
                       onClick={clearFilters}
-                      className="font-(--font-data) text-[12px] text-[#EF4444] transition-colors hover:text-[#EF4444]/80"
+                      className="text-[11px] font-(--font-data) tracking-widest text-[#EF4444] uppercase transition-colors hover:text-[#EF4444]/80"
                     >
                       Clear all
                     </button>
