@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion } from "motion/react";
 import { trpc } from "@/lib/trpc/client";
 import { ProjectCard } from "@/features/projects/components/project-card/ProjectCard";
 import {
@@ -13,12 +14,12 @@ import {
 } from "@/features/projects/components/ProjectsStats";
 import { CreateProjectDialog } from "@/features/projects/components/createProject/CreateProjectDialog";
 import { EmptyProjects } from "@/features/projects/components/EmptyProjects";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BadgePlus, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ProjectCardSkeleton } from "./project-card/ProjectCardSkeleton";
+import { OBSIDIAN } from "./project-card/ProjectCard.constants";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────
 
 type Client = { id: string; companyName: string | null; email: string };
 
@@ -52,7 +53,7 @@ type ProjectListProps = {
   userRole?: string;
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────
 
 export function ProjectList({ clients, userRole }: ProjectListProps) {
   const [filters, setFilters] = useState<FilterState>({
@@ -62,8 +63,6 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
   });
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [createOpen, setCreateOpen] = useState(false);
-
-  const canDelete = userRole === "owner" || userRole === "admin";
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     trpc.project.getAll.useInfiniteQuery(
@@ -92,6 +91,22 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
     [projects],
   );
 
+  const activeCount = useMemo(
+    () =>
+      projects.filter(
+        (p) => p.status === "in_progress" || p.status === "review",
+      ).length,
+    [projects],
+  );
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of projects) {
+      counts[p.status] = (counts[p.status] ?? 0) + 1;
+    }
+    return counts;
+  }, [projects]);
+
   const isFiltering =
     filters.search || filters.status.length > 0 || filters.priority.length > 0;
 
@@ -105,28 +120,36 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
         onViewModeChange={setViewMode}
         totalCount={projects.length}
         filteredCount={projects.length}
-      >
-        <CreateProjectDialog
-          clients={clients}
-          open={createOpen}
-          onOpenChange={setCreateOpen}
-        />
-        {/* Standalone trigger button — styled properly */}
-        <Button
-          onClick={() => setCreateOpen(true)}
-          className="group from-primary shadow-primary/25 hover:shadow-primary/40 relative overflow-hidden rounded-xl bg-linear-to-br to-indigo-600 px-6 font-bold tracking-wide text-white shadow-lg transition-[transform,shadow] duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-95"
-        >
-          <div className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <BadgePlus />
-          <span className="relative">New Project</span>
-        </Button>
-      </ProjectsHeader>
+        activeCount={activeCount}
+        overdueCount={stats.overdue}
+        statusCounts={statusCounts}
+        onCreateClick={() => setCreateOpen(true)}
+      />
 
-      {/* Stats — show skeleton while loading, then show stats if projects exist */}
+      {/* Create dialog */}
+      <CreateProjectDialog
+        clients={clients}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+      />
+
+      {/* Stats */}
       {isLoading ? (
         <ProjectsStatsSkeleton />
       ) : (
-        projects.length > 0 && <ProjectsStats stats={stats} />
+        projects.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.3,
+              delay: 0.12,
+              ease: OBSIDIAN.cubic,
+            }}
+          >
+            <ProjectsStats stats={stats} />
+          </motion.div>
+        )
       )}
 
       {/* Loading state */}
@@ -135,11 +158,11 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
           className={cn(
             "grid w-full gap-4",
             viewMode === "grid"
-              ? "grid-cols-[repeat(auto-fill,minmax(320px,1fr))]"
+              ? "grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
               : "grid-cols-1",
           )}
         >
-          {Array.from({ length: 3 }).map((_: any, i: number) => (
+          {Array.from({ length: 4 }).map((_: unknown, i: number) => (
             <ProjectCardSkeleton key={i} viewMode={viewMode} />
           ))}
         </div>
@@ -149,53 +172,67 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
             className={cn(
               "grid w-full gap-4",
               viewMode === "grid"
-                ? "grid-cols-[repeat(auto-fill,minmax(320px,1fr))]"
+                ? "grid-cols-[repeat(auto-fill,minmax(300px,1fr))]"
                 : "grid-cols-1",
             )}
           >
-            {projects.map((project) => (
-              <div key={project.id} className="group/card relative">
+            {projects.map((project, idx) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: 0.3 + idx * 0.04,
+                  ease: OBSIDIAN.cubic,
+                }}
+              >
                 <ProjectCard project={project} viewMode={viewMode} />
-
-                {/* Delete button — admin/owner only, appears on hover */}
-                {canDelete && (
-                  <div
-                    className={
-                      viewMode === "grid"
-                        ? "absolute top-6 right-3 z-10 opacity-0 transition-opacity duration-150 group-hover/card:opacity-100"
-                        : "absolute top-1/2 right-3 z-10 -translate-y-1/2 opacity-0 transition-opacity duration-150 group-hover/card:opacity-100"
-                    }
-                  ></div>
-                )}
-              </div>
+              </motion.div>
             ))}
           </div>
 
           {/* Load more */}
           {hasNextPage && (
             <div className="flex justify-center pt-2">
-              <Button
-                variant="outline"
+              <button
+                type="button"
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="min-w-32"
+                className={cn(
+                  "flex h-[40px] items-center gap-2 rounded-[10px] border px-5",
+                  "font-(--font-data) text-[12px] tracking-[0.04em] uppercase",
+                  "border-[#E2E2EA] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
+                  "transition-all duration-180",
+                  "hover:border-[rgba(79,127,255,0.3)] hover:text-[#4F7FFF]",
+                  "dark:border-[rgba(255,255,255,0.08)] dark:bg-[#111118]",
+                  "disabled:opacity-50",
+                )}
               >
                 {isFetchingNextPage ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Loading…
                   </>
                 ) : (
                   "Load more"
                 )}
-              </Button>
+              </button>
             </div>
           )}
         </>
       ) : (
         /* Empty state */
         <EmptyProjects
+          isFiltered={!!isFiltering}
           onCreateClick={!isFiltering ? () => setCreateOpen(true) : undefined}
+          onClearFilters={
+            isFiltering
+              ? () => {
+                  setFilters({ search: "", status: [], priority: [] });
+                }
+              : undefined
+          }
         />
       )}
     </div>

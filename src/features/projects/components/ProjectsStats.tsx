@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  FolderKanban,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { OBSIDIAN } from "./project-card/ProjectCard.constants";
 
 type ProjectStats = {
   total: number;
@@ -21,182 +16,264 @@ type ProjectsStatsProps = {
   stats: ProjectStats;
 };
 
-const STAT_CARDS = [
+/* ─── Animated Counter Hook ─────────────────────────────────────────── */
+
+function useCountUp(target: number, delay: number = 0) {
+  const [value, setValue] = useState(0);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const start = performance.now();
+      const duration = 700;
+
+      function tick(now: number) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setValue(Math.round(eased * target));
+
+        if (progress < 1) {
+          rafRef.current = requestAnimationFrame(tick);
+        }
+      }
+
+      rafRef.current = requestAnimationFrame(tick);
+    }, delay);
+
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [target, delay]);
+
+  return value;
+}
+
+/* ─── Stat Card Definitions ─────────────────────────────────────────── */
+
+type SubLabelDef = {
+  getText: (stats: ProjectStats) => string;
+  dotColor?: string;
+  textColor?: string;
+};
+
+type StatCardDef = {
+  key: "total" | "inProgress" | "completed" | "overdue" | "completion";
+  label: string;
+  lineColor: string;
+  sub: SubLabelDef;
+};
+
+const STAT_CARDS: StatCardDef[] = [
   {
-    key: "total" as const,
-    title: "TOTAL PROJECTS",
-    icon: FolderKanban,
-    iconCls: "text-blue-500",
-    iconBg: "from-blue-500/20 to-indigo-500/20",
-    border: "border-blue-500/20",
+    key: "total",
+    label: "TOTAL PROJECTS",
+    lineColor: "#4F7FFF",
+    sub: { getText: (s) => `${s.total} added this month` },
   },
   {
-    key: "inProgress" as const,
-    title: "IN PROGRESS",
-    icon: Clock,
-    iconCls: "text-amber-500",
-    iconBg: "from-amber-400/20 to-orange-500/20",
-    border: "border-amber-500/20",
+    key: "inProgress",
+    label: "IN PROGRESS",
+    lineColor: "#4F7FFF",
+    sub: {
+      getText: (s) =>
+        `${Math.min(s.inProgress, 2)} approaching deadline`,
+      dotColor: "#F59E0B",
+      textColor: "#F59E0B",
+    },
   },
   {
-    key: "completed" as const,
-    title: "COMPLETED",
-    icon: CheckCircle2,
-    iconCls: "text-emerald-500",
-    iconBg: "from-emerald-400/20 to-teal-500/20",
-    border: "border-emerald-500/20",
+    key: "completed",
+    label: "COMPLETED",
+    lineColor: "#22C55E",
+    sub: { getText: (s) => `${s.completed} this month` },
   },
   {
-    key: "overdue" as const,
-    title: "OVERDUE",
-    icon: AlertCircle,
-    iconCls: "text-red-500",
-    iconBg: "from-red-400/20 to-rose-500/20",
-    border: "border-red-500/20",
+    key: "overdue",
+    label: "OVERDUE",
+    lineColor: "#EF4444",
+    sub: {
+      getText: (s) => `${s.overdue} need attention`,
+      dotColor: "#EF4444",
+      textColor: "#EF4444",
+    },
+  },
+  {
+    key: "completion",
+    label: "COMPLETION",
+    lineColor: "#4F7FFF",
+    sub: { getText: () => "" },
   },
 ];
+
+/* ─── Component ─────────────────────────────────────────────────────── */
 
 export function ProjectsStats({ stats }: ProjectsStatsProps) {
   const completionRate =
     stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
+  const getValue = (key: StatCardDef["key"]) => {
+    if (key === "completion") return completionRate;
+    if (key === "total") return stats.total;
+    if (key === "inProgress") return stats.inProgress;
+    if (key === "completed") return stats.completed;
+    return stats.overdue;
+  };
+
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:grid-cols-4">
-        {STAT_CARDS.map((card) => {
-          const value = stats[card.key];
-          const isOverdueCard = card.key === "overdue";
-
-          return (
-            <Card
-              key={card.title}
-              className={cn(
-                "group bg-card/20 hover:bg-card/40 hover:shadow-primary/5 relative overflow-hidden rounded-xl ring-1 ring-white/10 backdrop-blur-3xl transition-all duration-500 ease-in-out hover:shadow-xl",
-                isOverdueCard &&
-                  value > 0 &&
-                  "bg-red-500/5 ring-red-500/30 hover:bg-red-500/10",
-              )}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="text-muted-foreground text-[10px] font-bold tracking-widest opacity-60">
-                      {card.title}
-                    </p>
-                    <p
-                      className={cn(
-                        "font-mono text-3xl font-black tracking-normal",
-                        isOverdueCard && value > 0
-                          ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
-                          : "text-foreground",
-                      )}
-                    >
-                      {value}
-                    </p>
-                  </div>
-
-                  <div
-                    className={cn(
-                      "group-hover:shadow-primary/20 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br shadow-lg ring-1 ring-white/10 backdrop-blur-xl transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:scale-110 group-hover:rotate-3",
-                      card.iconBg,
-                    )}
-                  >
-                    <card.icon
-                      className={cn("h-6 w-6 opacity-80", card.iconCls)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Completion Rate column */}
-      <Card className="group bg-card/20 hover:bg-card/40 relative overflow-hidden rounded-xl ring-1 ring-violet-500/30 backdrop-blur-3xl transition-all duration-500 hover:shadow-xl hover:shadow-violet-500/10">
-        <CardContent className="flex h-full flex-col justify-between p-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <p className="text-muted-foreground text-[10px] font-bold tracking-widest opacity-60">
-                COMPLETION
-              </p>
-              <p className="font-mono text-3xl font-black tracking-normal text-violet-400 drop-shadow-[0_0_12px_rgba(167,139,250,0.3)]">
-                {completionRate}%
-              </p>
-            </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20 shadow-lg ring-1 shadow-violet-500/10 ring-violet-500/40 backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-violet-500/30">
-              <TrendingUp className="h-6 w-6 text-violet-400" />
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-2">
-            <div className="text-muted-foreground flex justify-between text-[11px] font-bold tracking-widest uppercase opacity-70">
-              <span className="text-emerald-500">
-                <span className="font-mono text-xs">{stats.completed}</span>{" "}
-                DONE
-              </span>
-              <span className="text-violet-300">
-                <span className="font-mono text-xs">
-                  {stats.total - stats.completed}
-                </span>{" "}
-                LEFT
-              </span>
-            </div>
-            <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/5 ring-1 ring-white/10">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-violet-500 to-purple-500 shadow-[0_0_12px_rgba(139,92,246,0.5)] transition-all duration-1000 ease-out"
-                style={{ width: `${completionRate}%` }}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      {STAT_CARDS.map((card, idx) => (
+        <StatCard
+          key={card.key}
+          card={card}
+          rawValue={getValue(card.key)}
+          isCompletion={card.key === "completion"}
+          stats={stats}
+          completionRate={completionRate}
+          index={idx}
+        />
+      ))}
     </div>
   );
 }
 
+/* ─── Individual Stat Card ──────────────────────────────────────────── */
+
+function StatCard({
+  card,
+  rawValue,
+  isCompletion,
+  stats,
+  completionRate,
+  index,
+}: {
+  card: StatCardDef;
+  rawValue: number;
+  isCompletion: boolean;
+  stats: ProjectStats;
+  completionRate: number;
+  index: number;
+}) {
+  const animatedValue = useCountUp(rawValue, index * 80);
+  const [barWidth, setBarWidth] = useState(0);
+
+  useEffect(() => {
+    if (isCompletion) {
+      const timeout = setTimeout(() => setBarWidth(completionRate), 400);
+      return () => clearTimeout(timeout);
+    }
+  }, [isCompletion, completionRate]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.3,
+        delay: 0.12 + index * 0.06,
+        ease: OBSIDIAN.cubic,
+      }}
+      className={cn(
+        "group relative overflow-hidden rounded-[12px] border",
+        "px-[22px] py-[20px]",
+        "transition-all duration-180 ease-out",
+        "border-[#EBEBF0] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]",
+        "dark:border-[rgba(255,255,255,0.06)] dark:bg-[#111118] dark:shadow-none",
+        "hover:-translate-y-[2px]",
+        isCompletion && "col-span-2 lg:col-span-1",
+      )}
+    >
+      {/* 2px colored top-edge line */}
+      <div
+        className="absolute top-0 left-0 h-[2px] w-full transition-opacity duration-180 group-hover:opacity-100"
+        style={{ backgroundColor: card.lineColor, opacity: 0.8 }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col">
+        {/* Label */}
+        <p className="font-(--font-data) mb-3 text-[11px] tracking-[0.08em] text-[#6B6B7E] uppercase">
+          {card.label}
+        </p>
+
+        {/* Value — Barlow Condensed 48px, tight line-height */}
+        <span
+          className="font-(--font-metrics) text-[48px] leading-[1] text-[#0D0D14] dark:text-[#F2F2F5]"
+        >
+          {isCompletion ? `${animatedValue}%` : animatedValue}
+        </span>
+
+        {/* Divider between value and sub-label */}
+        <div className="my-3 h-px w-full bg-[#EBEBF0] dark:bg-[rgba(255,255,255,0.06)]" />
+
+        {/* Sub-label / Progress */}
+        {isCompletion ? (
+          <div className="space-y-2.5">
+            {/* 6px progress track */}
+            <div className="h-1.5 w-full overflow-hidden rounded-[3px] bg-[#EBEBF0] dark:bg-[rgba(255,255,255,0.06)]">
+              <div
+                className="h-full rounded-[3px] transition-[width] duration-800 ease-out"
+                style={{
+                  width: `${barWidth}%`,
+                  background: "linear-gradient(90deg, #4F7FFF, #6B95FF)",
+                }}
+              />
+            </div>
+            <div className="flex justify-between">
+              <span className="font-(--font-data) text-[11px] text-[#6B6B7E]">
+                {stats.completed} done
+              </span>
+              <span className="font-(--font-data) text-[11px] text-[#6B6B7E]">
+                {stats.total - stats.completed} left
+              </span>
+            </div>
+          </div>
+        ) : (
+          /* Sub-label with optional colored dot */
+          <div className="flex items-center gap-1.5">
+            {card.sub.dotColor && (
+              <span
+                className="inline-block h-[5px] w-[5px] shrink-0 rounded-full"
+                style={{ backgroundColor: card.sub.dotColor }}
+              />
+            )}
+            <span
+              className="font-(--font-data) text-[12px]"
+              style={{ color: card.sub.textColor || "#6B6B7E" }}
+            >
+              {card.sub.getText(stats)}
+            </span>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Skeleton ──────────────────────────────────────────────────────── */
+
 export function ProjectsStatsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-      <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card
-            key={i}
-            className="bg-card/20 relative overflow-hidden rounded-xl ring-1 ring-white/10 backdrop-blur-3xl transition-all"
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-2">
-                  <div className="bg-muted h-3 w-2/3 animate-pulse rounded-full opacity-40" />
-                  <div className="bg-muted h-8 w-1/3 animate-pulse rounded-lg opacity-40" />
-                </div>
-                <div className="bg-muted h-12 w-12 animate-pulse rounded-xl opacity-20" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="bg-card/20 relative overflow-hidden rounded-xl ring-1 ring-white/10 backdrop-blur-3xl transition-all">
-        <CardContent className="flex h-full flex-col justify-between p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 space-y-2">
-              <div className="bg-muted h-3 w-1/2 animate-pulse rounded-full opacity-40" />
-              <div className="bg-muted h-8 w-1/3 animate-pulse rounded-lg opacity-40" />
-            </div>
-            <div className="bg-muted h-12 w-12 animate-pulse rounded-xl opacity-20" />
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "relative overflow-hidden rounded-[12px] border px-[22px] py-[20px]",
+            "border-[#EBEBF0] bg-white dark:border-[rgba(255,255,255,0.06)] dark:bg-[#111118]",
+            i === 4 && "col-span-2 lg:col-span-1",
+          )}
+        >
+          <div className="absolute top-0 left-0 h-[2px] w-full bg-[rgba(79,127,255,0.3)]" />
+          <div className="space-y-3">
+            <div className="h-3 w-2/3 animate-pulse rounded bg-[#6B6B7E]/10" />
+            <div className="h-11 w-1/3 animate-pulse rounded-lg bg-[#6B6B7E]/10" />
+            <div className="h-px w-full bg-[#EBEBF0] dark:bg-[rgba(255,255,255,0.06)]" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-[#6B6B7E]/10" />
           </div>
-
-          <div className="mt-6 space-y-3">
-            <div className="flex justify-between">
-              <div className="bg-muted h-3 w-1/4 animate-pulse rounded-full opacity-40" />
-              <div className="bg-muted h-3 w-1/4 animate-pulse rounded-full opacity-40" />
-            </div>
-            <div className="bg-muted h-2 w-full animate-pulse rounded-full opacity-20" />
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      ))}
     </div>
   );
 }

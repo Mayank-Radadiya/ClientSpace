@@ -3,42 +3,49 @@ import { STATUS_CONFIG, type ProjectStatus } from "./ProjectCard.constants";
 
 interface StatusBadgeProps {
   status: ProjectStatus;
-  size?: "sm" | "md";
+  isOverdue?: boolean;
   className?: string;
 }
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
-  not_started: "Not Started",
-  in_progress: "In Progress",
-  review: "In Review",
-  completed: "Completed",
-  on_hold: "On Hold",
-  archived: "Archived",
+  not_started: "NOT STARTED",
+  in_progress: "IN PROGRESS",
+  review: "IN REVIEW",
+  completed: "COMPLETED",
+  on_hold: "ON HOLD",
+  archived: "ARCHIVED",
 };
 
 export function StatusBadge({
   status,
-  size = "md",
+  isOverdue,
   className,
 }: StatusBadgeProps) {
-  const config = STATUS_CONFIG[status];
-  const Icon = config.icon;
+  // If overdue, override to show red "OVERDUE" badge
+  const displayStatus = isOverdue ? "OVERDUE" : STATUS_LABELS[status];
+  const config = isOverdue
+    ? {
+        bg: "bg-[rgba(239,68,68,0.10)]",
+        text: "text-[#EF4444]",
+        border: "border-[rgba(239,68,68,0.25)]",
+        dot: "bg-[#EF4444]",
+      }
+    : STATUS_CONFIG[status];
 
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-full px-2.5 py-0.5",
-        "font-medium transition-colors",
-        size === "sm" ? "text-xs" : "text-xs",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1",
+        "font-(--font-data) text-[11px] tracking-[0.08em] uppercase",
+        "transition-colors duration-180",
         config.bg,
         config.text,
         config.border,
-        "border",
         className,
       )}
     >
-      <Icon className="h-3.5 w-3.5" />
-      {STATUS_LABELS[status]}
+      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", config.dot)} />
+      {displayStatus}
     </span>
   );
 }

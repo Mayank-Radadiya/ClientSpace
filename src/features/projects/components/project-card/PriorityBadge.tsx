@@ -3,7 +3,6 @@ import { PRIORITY_CONFIG, type ProjectPriority } from "./ProjectCard.constants";
 
 interface PriorityBadgeProps {
   priority: ProjectPriority;
-  size?: "sm" | "md";
   className?: string;
 }
 
@@ -11,27 +10,27 @@ const PRIORITY_LABELS: Record<ProjectPriority, string> = {
   low: "Low",
   medium: "Medium",
   high: "High",
-  urgent: "Urgent",
+  urgent: "Critical",
 };
 
-export function PriorityBadge({
-  priority,
-  size = "md",
-  className,
-}: PriorityBadgeProps) {
+export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
   const config = PRIORITY_CONFIG[priority];
 
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-full px-2.5 py-0.5",
-        "border font-medium",
-        size === "sm" ? "text-xs" : "text-xs",
-        config.badge,
+        "inline-flex items-center gap-1.5",
+        "font-(--font-data) text-[11px] text-[#6B6B7E]",
         className,
       )}
     >
-      <span className={cn("h-1.5 w-1.5 rounded-full", config.dot)} />
+      <span
+        className={cn(
+          "h-1.5 w-1.5 shrink-0 rounded-full",
+          config.dot,
+          priority === "urgent" && "animate-pulse",
+        )}
+      />
       {PRIORITY_LABELS[priority]}
     </span>
   );

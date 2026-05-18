@@ -25,11 +25,13 @@ export default async function ProjectsPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <ProjectList
-        clients={orgClients}
-        userRole={ctx.role as "admin" | "owner" | "member" | "client"}
-      />
+    <div className="-m-4 min-h-screen bg-[#F0F0F5] p-6 dark:bg-[#08080E] md:-m-6 md:p-8">
+      <div className="mx-auto max-w-[1400px] space-y-6">
+        <ProjectList
+          clients={orgClients}
+          userRole={ctx.role as "admin" | "owner" | "member" | "client"}
+        />
+      </div>
     </div>
   );
 }

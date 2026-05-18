@@ -36,102 +36,108 @@ export type ProjectCardData = {
   createdAt: string;
 };
 
+/* ─── Obsidian Luxury Status Colors ─────────────────────────────────── */
+
 type StatusVisual = {
-  color: string;
+  /** Hex color for dots, lines, fills */
+  hex: string;
+  /** Tailwind bg at 10% opacity */
   bg: string;
+  /** Text color */
   text: string;
+  /** Border at 25% opacity */
   border: string;
+  /** Solid dot bg */
   dot: string;
+  /** Lucide icon component */
   icon: LucideIcon;
-  ring: string;
-  glow: string;
+  /** Left-edge / top-edge line inline style color */
+  lineColor: string;
 };
 
 type PriorityVisual = {
+  hex: string;
   dot: string;
-  badge: string;
+  text: string;
 };
 
 export const STATUS_CONFIG: Record<ProjectStatus, StatusVisual> = {
   not_started: {
-    color: "from-gray-500 to-gray-700",
-    bg: "bg-gray-500/10",
-    text: "text-gray-700 dark:text-gray-300",
-    border: "border-gray-500/25",
-    dot: "bg-gray-500",
+    hex: "#6B6B7E",
+    bg: "bg-[rgba(107,107,126,0.10)]",
+    text: "text-[#6B6B7E]",
+    border: "border-[rgba(107,107,126,0.25)]",
+    dot: "bg-[#6B6B7E]",
     icon: Circle,
-    ring: "hover:ring-gray-500/40",
-    glow: "from-gray-500/12 via-gray-400/0",
+    lineColor: "#6B6B7E",
   },
   in_progress: {
-    color: "from-blue-500 to-indigo-500",
-    bg: "bg-blue-500/10",
-    text: "text-blue-700 dark:text-blue-300",
-    border: "border-blue-500/25",
-    dot: "bg-blue-500",
+    hex: "#4F7FFF",
+    bg: "bg-[rgba(79,127,255,0.10)]",
+    text: "text-[#4F7FFF]",
+    border: "border-[rgba(79,127,255,0.25)]",
+    dot: "bg-[#4F7FFF]",
     icon: RotateCcw,
-    ring: "hover:ring-blue-500/40",
-    glow: "from-blue-500/16 via-indigo-400/0",
+    lineColor: "#4F7FFF",
   },
   review: {
-    color: "from-amber-400 to-orange-500",
-    bg: "bg-amber-500/10",
-    text: "text-amber-700 dark:text-amber-300",
-    border: "border-amber-500/25",
-    dot: "bg-amber-500",
+    hex: "#F59E0B",
+    bg: "bg-[rgba(245,158,11,0.10)]",
+    text: "text-[#F59E0B]",
+    border: "border-[rgba(245,158,11,0.25)]",
+    dot: "bg-[#F59E0B]",
     icon: Clock,
-    ring: "hover:ring-amber-500/40",
-    glow: "from-amber-500/16 via-orange-400/0",
+    lineColor: "#F59E0B",
   },
   completed: {
-    color: "from-emerald-500 to-teal-500",
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-700 dark:text-emerald-300",
-    border: "border-emerald-500/25",
-    dot: "bg-emerald-500",
+    hex: "#22C55E",
+    bg: "bg-[rgba(34,197,94,0.10)]",
+    text: "text-[#22C55E]",
+    border: "border-[rgba(34,197,94,0.25)]",
+    dot: "bg-[#22C55E]",
     icon: CheckCircle2,
-    ring: "hover:ring-emerald-500/40",
-    glow: "from-emerald-500/16 via-teal-400/0",
+    lineColor: "#22C55E",
   },
   on_hold: {
-    color: "from-orange-500 to-red-500",
-    bg: "bg-amber-500/10",
-    text: "text-amber-700 dark:text-amber-300",
-    border: "border-amber-500/25",
-    dot: "bg-amber-500",
+    hex: "#F59E0B",
+    bg: "bg-[rgba(245,158,11,0.10)]",
+    text: "text-[#F59E0B]",
+    border: "border-[rgba(245,158,11,0.25)]",
+    dot: "bg-[#F59E0B]",
     icon: PauseCircle,
-    ring: "hover:ring-amber-500/40",
-    glow: "from-amber-500/16 via-red-400/0",
+    lineColor: "#F59E0B",
   },
   archived: {
-    color: "from-gray-500 to-gray-700",
-    bg: "bg-gray-500/10",
-    text: "text-gray-700 dark:text-gray-300",
-    border: "border-gray-500/25",
-    dot: "bg-gray-500",
+    hex: "#6B6B7E",
+    bg: "bg-[rgba(107,107,126,0.10)]",
+    text: "text-[#6B6B7E]",
+    border: "border-[rgba(107,107,126,0.25)]",
+    dot: "bg-[#6B6B7E]",
     icon: Archive,
-    ring: "hover:ring-gray-500/40",
-    glow: "from-gray-500/12 via-gray-400/0",
+    lineColor: "#6B6B7E",
   },
 };
 
 export const PRIORITY_CONFIG: Record<ProjectPriority, PriorityVisual> = {
   low: {
-    dot: "bg-gray-400",
-    badge: "text-gray-700 bg-gray-500/10 border-gray-500/25 dark:text-gray-300",
+    hex: "#22C55E",
+    dot: "bg-[#22C55E]",
+    text: "text-[#22C55E]",
   },
   medium: {
-    dot: "bg-amber-500",
-    badge:
-      "text-amber-700 bg-amber-500/10 border-amber-500/25 dark:text-amber-300",
+    hex: "#F59E0B",
+    dot: "bg-[#F59E0B]",
+    text: "text-[#F59E0B]",
   },
   high: {
-    dot: "bg-red-500",
-    badge: "text-red-700 bg-red-500/10 border-red-500/25 dark:text-red-300",
+    hex: "#EF4444",
+    dot: "bg-[#EF4444]",
+    text: "text-[#EF4444]",
   },
   urgent: {
-    dot: "bg-red-500",
-    badge: "text-red-700 bg-red-500/10 border-red-500/25 dark:text-red-300",
+    hex: "#EF4444",
+    dot: "bg-[#EF4444]",
+    text: "text-[#EF4444]",
   },
 };
 
@@ -149,3 +155,10 @@ export const STATUS_PROGRESS: Record<ProjectStatus, number> = {
   on_hold: 45,
   archived: 100,
 };
+
+/* ─── Shared Design Tokens ──────────────────────────────────────────── */
+
+export const OBSIDIAN = {
+  cubic: [0.16, 1, 0.3, 1] as [number, number, number, number],
+  noise: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+} as const;
