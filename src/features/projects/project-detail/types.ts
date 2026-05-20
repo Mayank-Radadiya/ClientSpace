@@ -108,4 +108,10 @@ export interface Invoice {
   created_at: string;
 }
 
+export interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 export type ActiveSection = "milestones" | "files" | "invoices" | "activity";

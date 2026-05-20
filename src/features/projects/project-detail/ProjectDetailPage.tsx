@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useProjectDetail } from "./hooks/useProjectDetail";
 import { useProjectPermissions } from "./hooks/useProjectPermissions";
 import { useReducedMotion } from "./hooks/useReducedMotion";
-import {
+import type {
   Project,
   Milestone,
   ProjectMember,
@@ -17,29 +17,24 @@ import {
   ActiveSection,
 } from "./types";
 import { gooeyToast } from "goey-toast";
-import { ActivityTimeline } from "@/features/activity/components/ActivityTimeline";
 import type { ActivityEventMetadata } from "@/db/schema";
 
-// v2 components
-import { CommandHeader } from "./components/v2/CommandHeader";
-import { MetricBand } from "./components/v2/MetricBand";
-import { NavRail } from "./components/v2/NavRail";
-import { MilestonesView } from "./components/v2/MilestonesView";
-import { ChatPanel } from "./components/v2/ChatPanel";
-import { TeamPopover } from "./components/v2/TeamPopover";
-import { CommandPalette } from "./components/v2/CommandPalette";
-import { MilestoneBottomSheet } from "./components/v2/MilestoneBottomSheet";
-import { AddMilestoneDialog } from "./components/v2/AddMilestoneDialog";
-
-// Existing tab components for non-redesigned sections
-import { FilesTab } from "./components/FilesTab";
-import { InvoicesTab } from "./components/InvoicesTab";
+// v3 components
+import { ProjectTopBar } from "./components/v3/ProjectTopBar";
+import { HeroStatsBand } from "./components/v3/HeroStatsBand";
+import { ProjectTabNav } from "./components/v3/ProjectTabNav";
+import { ProjectRightPanel } from "./components/v3/ProjectRightPanel";
+import { MilestonesKanban } from "./components/v3/MilestonesKanban";
+import { MilestoneSlideOver } from "./components/v3/MilestoneSlideOver";
+import { FilesAssetsTab } from "./components/v3/FilesAssetsTab";
+import { InvoicesDetailTab } from "./components/v3/InvoicesDetailTab";
+import { ActivityLogTab } from "./components/v3/ActivityLogTab";
+import { SAMPLE_ACTIVITY, type ActivityEntry } from "./components/v3/sampleData";
 
 interface ProjectDetailPageProps {
   orgId: string;
   projectId: string;
   role: OrgRole | undefined;
-
   initialProject: Project;
   initialMilestones: Milestone[];
   initialMembers: ProjectMember[];
@@ -81,11 +76,9 @@ export function ProjectDetailPage({
 
   const {
     milestones,
-    discussions,
     files,
     updateMilestoneOptimistic,
     addMilestoneOptimistic,
-    addDiscussionOptimistic,
   } = useProjectDetail({
     projectId,
     orgId,
@@ -102,255 +95,214 @@ export function ProjectDetailPage({
   // ── UI State ────────────────────────────────────────────────
   const [activeSection, setActiveSection] =
     useState<ActiveSection>("milestones");
-  const [chatOpen, setChatOpen] = useState(false);
-  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [teamPopoverOpen, setTeamPopoverOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
     null,
   );
-  const [addMilestoneOpen, setAddMilestoneOpen] = useState(false);
-  const [addMilestonePresetStatus, setAddMilestonePresetStatus] = useState<
-    string | undefined
-  >();
+
+  // ── Transform activity data to v3 format ────────────────────
+  const activityEntries: ActivityEntry[] =
+    initialActivity.length > 0
+      ? initialActivity.map((a) => ({
+          id: a.id,
+          eventType: a.eventType,
+          description:
+            (a.metadata as Record<string, string>)?.description ||
+            a.eventType.replace(/\./g, " "),
+          actor: a.actor?.name || "System",
+          timestamp: a.createdAt,
+          category: (a.eventType.split(".")[0] || "project") as ActivityEntry["category"],
+          color: (a.eventType.includes("complete")
+            ? "green"
+            : a.eventType.includes("overdue")
+              ? "red"
+              : a.eventType.includes("warning")
+                ? "amber"
+                : "blue") as ActivityEntry["color"],
+        }))
+      : SAMPLE_ACTIVITY;
 
   // ── Handlers ────────────────────────────────────────────────
-  const handleUpdateProject = (updates: Partial<Project>) => {
-    gooeyToast.success("Project updated");
-  };
+  const handleEdit = () => gooeyToast.success("Edit mode");
+  const handleDuplicate = () => gooeyToast.success("Project duplicated");
+  const handleExport = () => gooeyToast.success("Report exported");
+  const handleShare = () => gooeyToast.success("Link copied");
+  const handleArchive = () => gooeyToast.success("Project archived");
+  const handleDelete = () => gooeyToast.error("Project deleted");
+  const handleCreateInvoice = () => gooeyToast.success("Creating invoice...");
+  const handleAddMember = () => gooeyToast.success("Invite sent");
 
-  const handleArchiveProject = () => {
-    gooeyToast.success("Project archived");
-  };
+  const handleAddMilestone = useCallback(
+    (presetStatus?: string) => {
+      const newMilestone: Milestone = {
+        id: crypto.randomUUID(),
+        org_id: orgId,
+        project_id: projectId,
+        title: "New Milestone",
+        due_date: null,
+        completed: presetStatus === "done",
+        completed_at: presetStatus === "done" ? new Date().toISOString() : null,
+        order: milestones.length,
+        status: (presetStatus || "todo") as Milestone["status"],
+      };
+      addMilestoneOptimistic(newMilestone);
+      gooeyToast.success("Milestone added");
+    },
+    [orgId, projectId, milestones.length, addMilestoneOptimistic],
+  );
 
-  const handleDeleteProject = () => {
-    gooeyToast.error("Project deleted");
-  };
+  const handleUpdateMilestone = useCallback(
+    (id: string, updates: Partial<Milestone>) => {
+      updateMilestoneOptimistic(id, updates);
+    },
+    [updateMilestoneOptimistic],
+  );
 
-  const handleUpdateMilestone = (id: string, updates: Partial<Milestone>) => {
-    updateMilestoneOptimistic(id, updates);
-  };
+  const handleDeleteMilestone = useCallback(
+    (id: string) => {
+      updateMilestoneOptimistic(id, {});
+      gooeyToast.success("Milestone deleted");
+    },
+    [updateMilestoneOptimistic],
+  );
 
-  const handleAddMilestone = useCallback((presetStatus?: string) => {
-    setAddMilestonePresetStatus(presetStatus);
-    setAddMilestoneOpen(true);
-  }, []);
-
-  const handleAddMilestoneSubmit = (data: {
-    title: string;
-    description: string;
-    assigneeId: string | null;
-    dueDate: Date | null;
-    priority: string;
-    status: string;
-  }) => {
-    const newMilestone: Milestone = {
-      id: crypto.randomUUID(),
-      org_id: orgId,
-      project_id: projectId,
-      title: data.title,
-      description: data.description || undefined,
-      due_date: data.dueDate ? data.dueDate.toISOString() : null,
-      completed: data.status === "done",
-      completed_at: data.status === "done" ? new Date().toISOString() : null,
-      order: milestones.length,
-      priority: data.priority as Milestone["priority"],
-      status: data.status as Milestone["status"],
-    };
-    addMilestoneOptimistic(newMilestone);
-    gooeyToast.success("Milestone added");
-  };
-
-  const handleDeleteMilestone = (id: string) => {
-    updateMilestoneOptimistic(id, {}); // In production, this would be a delete
-    gooeyToast.success("Milestone deleted");
-  };
-
-  const handleSendMessage = (body: string, isInternal: boolean) => {
-    const dummyComment: Comment = {
-      id: crypto.randomUUID(),
-      org_id: orgId,
-      project_id: projectId,
-      asset_id: null,
-      author_id: "user-id-here",
-      body,
-      parent_id: null,
-      hidden: false,
-      metadata: { internal: isInternal },
-      created_at: new Date().toISOString(),
-      author: { id: "user-id", name: "You", avatar_url: null },
-    };
-    addDiscussionOptimistic(dummyComment);
-  };
-
-  const handleAddMember = async (email: string, targetRole: string) => {
-    gooeyToast.success("Invite sent");
-  };
-
-  const handleRemoveMember = async (userId: string) => {
-    gooeyToast.success("Member removed");
-  };
-
-  const handleChangeRole = async (userId: string, newRole: string) => {
-    gooeyToast.success("Role updated");
-  };
+  const handleMoveMilestone = useCallback(
+    (id: string, newStatus: string) => {
+      updateMilestoneOptimistic(id, {
+        status: newStatus as Milestone["status"],
+        completed: newStatus === "done",
+        completed_at: newStatus === "done" ? new Date().toISOString() : null,
+      });
+      gooeyToast.success("Milestone moved");
+    },
+    [updateMilestoneOptimistic],
+  );
 
   // ── Keyboard shortcuts ──────────────────────────────────────
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCommandPaletteOpen(true);
+    const handler = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+      if (e.key === "Escape" && selectedMilestone) {
+        setSelectedMilestone(null);
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedMilestone]);
+
+  // ── Tab counts ──────────────────────────────────────────────
+  const counts = {
+    milestones: milestones.length,
+    files: files.length,
+    invoices: initialInvoices.length,
+    activity: activityEntries.length,
+  };
 
   // ── Render active section ───────────────────────────────────
   const renderSection = () => {
     switch (activeSection) {
       case "milestones":
         return (
-          <MilestonesView
+          <MilestonesKanban
             milestones={milestones}
-            onUpdateMilestone={handleUpdateMilestone}
-            onAddMilestone={handleAddMilestone}
             onMilestoneClick={setSelectedMilestone}
+            onAddMilestone={handleAddMilestone}
+            onMoveMilestone={handleMoveMilestone}
           />
         );
       case "files":
         return (
-          <FilesTab
-            folders={initialFolders}
-            assets={files}
+          <FilesAssetsTab
+            files={files}
             onUpload={(f) => gooeyToast.success("Upload started...")}
-            onDeleteAsset={(id) => gooeyToast.success("Asset deleted")}
+            onDelete={(id) => gooeyToast.success("Asset deleted")}
           />
         );
       case "invoices":
-        if (!permissions.canViewInvoices) return null;
         return (
-          <InvoicesTab
-            projectId={projectId}
+          <InvoicesDetailTab
             invoices={initialInvoices}
-            budget={initialProject.budget}
+            onCreateInvoice={handleCreateInvoice}
           />
         );
       case "activity":
-        return <ActivityTimeline items={initialActivity} maxHeight="500px" />;
+        return <ActivityLogTab activity={activityEntries} />;
       default:
         return null;
     }
   };
 
   return (
-    <LayoutGroup>
-      <div className="bg-background text-foreground flex min-h-screen flex-col font-sans">
-        {/* Zone A — Command Header */}
-        <CommandHeader
+    <div
+      className="flex min-h-screen flex-col"
+      style={{ background: "var(--pd-body)", color: "var(--pd-text-primary)" }}
+    >
+      {/* Zone A — Top Bar */}
+      <ProjectTopBar
+        project={initialProject}
+        onEdit={handleEdit}
+        onAddMilestone={() => handleAddMilestone()}
+        onDuplicate={handleDuplicate}
+        onExport={handleExport}
+        onShare={handleShare}
+        onArchive={handleArchive}
+        onDelete={handleDelete}
+      />
+
+      {/* Zone B — Hero Stats Band */}
+      <HeroStatsBand
+        project={initialProject}
+        milestones={milestones}
+        invoicesTotal={invoicesTotal}
+      />
+
+      {/* Zone C — Tab Navigation */}
+      <ProjectTabNav
+        activeTab={activeSection}
+        onTabChange={setActiveSection}
+        counts={counts}
+      />
+
+      {/* Zone D — Main Content + Right Panel */}
+      <div
+        className="flex flex-1 gap-6 px-6 pt-6 pb-8"
+        style={{ background: "var(--pd-body)" }}
+      >
+        {/* Main content area */}
+        <main className="min-w-0 flex-1">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSection}
+              initial={reduced ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {renderSection()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
+        {/* Right panel */}
+        <ProjectRightPanel
           project={initialProject}
           members={initialMembers}
-          permissions={permissions}
-          onUpdate={handleUpdateProject}
-          onToggleChat={() => setChatOpen((o) => !o)}
-          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-          onOpenTeamPopover={() => setTeamPopoverOpen(true)}
-          onArchive={handleArchiveProject}
-          onDelete={handleDeleteProject}
+          onCreateInvoice={handleCreateInvoice}
+          onDuplicate={handleDuplicate}
+          onExport={handleExport}
+          onArchive={handleArchive}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+          onAddMember={handleAddMember}
         />
-
-        {/* Zone B — Metric Band */}
-        <div className="w-full px-5 py-4">
-          <MetricBand
-            project={initialProject}
-            milestones={milestones}
-            permissions={permissions}
-            invoicesTotal={invoicesTotal}
-            onAddMilestone={() => handleAddMilestone()}
-          />
-        </div>
-
-        {/* Main area: Nav Rail + Content + Chat Panel */}
-        <motion.div
-          layout={!reduced}
-          className="flex flex-1"
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-          {/* Zone C — Nav Rail */}
-          <NavRail
-            project={initialProject}
-            permissions={permissions}
-            activeSection={activeSection}
-            onSectionChange={setActiveSection}
-            onUpdate={handleUpdateProject}
-            onArchive={handleArchiveProject}
-            onDelete={handleDeleteProject}
-          />
-
-          {/* Zone D — Main Content */}
-          <motion.main
-            layout={!reduced}
-            className="min-w-0 flex-1 p-6"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeSection}
-                initial={reduced ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                {renderSection()}
-              </motion.div>
-            </AnimatePresence>
-          </motion.main>
-
-          {/* Zone E — Chat Panel */}
-          <ChatPanel
-            isOpen={chatOpen}
-            onClose={() => setChatOpen(false)}
-            comments={discussions}
-            members={initialMembers}
-            onSendMessage={handleSendMessage}
-            canViewInternal={permissions.canViewInternalThreads}
-          />
-        </motion.div>
-
-        {/* Overlays */}
-        <CommandPalette
-          isOpen={commandPaletteOpen}
-          onClose={() => setCommandPaletteOpen(false)}
-          onNavigate={(section) => {
-            setActiveSection(section);
-            setCommandPaletteOpen(false);
-          }}
-          onAddMilestone={() => handleAddMilestone()}
-          onArchive={handleArchiveProject}
-          onDelete={handleDeleteProject}
-          onOpenChat={() => setChatOpen(true)}
-        />
-
-        <MilestoneBottomSheet
-          milestone={selectedMilestone}
-          onClose={() => setSelectedMilestone(null)}
-          onUpdate={handleUpdateMilestone}
-          onDelete={handleDeleteMilestone}
-        />
-
-        <AddMilestoneDialog
-          open={addMilestoneOpen}
-          onOpenChange={setAddMilestoneOpen}
-          presetStatus={addMilestonePresetStatus}
-          members={initialMembers}
-          onSubmit={handleAddMilestoneSubmit}
-        />
-
-        {/* Team Popover is rendered inline in header via avatar cluster */}
       </div>
-    </LayoutGroup>
+
+      {/* Slide-over overlay */}
+      <MilestoneSlideOver
+        milestone={selectedMilestone}
+        onClose={() => setSelectedMilestone(null)}
+        onUpdate={handleUpdateMilestone}
+        onDelete={handleDeleteMilestone}
+      />
+    </div>
   );
 }

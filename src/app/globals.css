@@ -531,3 +531,172 @@ body {
   mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJECT DETAIL v3 — "Obsidian Luxury" Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Backgrounds */
+  --pd-body: #F0F0F5;
+  --pd-surface: #FFFFFF;
+  --pd-elevated: #FAFAFA;
+  /* Borders */
+  --pd-border: #EBEBF0;
+  --pd-divider: rgba(0,0,0,0.05);
+  /* Accent — blue only */
+  --pd-accent: #3B6FEF;
+  --pd-accent-hover: #2D5FDF;
+  --pd-accent-subtle: rgba(59,111,239,0.08);
+  /* Text */
+  --pd-text-primary: #0D0D14;
+  --pd-text-secondary: #6B6B7E;
+  --pd-text-muted: #A0A0B0;
+  /* Shadows */
+  --pd-shadow-card: 0 1px 4px rgba(0,0,0,0.06);
+  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.06);
+  --pd-shadow-slide: -4px 0 24px rgba(0,0,0,0.12);
+  /* Status */
+  --pd-status-progress: #4F7FFF;
+  --pd-status-progress-bg: rgba(79,127,255,0.10);
+  --pd-status-done: #22C55E;
+  --pd-status-done-bg: rgba(34,197,94,0.10);
+  --pd-status-hold: #6B6B7E;
+  --pd-status-hold-bg: rgba(107,107,126,0.10);
+  --pd-status-overdue: #EF4444;
+  --pd-status-overdue-bg: rgba(239,68,68,0.10);
+  --pd-status-warning: #F59E0B;
+  --pd-status-warning-bg: rgba(245,158,11,0.10);
+  /* Priority dots */
+  --pd-priority-low: #22C55E;
+  --pd-priority-medium: #F59E0B;
+  --pd-priority-high: #EF4444;
+  --pd-priority-critical: #EF4444;
+  /* Easing */
+  --pd-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark {
+  /* Backgrounds */
+  --pd-body: #08080E;
+  --pd-surface: #111118;
+  --pd-elevated: #16161F;
+  /* Borders */
+  --pd-border: rgba(255,255,255,0.06);
+  --pd-divider: rgba(255,255,255,0.05);
+  /* Accent */
+  --pd-accent: #4F7FFF;
+  --pd-accent-hover: #6B95FF;
+  --pd-accent-subtle: rgba(79,127,255,0.10);
+  /* Text */
+  --pd-text-primary: #F2F2F5;
+  --pd-text-secondary: #6B6B7E;
+  --pd-text-muted: #3D3D4E;
+  /* Shadows */
+  --pd-shadow-card: 0 1px 4px rgba(0,0,0,0.3);
+  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.4);
+  --pd-shadow-slide: -4px 0 24px rgba(0,0,0,0.5);
+}
+
+/* Card base */
+.pd-card {
+  background: var(--pd-surface);
+  border: 1px solid var(--pd-border);
+  border-radius: 14px;
+  box-shadow: var(--pd-shadow-card);
+  transition: box-shadow 0.2s var(--pd-ease), border-color 0.2s var(--pd-ease);
+}
+.pd-card:hover {
+  box-shadow: var(--pd-shadow-elevated);
+}
+
+/* Stat card top line */
+.pd-top-line {
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--pd-accent);
+}
+
+/* Animations */
+@keyframes pd-progress-fill {
+  from { width: 0%; }
+}
+
+@keyframes pd-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pd-slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes pd-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pd-pulse-critical {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+.pd-animate-fade-up {
+  animation: pd-fade-up 0.4s var(--pd-ease) both;
+}
+
+.pd-animate-slide-in {
+  animation: pd-slide-in-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pd-animate-backdrop {
+  animation: pd-backdrop-in 0.2s ease both;
+}
+
+.pd-pulse-critical {
+  animation: pd-pulse-critical 1.4s ease-in-out infinite;
+}
+
+/* Progress track */
+.pd-progress-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--pd-border);
+  overflow: hidden;
+}
+
+.pd-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--pd-accent);
+  animation: pd-progress-fill 0.8s var(--pd-ease) 0.4s both;
+}
+
+/* Scrollbar for project detail */
+.pd-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(79,127,255,0.25) transparent;
+}
+.pd-scroll::-webkit-scrollbar { width: 4px; }
+.pd-scroll::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: rgba(79,127,255,0.25);
+}
+.pd-scroll::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pd-animate-fade-up,
+  .pd-animate-slide-in,
+  .pd-animate-backdrop,
+  .pd-pulse-critical {
+    animation: none !important;
+  }
+  .pd-progress-fill {
+    animation: none !important;
+  }
+}
