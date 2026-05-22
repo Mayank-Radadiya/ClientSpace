@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useProjectDetail } from "./hooks/useProjectDetail";
 import { useProjectPermissions } from "./hooks/useProjectPermissions";
@@ -231,6 +231,12 @@ export function ProjectDetailPage({
     }
   };
 
+  // ── Completion percentage for header badge ──────────────────
+  const completionPct = useMemo(() => {
+    if (milestones.length === 0) return 0;
+    return Math.round((milestones.filter((m) => m.completed).length / milestones.length) * 100);
+  }, [milestones]);
+
   return (
     <div
       className="flex min-h-screen flex-col"
@@ -239,6 +245,7 @@ export function ProjectDetailPage({
       {/* Zone A — Top Bar */}
       <ProjectTopBar
         project={initialProject}
+        completionPct={completionPct}
         onEdit={handleEdit}
         onAddMilestone={() => handleAddMilestone()}
         onDuplicate={handleDuplicate}
@@ -264,16 +271,16 @@ export function ProjectDetailPage({
 
       {/* Zone D — Main Content + Right Panel */}
       <div
-        className="flex flex-1 gap-6 px-6 pt-6 pb-8"
-        style={{ background: "var(--pd-body)" }}
+        className="flex flex-1 px-8 pt-6 pb-8"
+        style={{ background: "var(--pd-body)", gap: 24 }}
       >
         {/* Main content area */}
         <main className="min-w-0 flex-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeSection}
-              initial={reduced ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={reduced ? false : { opacity: 0, y: 2 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
@@ -282,7 +289,7 @@ export function ProjectDetailPage({
           </AnimatePresence>
         </main>
 
-        {/* Right panel */}
+        {/* Right panel — 320px fixed */}
         <ProjectRightPanel
           project={initialProject}
           members={initialMembers}
@@ -306,3 +313,4 @@ export function ProjectDetailPage({
     </div>
   );
 }
+

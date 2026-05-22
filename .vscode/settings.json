@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["Goey", "Supabase"]
+  "cSpell.words": ["Goey", "Supabase"],
+  "python.testing.pytestArgs": ["."],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

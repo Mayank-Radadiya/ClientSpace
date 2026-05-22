@@ -533,95 +533,122 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PROJECT DETAIL v3 — "Obsidian Luxury" Design Tokens
+   PROJECT DETAIL v4 — "Obsidian Luxury × Precision Engineering"
+   Linear × Vercel × Stripe Dashboard aesthetic
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Backgrounds */
-  --pd-body: #F0F0F5;
+  /* ── Backgrounds ─────────────────────────────────────────── */
+  --pd-body: #F6F7FB;
   --pd-surface: #FFFFFF;
-  --pd-elevated: #FAFAFA;
-  /* Borders */
-  --pd-border: #EBEBF0;
-  --pd-divider: rgba(0,0,0,0.05);
-  /* Accent — blue only */
-  --pd-accent: #3B6FEF;
-  --pd-accent-hover: #2D5FDF;
-  --pd-accent-subtle: rgba(59,111,239,0.08);
-  /* Text */
-  --pd-text-primary: #0D0D14;
-  --pd-text-secondary: #6B6B7E;
-  --pd-text-muted: #A0A0B0;
-  /* Shadows */
-  --pd-shadow-card: 0 1px 4px rgba(0,0,0,0.06);
-  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.06);
+  --pd-elevated: #F0F1F8;
+
+  /* ── Borders ─────────────────────────────────────────────── */
+  --pd-border: rgba(0,0,0,0.07);
+  --pd-divider: rgba(0,0,0,0.06);
+
+  /* ── Accent — electric blue ──────────────────────────────── */
+  --pd-accent: #2D5EE8;
+  --pd-accent-hover: #2451D0;
+  --pd-accent-subtle: rgba(45,94,232,0.08);
+  --pd-accent-glow: rgba(45,94,232,0.08);
+
+  /* ── Text ────────────────────────────────────────────────── */
+  --pd-text-primary: #0D0D1A;
+  --pd-text-secondary: #5C5C72;
+  --pd-text-muted: #A0A0B8;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --pd-shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.08);
+  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.10);
   --pd-shadow-slide: -4px 0 24px rgba(0,0,0,0.12);
-  /* Status */
-  --pd-status-progress: #4F7FFF;
-  --pd-status-progress-bg: rgba(79,127,255,0.10);
-  --pd-status-done: #22C55E;
-  --pd-status-done-bg: rgba(34,197,94,0.10);
-  --pd-status-hold: #6B6B7E;
-  --pd-status-hold-bg: rgba(107,107,126,0.10);
-  --pd-status-overdue: #EF4444;
-  --pd-status-overdue-bg: rgba(239,68,68,0.10);
-  --pd-status-warning: #F59E0B;
-  --pd-status-warning-bg: rgba(245,158,11,0.10);
-  /* Priority dots */
-  --pd-priority-low: #22C55E;
-  --pd-priority-medium: #F59E0B;
-  --pd-priority-high: #EF4444;
-  --pd-priority-critical: #EF4444;
-  /* Easing */
+
+  /* ── Semantic Status ─────────────────────────────────────── */
+  --pd-danger: #C94040;
+  --pd-warning: #A06820;
+  --pd-success: #2D8A5E;
+  --pd-status-progress: #2D5EE8;
+  --pd-status-progress-bg: rgba(45,94,232,0.08);
+  --pd-status-done: #2D8A5E;
+  --pd-status-done-bg: rgba(45,138,94,0.08);
+  --pd-status-hold: #5C5C72;
+  --pd-status-hold-bg: rgba(92,92,114,0.08);
+  --pd-status-overdue: #C94040;
+  --pd-status-overdue-bg: rgba(201,64,64,0.08);
+  --pd-status-warning: #A06820;
+  --pd-status-warning-bg: rgba(160,104,32,0.08);
+
+  /* ── Priority dots ───────────────────────────────────────── */
+  --pd-priority-low: #2D8A5E;
+  --pd-priority-medium: #A06820;
+  --pd-priority-high: #C94040;
+  --pd-priority-critical: #C94040;
+
+  /* ── Easing ──────────────────────────────────────────────── */
   --pd-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark {
-  /* Backgrounds */
-  --pd-body: #08080E;
+  /* ── Backgrounds ─────────────────────────────────────────── */
+  --pd-body: #0A0A0F;
   --pd-surface: #111118;
   --pd-elevated: #16161F;
-  /* Borders */
+
+  /* ── Borders ─────────────────────────────────────────────── */
   --pd-border: rgba(255,255,255,0.06);
   --pd-divider: rgba(255,255,255,0.05);
-  /* Accent */
-  --pd-accent: #4F7FFF;
-  --pd-accent-hover: #6B95FF;
-  --pd-accent-subtle: rgba(79,127,255,0.10);
-  /* Text */
-  --pd-text-primary: #F2F2F5;
-  --pd-text-secondary: #6B6B7E;
-  --pd-text-muted: #3D3D4E;
-  /* Shadows */
-  --pd-shadow-card: 0 1px 4px rgba(0,0,0,0.3);
-  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.4);
+
+  /* ── Accent ──────────────────────────────────────────────── */
+  --pd-accent: #3B6FF0;
+  --pd-accent-hover: #5585F5;
+  --pd-accent-subtle: rgba(59,111,240,0.12);
+  --pd-accent-glow: rgba(59,111,240,0.15);
+
+  /* ── Text ────────────────────────────────────────────────── */
+  --pd-text-primary: #F0F0F5;
+  --pd-text-secondary: #6B6B80;
+  --pd-text-muted: #3A3A4A;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --pd-shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.25);
+  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.5), 0 12px 40px rgba(0,0,0,0.3);
   --pd-shadow-slide: -4px 0 24px rgba(0,0,0,0.5);
+
+  /* ── Semantic Status ─────────────────────────────────────── */
+  --pd-danger: #E05C5C;
+  --pd-warning: #C47F2A;
+  --pd-success: #3DAA72;
+  --pd-status-progress: #3B6FF0;
+  --pd-status-progress-bg: rgba(59,111,240,0.12);
+  --pd-status-done: #3DAA72;
+  --pd-status-done-bg: rgba(61,170,114,0.12);
+  --pd-status-hold: #6B6B80;
+  --pd-status-hold-bg: rgba(107,107,128,0.10);
+  --pd-status-overdue: #E05C5C;
+  --pd-status-overdue-bg: rgba(224,92,92,0.10);
+  --pd-status-warning: #C47F2A;
+  --pd-status-warning-bg: rgba(196,127,42,0.10);
+
+  /* ── Priority dots ───────────────────────────────────────── */
+  --pd-priority-low: #3DAA72;
+  --pd-priority-medium: #C47F2A;
+  --pd-priority-high: #E05C5C;
+  --pd-priority-critical: #E05C5C;
 }
 
-/* Card base */
+/* ── Card base ─────────────────────────────────────────────── */
 .pd-card {
   background: var(--pd-surface);
   border: 1px solid var(--pd-border);
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: var(--pd-shadow-card);
-  transition: box-shadow 0.2s var(--pd-ease), border-color 0.2s var(--pd-ease);
+  transition: box-shadow 150ms var(--pd-ease), border-color 150ms var(--pd-ease);
 }
 .pd-card:hover {
   box-shadow: var(--pd-shadow-elevated);
 }
 
-/* Stat card top line */
-.pd-top-line {
-  position: absolute;
-  top: 0;
-  left: 16px;
-  right: 16px;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: var(--pd-accent);
-}
-
-/* Animations */
+/* ── Animations ────────────────────────────────────────────── */
 @keyframes pd-progress-fill {
   from { width: 0%; }
 }
@@ -646,6 +673,16 @@ body {
   50% { opacity: 0.5; transform: scale(1.4); }
 }
 
+@keyframes pd-tab-enter {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pd-health-segment {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+
 .pd-animate-fade-up {
   animation: pd-fade-up 0.4s var(--pd-ease) both;
 }
@@ -662,38 +699,50 @@ body {
   animation: pd-pulse-critical 1.4s ease-in-out infinite;
 }
 
-/* Progress track */
+.pd-animate-tab-enter {
+  animation: pd-tab-enter 150ms var(--pd-ease) both;
+}
+
+.pd-animate-health-seg {
+  transform-origin: left center;
+  animation: pd-health-segment 400ms var(--pd-ease) both;
+}
+
+/* ── Progress bar ──────────────────────────────────────────── */
 .pd-progress-track {
-  height: 6px;
-  border-radius: 3px;
-  background: var(--pd-border);
+  height: 4px;
+  border-radius: 4px;
+  background: var(--pd-divider);
   overflow: hidden;
 }
 
 .pd-progress-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 4px;
   background: var(--pd-accent);
-  animation: pd-progress-fill 0.8s var(--pd-ease) 0.4s both;
+  animation: pd-progress-fill 600ms ease-out 0.3s both;
 }
 
-/* Scrollbar for project detail */
+/* ── Scrollbar ─────────────────────────────────────────────── */
 .pd-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(79,127,255,0.25) transparent;
+  scrollbar-color: rgba(59,111,240,0.2) transparent;
 }
 .pd-scroll::-webkit-scrollbar { width: 4px; }
 .pd-scroll::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background: rgba(79,127,255,0.25);
+  background: rgba(59,111,240,0.2);
 }
 .pd-scroll::-webkit-scrollbar-track { background: transparent; }
 
+/* ── Reduced motion ────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .pd-animate-fade-up,
   .pd-animate-slide-in,
   .pd-animate-backdrop,
-  .pd-pulse-critical {
+  .pd-pulse-critical,
+  .pd-animate-tab-enter,
+  .pd-animate-health-seg {
     animation: none !important;
   }
   .pd-progress-fill {
