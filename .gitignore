@@ -61,7 +61,5 @@ graphify-tmp
 /graphify-tmp
 .graphify-venv
 graphify-venv
-graphify-out
-
 
 .antigravitycli
