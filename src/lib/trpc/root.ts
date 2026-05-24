@@ -15,11 +15,19 @@ import { projectsRouter } from "@/features/projects/server/projectsRouter";
 import { filesRouter } from "@/features/files/server/filesRouter";
 import { invoicesRouter } from "@/features/invoices/server/invoicesRouter";
 
+// v4 routers
+import { milestonesRouter } from "@/features/projects/server/milestonesRouter";
+import { projectNotesRouter } from "@/features/projects/server/projectNotesRouter";
+
 export const appRouter = createTRPCRouter({
   // Pluralized cached routers
   projects: projectsRouter,
   files: filesRouter,
   invoices: invoicesRouter,
+
+  // v4 feature routers
+  milestones: milestonesRouter,
+  projectNotes: projectNotesRouter,
 
   // Compatibility singular stubs delegating to plurals
   project: projectRouter,
@@ -36,3 +44,4 @@ export const appRouter = createTRPCRouter({
 });
 
 export type AppRouter = typeof appRouter;
+

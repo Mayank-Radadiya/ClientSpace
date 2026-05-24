@@ -136,3 +136,29 @@ export async function deleteProjectAction(projectId: string): Promise<ActionStat
     return { error: error.message || "Failed to delete project." };
   }
 }
+
+// ── v4 revalidation wrappers ──────────────────────────────────────────────────
+// Called client-side after tRPC mutations resolve (Fix 7).
+// tRPC procedures cannot call revalidateTag() directly.
+
+/** Invalidate the milestone list cache for a project. */
+export async function revalidateMilestones(projectId: string): Promise<void> {
+  revalidateTag(`milestones-${projectId}`, "max");
+}
+
+/** Invalidate the file/asset cache for a project. */
+export async function revalidateFiles(projectId: string): Promise<void> {
+  revalidateTag(`files-${projectId}`, "max");
+}
+
+/** Invalidate the project notes cache. */
+export async function revalidateProjectNotes(projectId: string): Promise<void> {
+  revalidateTag(`notes-${projectId}`, "max");
+}
+
+/** Invalidate the asset approval status cache. */
+export async function revalidateAssetApproval(assetId: string, projectId: string): Promise<void> {
+  revalidateTag(`asset-${assetId}`, "max");
+  revalidateTag(`files-${projectId}`, "max");
+}
+

@@ -106,6 +106,17 @@ export const shareEntityTypeEnum = pgEnum("share_entity_type", [
   "asset",
   "file_group",
 ]);
+export const milestoneStatusEnum = pgEnum("milestone_status", [
+  "todo",
+  "in_progress",
+  "done",
+]);
+export const milestonePriorityEnum = pgEnum("milestone_priority", [
+  "low",
+  "medium",
+  "high",
+  "urgent",
+]);
 
 // ─── Core Tables ──────────────────────────────────────────────────────────────
 
@@ -217,6 +228,9 @@ export const projects = pgTable(
   ],
 ).enableRLS();
 
+// SubTask shape stored in milestones.subTasks JSONB column.
+// TypeScript type: Array<{ id: string; label: string; completed: boolean }>
+
 // Milestones
 export const milestones = pgTable(
   "milestones",
@@ -230,13 +244,23 @@ export const milestones = pgTable(
       .references(() => projects.id, { onDelete: "cascade" })
       .notNull(),
     title: text("title").notNull(),
+    description: text("description"),
+    status: milestoneStatusEnum("status").default("todo").notNull(),
+    priority: milestonePriorityEnum("priority").default("medium").notNull(),
+    startDate: date("start_date"),
     dueDate: date("due_date"),
     completed: boolean("completed").default(false).notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    assigneeId: uuid("assignee_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    // Array of { id: string; label: string; completed: boolean }
+    subTasks: jsonb("sub_tasks").default([]).notNull(),
     order: integer("order").notNull(),
   },
   (t) => [
     index("milestones_org_project_idx").on(t.orgId, t.projectId), // Composite per PRD §11
+    index("milestones_status_idx").on(t.projectId, t.status),
   ],
 ).enableRLS();
 
@@ -528,6 +552,26 @@ export const planLimits = pgTable("plan_limits", {
   maxStorageGb: integer("max_storage_gb").notNull(),
   maxMembers: integer("max_members").notNull(),
 });
+
+// Project Notes (internal team notes per project — never visible to clients)
+export const projectNotes = pgTable(
+  "project_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    projectId: uuid("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull()
+      .unique(), // one notes doc per project
+    content: text("content").notNull().default(""),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("project_notes_org_project_idx").on(t.orgId, t.projectId)],
+).enableRLS();
 
 // ─── Phase 2 Stub Tables ─────────────────────────────────────────────────────
 // Included now to prevent destructive migrations later.
