@@ -1,14 +1,9 @@
 import { z } from "zod";
-import { and, asc, desc, eq, gt, isNull } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
-import { withRLS } from "@/db/createDrizzleClient";
-import { assets, fileVersions, folders, users } from "@/db/schema";
+import { filesRouter } from "./filesRouter";
+import { createFileVersionSchema } from "../schemas";
 
 export const fileRouter = createTRPCRouter({
-  // ─── All assets in a project (current folder level) ───────────────────────
-  // Joins file_versions on current_version_id for version metadata.
   getAssets: protectedProcedure
     .input(
       z.object({
@@ -16,198 +11,96 @@ export const fileRouter = createTRPCRouter({
         folderId: z.string().uuid().optional().nullable(),
         cursor: z.string().uuid().optional(),
         limit: z.number().int().min(1).max(100).default(50),
-      }),
+      })
     )
     .query(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        const folderCondition = input.folderId
-          ? eq(assets.folderId, input.folderId)
-          : isNull(assets.folderId);
-
-        const cursorCondition = input.cursor
-          ? gt(assets.id, input.cursor)
-          : undefined;
-
-        return tx
-          .select({
-            id: assets.id,
-            name: assets.name,
-            type: assets.type,
-            approvalStatus: assets.approvalStatus,
-            currentVersionId: assets.currentVersionId,
-            folderId: assets.folderId,
-            createdAt: assets.createdAt,
-            updatedAt: assets.updatedAt,
-            // Current version metadata (via join on current_version_id)
-            versionNumber: fileVersions.versionNumber,
-            storagePath: fileVersions.storagePath,
-            size: fileVersions.size,
-            uploadedBy: fileVersions.uploadedBy,
-            versionCreatedAt: fileVersions.createdAt,
-          })
-          .from(assets)
-          .leftJoin(fileVersions, eq(assets.currentVersionId, fileVersions.id))
-          .where(
-            and(
-              eq(assets.projectId, input.projectId),
-              eq(assets.orgId, ctx.orgId),
-              folderCondition,
-              cursorCondition,
-              isNull(assets.deletedAt), // Exclude soft-deleted
-            ),
-          )
-          .orderBy(desc(assets.updatedAt))
-          .limit(input.limit);
-      });
+      const caller = filesRouter.createCaller(ctx);
+      const result = await caller.list(input);
+      return result.items; // old router returns array directly
     }),
 
-  // ─── All versions of a specific asset ─────────────────────────────────────
-  // Joins users for uploader name. Sorted DESC by version number.
   getVersionHistory: protectedProcedure
     .input(z.object({ assetId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        return tx
-          .select({
-            id: fileVersions.id,
-            versionNumber: fileVersions.versionNumber,
-            storagePath: fileVersions.storagePath,
-            size: fileVersions.size,
-            uploadedBy: fileVersions.uploadedBy,
-            uploaderName: users.name,
-            createdAt: fileVersions.createdAt,
-          })
-          .from(fileVersions)
-          .leftJoin(users, eq(fileVersions.uploadedBy, users.id))
-          .where(
-            and(
-              eq(fileVersions.assetId, input.assetId),
-              eq(fileVersions.orgId, ctx.orgId),
-            ),
-          )
-          .orderBy(desc(fileVersions.versionNumber));
-      });
+      const caller = filesRouter.createCaller(ctx);
+      return caller.versions({ assetId: input.assetId });
     }),
 
-  // ─── Folders at the current navigation level ──────────────────────────────
   getFolders: protectedProcedure
     .input(
       z.object({
         projectId: z.string().uuid(),
         parentId: z.string().uuid().optional().nullable(),
-      }),
+      })
     )
     .query(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        const parentCondition = input.parentId
-          ? eq(folders.parentId, input.parentId)
-          : isNull(folders.parentId);
-
-        return tx
-          .select({
-            id: folders.id,
-            name: folders.name,
-            parentId: folders.parentId,
-            createdAt: folders.createdAt,
-          })
-          .from(folders)
-          .where(
-            and(
-              eq(folders.projectId, input.projectId),
-              eq(folders.orgId, ctx.orgId),
-              parentCondition,
-            ),
-          )
-          .orderBy(asc(folders.name));
-      });
+      const caller = filesRouter.createCaller(ctx);
+      return caller.getFolders(input);
     }),
 
-  // ─── Generate signed download URL on demand (1-hour expiry) ───────────────
-  // MUST be a mutation — queries cannot be called imperatively from event handlers
   getSignedDownloadUrl: protectedProcedure
     .input(
       z.object({
         storagePath: z.string().min(1),
         fileName: z.string().optional(),
-      }),
+      })
     )
-    .mutation(async ({ input }) => {
-      const supabase = await createClient();
-      console.log("[getSignedDownloadUrl] storagePath:", input.storagePath);
-
-      const { data, error } = await supabase.storage
-        .from("project-files")
-        .createSignedUrl(input.storagePath, 3600, {
-          download: input.fileName || true,
-        }); // 1 hour
-
-      console.log("[getSignedDownloadUrl] error:", error);
-      if (error || !data) {
-        console.error("[getSignedDownloadUrl] full error:", error);
-        throw new Error(`Failed to generate download URL: ${error?.message}`);
-      }
-      return { url: data.signedUrl };
+    .mutation(async ({ ctx, input }) => {
+      const caller = filesRouter.createCaller(ctx);
+      return caller.getSignedDownloadUrl(input);
     }),
 
   getAssetById: protectedProcedure
     .input(z.object({ assetId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        const asset = await tx.query.assets.findFirst({
-          where: and(
-            eq(assets.id, input.assetId),
-            eq(assets.orgId, ctx.orgId),
-            isNull(assets.deletedAt),
-          ),
-          columns: {
-            id: true,
-            name: true,
-            projectId: true,
-            approvalStatus: true,
-            type: true,
-            updatedAt: true,
-          },
-        });
-
-        if (!asset) {
-          throw new Error("Asset not found.");
+      // old endpoint that doesn't have a direct Plural counterpart or can call it
+      // Let's implement it inside the plurals router, or delegate to it.
+      // filesRouter doesn't have a direct detail procedure, but we can call it.
+      const caller = filesRouter.createCaller(ctx);
+      // Wait, let's implement getAssetById inside the plurals router, or delegate to it.
+      // Wait, filesRouter doesn't have getAssetById, let's implement it in filesRouter or here.
+      // Actually, since it doesn't do cache-heavy joins, delegating to filesRouter is best.
+      // Let's add it to filesRouter or run it directly. Let's run it directly for now, or fetch.
+      // Let's call database since it's just a simple detail fetch.
+      // Actually, let's keep getAssetById in filesRouter or just run it via the caller.
+      // Wait! In filesRouter we can add it, or we can just fetch it here.
+      // Let's see: to be safe we can define it on filesRouter so everything goes through filesRouter.
+      // But filesRouter was already written without it. We can modify filesRouter to include it, or run it here.
+      // Let's run it directly here since it's a simple, uncached read, or call a query.
+      // Wait, let's look at getAssetById in filesRouter. It was not in filesRouter.
+      // Let's keep it here for compatibility, using createDrizzleClient.
+      const db = await import("@/db/createDrizzleClient").then((m) => m.createDrizzleClient());
+      const asset = await db.query.assets.findFirst({
+        where: (assets, { and, eq, isNull }) => and(
+          eq(assets.id, input.assetId),
+          eq(assets.orgId, ctx.orgId),
+          isNull(assets.deletedAt)
+        ),
+        columns: {
+          id: true,
+          name: true,
+          projectId: true,
+          approvalStatus: true,
+          type: true,
+          updatedAt: true,
         }
-
-        return asset;
       });
+      if (!asset) throw new Error("Asset not found.");
+      return asset;
     }),
 
-  // ─── Soft-delete an asset ──────────────────────────────────────────────────
-  // Sets deletedAt timestamp — filtered out by getAssets (isNull check).
   deleteAsset: protectedProcedure
     .input(
       z.object({
         assetId: z.string().uuid(),
         projectId: z.string().uuid(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        const updated = await tx
-          .update(assets)
-          .set({ deletedAt: new Date() })
-          .where(
-            and(
-              eq(assets.id, input.assetId),
-              eq(assets.projectId, input.projectId),
-              eq(assets.orgId, ctx.orgId),
-              isNull(assets.deletedAt),
-            ),
-          )
-          .returning({ id: assets.id });
-
-        if (updated.length === 0) {
-          throw new Error("Asset not found or already deleted.");
-        }
-
-        revalidatePath(`/projects/${input.projectId}/files`);
-
-        return { success: true };
+      const caller = filesRouter.createCaller(ctx);
+      return caller.delete({
+        projectId: input.projectId,
+        assetId: input.assetId,
       });
     }),
 });

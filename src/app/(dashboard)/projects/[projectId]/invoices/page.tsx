@@ -130,7 +130,7 @@ export default async function ProjectInvoicesPage({
                 id: project.id,
                 name: project.name,
                 clientId: project.clientId,
-                clientCompanyName: project.clientCompanyName,
+                clientCompanyName: project.client?.companyName ?? null,
               }}
               clients={orgClients}
               projects={orgProjects}

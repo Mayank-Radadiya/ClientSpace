@@ -4,25 +4,46 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { clients } from "@/db/schema";
 import { ProjectList } from "../../../features/projects/components/ProjectList";
 import { createTRPCContext } from "@/lib/trpc/init";
+import { getProjectList } from "@/features/projects/server/queries";
 
 export const metadata = { title: "Projects" };
 
 export default async function ProjectsPage() {
   const ctx = await createTRPCContext();
-  if (!ctx) redirect("/onboarding");
+  if (!ctx || !ctx.orgId) redirect("/onboarding");
 
-  // Only fetch the lightweight clients dropdown data (id, name, email)
-  // The heavy project data is handled client-side by React Query cache
-  const orgClients = await withRLS(ctx, async (tx) =>
-    tx
-      .select({
-        id: clients.id,
-        companyName: clients.companyName,
-        email: clients.email,
-      })
-      .from(clients)
-      .where(eq(clients.orgId, ctx.orgId)),
-  );
+  // Fetch the lightweight clients dropdown data (id, name, email)
+  // And prefetch projects list data on the server for instant page load
+  const [orgClients, rawProjects] = await Promise.all([
+    withRLS(ctx, async (tx) =>
+      tx
+        .select({
+          id: clients.id,
+          companyName: clients.companyName,
+          email: clients.email,
+        })
+        .from(clients)
+        .where(eq(clients.orgId, ctx.orgId)),
+    ),
+    getProjectList(ctx.orgId, ctx.userId),
+  ]);
+
+  // Construct initialData shape for useInfiniteQuery
+  const hasMore = rawProjects.length > 50;
+  const resultItems = hasMore ? rawProjects.slice(0, 50) : rawProjects;
+  const nextCursor = hasMore && resultItems.length > 0
+    ? resultItems[resultItems.length - 1]!.id
+    : undefined;
+
+  const initialProjects = {
+    pages: [
+      {
+        projects: resultItems,
+        nextCursor,
+      }
+    ],
+    pageParams: [undefined]
+  };
 
   return (
     <div className="-m-4 min-h-screen bg-[#F0F0F5] p-6 dark:bg-[#0D0F16] md:-m-6 md:p-8 relative overflow-hidden">
@@ -37,6 +58,7 @@ export default async function ProjectsPage() {
         <ProjectList
           clients={orgClients}
           userRole={ctx.role as "admin" | "owner" | "member" | "client"}
+          initialProjects={initialProjects}
         />
       </div>
     </div>

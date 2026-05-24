@@ -1,62 +1,25 @@
 import { z } from "zod";
 import { and, count, desc, eq, inArray, lt } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
-import { withRLS } from "@/db/createDrizzleClient";
+import { withRLS, createDrizzleClient } from "@/db/createDrizzleClient";
 import { activityLogs, notifications, orgMemberships } from "@/db/schema";
+import { getActivityLogsCached } from "./queries";
 
 export const activityRouter = createTRPCRouter({
   getActivityLogs: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(50).default(10) }))
     .query(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        const [rows, totalRows] = await Promise.all([
-          tx.query.activityLogs.findMany({
-            where: eq(activityLogs.orgId, ctx.orgId),
-            orderBy: [desc(activityLogs.createdAt)],
-            limit: input.limit,
-            with: {
-              actor: {
-                columns: { id: true, name: true, avatarUrl: true, email: true },
-              },
-              project: { columns: { id: true, name: true } },
-            },
-          }),
-          tx
-            .select({ value: count() })
-            .from(activityLogs)
-            .where(eq(activityLogs.orgId, ctx.orgId)),
-        ]);
+      const result = await getActivityLogsCached(ctx.orgId, ctx.userId, null, input.limit);
+      const db = await createDrizzleClient();
+      const [totalRow] = await db
+        .select({ value: count() })
+        .from(activityLogs)
+        .where(eq(activityLogs.orgId, ctx.orgId));
 
-        const actorIds = Array.from(new Set(rows.map((i) => i.actorId)));
-        const memberships =
-          actorIds.length > 0
-            ? await tx.query.orgMemberships.findMany({
-                where: and(
-                  eq(orgMemberships.orgId, ctx.orgId),
-                  inArray(orgMemberships.userId, actorIds),
-                ),
-                columns: { userId: true, role: true },
-              })
-            : [];
-
-        const roleByUserId = new Map(memberships.map((m) => [m.userId, m.role]));
-
-        const logs = rows.map((row) => ({
-          ...row,
-          actor: row.actor
-            ? {
-                ...row.actor,
-                role: roleByUserId.get(row.actorId) ?? null,
-              }
-            : null,
-          actorRole: roleByUserId.get(row.actorId) ?? null,
-        }));
-
-        return {
-          logs,
-          total: Number(totalRows[0]?.value ?? 0),
-        };
-      });
+      return {
+        logs: result.logs,
+        total: Number(totalRow?.value ?? 0),
+      };
     }),
 
   byProject: protectedProcedure
@@ -68,106 +31,18 @@ export const activityRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        const rows = await tx.query.activityLogs.findMany({
-          where: and(
-            eq(activityLogs.projectId, input.projectId),
-            eq(activityLogs.orgId, ctx.orgId),
-            input.cursor
-              ? lt(activityLogs.createdAt, new Date(input.cursor))
-              : undefined,
-          ),
-          orderBy: [desc(activityLogs.createdAt)],
-          limit: input.limit + 1,
-          with: {
-            actor: {
-              columns: { id: true, name: true, avatarUrl: true, email: true },
-            },
-            project: { columns: { id: true, name: true } },
-          },
-        });
-
-        const hasMore = rows.length > input.limit;
-        const items = hasMore ? rows.slice(0, input.limit) : rows;
-
-        const actorIds = Array.from(new Set(items.map((i) => i.actorId)));
-        const memberships =
-          actorIds.length > 0
-            ? await tx.query.orgMemberships.findMany({
-                where: and(
-                  eq(orgMemberships.orgId, ctx.orgId),
-                  inArray(orgMemberships.userId, actorIds),
-                ),
-                columns: { userId: true, role: true },
-              })
-            : [];
-
-        const roleByUserId = new Map(
-          memberships.map((m) => [m.userId, m.role]),
-        );
-        const withRole = items.map((item) => ({
-          ...item,
-          actor: item.actor
-            ? {
-                ...item.actor,
-                role: roleByUserId.get(item.actorId) ?? null,
-              }
-            : null,
-          actorRole: roleByUserId.get(item.actorId) ?? null,
-        }));
-
-        return {
-          items: withRole,
-          nextCursor: hasMore
-            ? withRole[withRole.length - 1]?.createdAt.toISOString()
-            : undefined,
-        };
-      });
+      const result = await getActivityLogsCached(ctx.orgId, ctx.userId, input.projectId, input.limit, input.cursor);
+      return {
+        items: result.logs,
+        nextCursor: result.nextCursor,
+      };
     }),
 
   dashboard: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }))
     .query(async ({ ctx, input }) => {
-      return withRLS(ctx, async (tx) => {
-        const rows = await tx.query.activityLogs.findMany({
-          where: eq(activityLogs.orgId, ctx.orgId),
-          orderBy: [desc(activityLogs.createdAt)],
-          limit: input.limit,
-          with: {
-            actor: {
-              columns: { id: true, name: true, avatarUrl: true, email: true },
-            },
-            project: { columns: { id: true, name: true } },
-          },
-        });
-
-        const actorIds = Array.from(new Set(rows.map((i) => i.actorId)));
-        const memberships =
-          actorIds.length > 0
-            ? await tx.query.orgMemberships.findMany({
-                where: and(
-                  eq(orgMemberships.orgId, ctx.orgId),
-                  inArray(orgMemberships.userId, actorIds),
-                ),
-                columns: { userId: true, role: true },
-              })
-            : [];
-
-        const roleByUserId = new Map(
-          memberships.map((m) => [m.userId, m.role]),
-        );
-
-        return rows.map((row) => ({
-          ...row,
-          actor: row.actor
-            ? {
-                ...row.actor,
-                role: roleByUserId.get(row.actorId) ?? null,
-              }
-            : null,
-          actorRole: roleByUserId.get(row.actorId) ?? null,
-        }));
-      });
+      const result = await getActivityLogsCached(ctx.orgId, ctx.userId, null, input.limit);
+      return result.logs;
     }),
 
   unreadCount: protectedProcedure.query(async ({ ctx }) => {

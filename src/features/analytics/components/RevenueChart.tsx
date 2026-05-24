@@ -38,8 +38,10 @@ function CurrencyTooltip({ active, payload, label }: any) {
   );
 }
 
-export function RevenueChart() {
-  const { data, isLoading } = trpc.analytics.getRevenueChart.useQuery();
+export function RevenueChart({ initialData }: { initialData?: any }) {
+  const { data, isLoading } = trpc.analytics.getRevenueChart.useQuery(undefined, {
+    initialData,
+  });
 
   if (isLoading) {
     return (
@@ -69,7 +71,7 @@ export function RevenueChart() {
     );
   }
 
-  const chartData = data.map((item) => ({
+  const chartData = data.map((item: { month: string; monthKey: string; amountCents: number }) => ({
     ...item,
     amountDollars: item.amountCents / 100,
   }));

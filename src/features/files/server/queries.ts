@@ -1,7 +1,7 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
-import { withRLS } from "@/db/createDrizzleClient";
+import { createDrizzleClient } from "@/db/createDrizzleClient";
+import { unstable_cache } from "next/cache";
+import { and, desc, eq, isNull, gt } from "drizzle-orm";
 import { assets, clients, fileVersions, folders, projects, users } from "@/db/schema";
-import type { TRPCContext } from "@/lib/trpc/init";
 import type {
   FileKind,
   ProjectFile,
@@ -23,12 +23,118 @@ function toFileKind(mimeType: string): FileKind {
   return "other";
 }
 
+/**
+ * Cached query to retrieve the files/assets list for a project folder.
+ * 
+ * Cache Tag: `org-{orgId}-files`
+ * Invalidation: Invalidated on upload or soft delete.
+ */
+export const getFileList = (orgId: string, userId: string, projectId: string, folderId: string | null, cursor?: string) =>
+  unstable_cache(
+    async () => {
+      try {
+        const db = await createDrizzleClient({ orgId, userId });
+        return await db.query.assets.findMany({
+          where: and(
+            eq(assets.projectId, projectId),
+            eq(assets.orgId, orgId),
+            folderId ? eq(assets.folderId, folderId) : isNull(assets.folderId),
+            isNull(assets.deletedAt),
+            cursor ? gt(assets.id, cursor) : undefined
+          ),
+          columns: {
+            id: true,
+            orgId: true,
+            projectId: true,
+            folderId: true,
+            name: true,
+            type: true,
+            currentVersionId: true,
+            approvalStatus: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          with: {
+            versions: {
+              columns: {
+                id: true,
+                versionNumber: true,
+                storagePath: true,
+                size: true,
+                uploadedBy: true,
+                createdAt: true,
+              },
+              orderBy: [desc(fileVersions.versionNumber)],
+            },
+          },
+          orderBy: [desc(assets.updatedAt)],
+          limit: 50,
+        });
+      } catch (error) {
+        console.error("[getFileList] Database read failed:", error);
+        throw new Error("Failed to fetch files list.");
+      }
+    },
+    ["files-list", orgId, projectId, folderId ?? "root", cursor ?? ""],
+    { tags: [`org-${orgId}-files`], revalidate: false }
+  )();
+
+/**
+ * Cached query to retrieve version history of a specific file/asset.
+ * 
+ * Cache Tag: `org-{orgId}-asset-{assetId}`
+ * Invalidation: Invalidated when a new version is created.
+ */
+export const getFileVersionHistory = (orgId: string, userId: string, assetId: string) =>
+  unstable_cache(
+    async () => {
+      try {
+        const db = await createDrizzleClient({ orgId, userId });
+        return await db.query.fileVersions.findMany({
+          where: and(
+            eq(fileVersions.assetId, assetId),
+            eq(fileVersions.orgId, orgId)
+          ),
+          columns: {
+            id: true,
+            orgId: true,
+            assetId: true,
+            versionNumber: true,
+            storagePath: true,
+            size: true,
+            uploadedBy: true,
+            createdAt: true,
+          },
+          with: {
+            uploader: {
+              columns: {
+                id: true,
+                name: true,
+                email: true,
+                avatarUrl: true,
+              },
+            },
+          },
+          orderBy: [desc(fileVersions.versionNumber)],
+        });
+      } catch (error) {
+        console.error("[getFileVersionHistory] Database read failed:", error);
+        throw new Error("Failed to fetch file version history.");
+      }
+    },
+    ["file-versions", orgId, assetId],
+    { tags: [`org-${orgId}-asset-${assetId}`], revalidate: false }
+  )();
+
+/**
+ * Uncached Page Data query combining project, folders, files, and recent uploads.
+ */
 export async function getProjectFilesPageData(
-  projectId: string,
-  ctx: TRPCContext,
+  projectId: string
 ): Promise<ProjectFilesPageData | null> {
-  return withRLS(ctx, async (tx) => {
-    const [project] = await tx
+  try {
+    const db = await createDrizzleClient();
+    const [project] = await db
       .select({
         id: projects.id,
         name: projects.name,
@@ -36,13 +142,13 @@ export async function getProjectFilesPageData(
       })
       .from(projects)
       .innerJoin(clients, eq(projects.clientId, clients.id))
-      .where(and(eq(projects.id, projectId), eq(projects.orgId, ctx.orgId)))
+      .where(eq(projects.id, projectId))
       .limit(1);
 
     if (!project) return null;
 
     const [folderRows, fileRows, recentUploadRows] = await Promise.all([
-      tx
+      db
         .select({
           id: folders.id,
           name: folders.name,
@@ -51,7 +157,7 @@ export async function getProjectFilesPageData(
         .from(folders)
         .where(and(eq(folders.projectId, projectId), isNull(folders.parentId)))
         .orderBy(folders.name),
-      tx
+      db
         .select({
           id: assets.id,
           name: assets.name,
@@ -68,11 +174,11 @@ export async function getProjectFilesPageData(
           and(
             eq(assets.projectId, projectId),
             isNull(assets.folderId),
-            isNull(assets.deletedAt),
-          ),
+            isNull(assets.deletedAt)
+          )
         )
         .orderBy(desc(assets.updatedAt)),
-      tx
+      db
         .select({
           id: fileVersions.id,
           assetId: assets.id,
@@ -118,5 +224,8 @@ export async function getProjectFilesPageData(
       files,
       recentUploads,
     };
-  });
+  } catch (error) {
+    console.error("[getProjectFilesPageData] failed:", error);
+    return null;
+  }
 }

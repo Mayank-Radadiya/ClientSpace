@@ -50,11 +50,12 @@ type ProjectData = {
 type ProjectListProps = {
   clients: Client[];
   userRole?: string;
+  initialProjects?: any;
 };
 
 // ─── Main Component ───────────────────────────────────────────────────
 
-export function ProjectList({ clients, userRole }: ProjectListProps) {
+export function ProjectList({ clients, userRole, initialProjects }: ProjectListProps) {
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     status: [],
@@ -74,6 +75,7 @@ export function ProjectList({ clients, userRole }: ProjectListProps) {
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: (previousData) => previousData,
+        initialData: initialProjects,
       },
     );
 

@@ -10,11 +10,23 @@ import { commentsRouter } from "@/features/comments/server/router";
 import { analyticsRouter } from "@/features/analytics/server/router";
 import { clientRouter } from "@/features/clients/server/router";
 
+// Pluralized cached routers
+import { projectsRouter } from "@/features/projects/server/projectsRouter";
+import { filesRouter } from "@/features/files/server/filesRouter";
+import { invoicesRouter } from "@/features/invoices/server/invoicesRouter";
+
 export const appRouter = createTRPCRouter({
+  // Pluralized cached routers
+  projects: projectsRouter,
+  files: filesRouter,
+  invoices: invoicesRouter,
+
+  // Compatibility singular stubs delegating to plurals
   project: projectRouter,
-  auth: authRouter,
   file: fileRouter,
   invoice: invoiceRouter,
+
+  auth: authRouter,
   dashboard: dashboardRouter,
   portal: portalRouter,
   activity: activityRouter,

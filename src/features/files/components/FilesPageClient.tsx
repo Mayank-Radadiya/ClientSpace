@@ -56,17 +56,20 @@ export function FilesPageClient({
   const allFiles: ProjectFile[] = useMemo(() => {
     if (!rawFiles) return [];
 
-    return rawFiles.map((row) => ({
-      id: row.id,
-      name: row.name,
-      mimeType: row.type ?? "",
-      fileKind: inferFileKind(row.type ?? ""),
-      approvalStatus: row.approvalStatus as ProjectFile["approvalStatus"],
-      versionNumber: row.versionNumber,
-      sizeBytes: row.size,
-      updatedAt: new Date(row.updatedAt), // Parsed to Date here once
-      storagePath: row.storagePath,
-    }));
+    return rawFiles.map((row) => {
+      const latestVersion = row.versions?.[0];
+      return {
+        id: row.id,
+        name: row.name,
+        mimeType: row.type ?? "",
+        fileKind: inferFileKind(row.type ?? ""),
+        approvalStatus: row.approvalStatus as ProjectFile["approvalStatus"],
+        versionNumber: latestVersion?.versionNumber ?? 1,
+        sizeBytes: latestVersion?.size ?? 0,
+        updatedAt: new Date(row.updatedAt), // Parsed to Date here once
+        storagePath: latestVersion?.storagePath ?? "",
+      };
+    });
   }, [rawFiles]);
 
   // ── Derived state ──────────────────────────────────────────────────────────

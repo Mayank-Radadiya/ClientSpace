@@ -1,24 +1,18 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { getSessionContext } from "@/lib/auth/session";
 import { withRLS } from "@/db/createDrizzleClient";
 import { projects, clients } from "@/db/schema";
 import { projectSchema, updateProjectSchema } from "../schemas";
-import {
-  revalidateMembersCache,
-  revalidateMilestonesCache,
-  revalidateProjectCache,
-} from "./cache";
+import { createProject, updateProject, deleteProject } from "./mutations";
 
 export type ActionState = {
   success?: boolean;
   error?: string;
   fieldErrors?: Record<string, string[]>;
 };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseDate(value: FormDataEntryValue | null): Date | null {
   if (!value || typeof value !== "string" || value === "") return null;
@@ -34,21 +28,16 @@ function parseTags(value: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
-function toDateString(date: Date): string {
-  return date.toISOString().split("T")[0]!;
-}
-
-// ─── CREATE ───────────────────────────────────────────────────────────────────
-
+/**
+ * Server Action for creating a project via form submission.
+ */
 export async function createProjectAction(
   _prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { error: "You must be logged in to create a project." };
-
-  if (ctx.role === "client")
-    return { error: "Clients cannot create projects." };
+  if (ctx.role === "client") return { error: "Clients cannot create projects." };
 
   const parsed = projectSchema.safeParse({
     name: formData.get("name"),
@@ -64,60 +53,22 @@ export async function createProjectAction(
 
   if (!parsed.success) {
     return {
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<
-        string,
-        string[]
-      >,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     };
   }
 
-  const { data } = parsed;
-
-  let createdProjectId: string | null = null;
-
-  const errorMsg = await withRLS(ctx, async (tx) => {
-    const client = await tx.query.clients.findFirst({
-      where: and(eq(clients.id, data.clientId), eq(clients.orgId, ctx.orgId)),
-    });
-    if (!client) return "Selected client does not belong to your organization.";
-
-    try {
-      const [created] = await tx
-        .insert(projects)
-        .values({
-          orgId: ctx.orgId,
-          clientId: data.clientId,
-          name: data.name,
-          description: data.description,
-          status: data.status as any,
-          priority: data.priority as any,
-          startDate: data.startDate ? toDateString(data.startDate) : null,
-          deadline: toDateString(data.deadline),
-          budget: data.budget ?? null,
-          tags: data.tags,
-        })
-        .returning({ id: projects.id });
-      createdProjectId = created?.id ?? null;
-      return null;
-    } catch (err) {
-      console.error("createProjectAction:", err);
-      return "Something went wrong. Please try again.";
-    }
-  });
-
-  if (errorMsg) return { error: errorMsg };
-
-  revalidatePath("/dashboard/projects");
-  if (createdProjectId) {
-    revalidateProjectCache(ctx.orgId, createdProjectId);
-    revalidateMilestonesCache(ctx.orgId, createdProjectId);
-    revalidateMembersCache(ctx.orgId, createdProjectId);
+  try {
+    const newProject = await createProject(ctx.orgId, parsed.data);
+    revalidateTag(`org-${ctx.orgId}-projects`, "max");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to create project." };
   }
-  return { success: true };
 }
 
-// ─── UPDATE ───────────────────────────────────────────────────────────────────
-
+/**
+ * Server Action for updating a project via form submission.
+ */
 export async function updateProjectAction(
   projectId: string,
   _prevState: ActionState,
@@ -125,26 +76,15 @@ export async function updateProjectAction(
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { error: "You must be logged in to update a project." };
-
   if (ctx.role === "client") return { error: "Clients cannot edit projects." };
 
   const newStatus = formData.get("status") as string | null;
-  if (
-    newStatus &&
-    (newStatus === "completed" || newStatus === "archived") &&
-    ctx.role === "member"
-  ) {
+  if (newStatus && (newStatus === "completed" || newStatus === "archived") && ctx.role === "member") {
     return { error: "Only Admins can mark projects as Completed or Archived." };
   }
 
-  const raw: Record<string, unknown> = {};
-  for (const field of [
-    "name",
-    "description",
-    "clientId",
-    "status",
-    "priority",
-  ] as const) {
+  const raw: Record<string, any> = {};
+  for (const field of ["name", "description", "clientId", "status", "priority"] as const) {
     const val = formData.get(field);
     if (val !== null) raw[field] = val;
   }
@@ -163,99 +103,36 @@ export async function updateProjectAction(
   const parsed = updateProjectSchema.safeParse(raw);
   if (!parsed.success) {
     return {
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<
-        string,
-        string[]
-      >,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     };
   }
 
-  const errorMsg = await withRLS(ctx, async (tx) => {
-    const existing = await tx.query.projects.findFirst({
-      where: and(eq(projects.id, projectId), eq(projects.orgId, ctx.orgId)),
-    });
-    if (!existing) return "Project not found.";
-
-    if (parsed.data.clientId) {
-      const newClient = await tx.query.clients.findFirst({
-        where: and(
-          eq(clients.id, parsed.data.clientId),
-          eq(clients.orgId, ctx.orgId),
-        ),
-      });
-      if (!newClient)
-        return "Selected client does not belong to your organization.";
-    }
-
-    const updateValues: Record<string, unknown> = { updatedAt: new Date() };
-    const d = parsed.data;
-    if (d.name !== undefined) updateValues.name = d.name;
-    if (d.description !== undefined) updateValues.description = d.description;
-    if (d.clientId !== undefined) updateValues.clientId = d.clientId;
-    if (d.status !== undefined) updateValues.status = d.status;
-    if (d.priority !== undefined) updateValues.priority = d.priority;
-    if (d.startDate !== undefined)
-      updateValues.startDate = d.startDate ? toDateString(d.startDate) : null;
-    if (d.deadline !== undefined)
-      updateValues.deadline = toDateString(d.deadline!);
-    if (d.budget !== undefined) updateValues.budget = d.budget;
-    if (d.tags !== undefined) updateValues.tags = d.tags;
-
-    try {
-      await tx
-        .update(projects)
-        .set(updateValues)
-        .where(and(eq(projects.id, projectId), eq(projects.orgId, ctx.orgId)));
-      return null;
-    } catch (err) {
-      console.error("updateProjectAction:", err);
-      return "Something went wrong. Please try again.";
-    }
-  });
-
-  if (errorMsg) return { error: errorMsg };
-
-  revalidatePath("/dashboard/projects");
-  revalidateProjectCache(ctx.orgId, projectId);
-  revalidateMilestonesCache(ctx.orgId, projectId);
-  revalidateMembersCache(ctx.orgId, projectId);
-  return { success: true };
+  try {
+    await updateProject(ctx.orgId, projectId, parsed.data);
+    revalidateTag(`org-${ctx.orgId}-projects`, "max");
+    revalidateTag(`org-${ctx.orgId}-project-${projectId}`, "max");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to update project." };
+  }
 }
 
-// ─── DELETE ───────────────────────────────────────────────────────────────────
-
-export async function deleteProjectAction(
-  projectId: string,
-): Promise<ActionState> {
+/**
+ * Server Action for deleting a project.
+ */
+export async function deleteProjectAction(projectId: string): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { error: "You must be logged in to delete a project." };
-
   if (ctx.role === "client" || ctx.role === "member") {
     return { error: "Only Admins and Owners can delete projects." };
   }
 
-  const errorMsg = await withRLS(ctx, async (tx) => {
-    const existing = await tx.query.projects.findFirst({
-      where: and(eq(projects.id, projectId), eq(projects.orgId, ctx.orgId)),
-    });
-    if (!existing) return "Project not found.";
-
-    try {
-      await tx
-        .delete(projects)
-        .where(and(eq(projects.id, projectId), eq(projects.orgId, ctx.orgId)));
-      return null;
-    } catch (err) {
-      console.error("deleteProjectAction:", err);
-      return "Something went wrong. Please try again.";
-    }
-  });
-
-  if (errorMsg) return { error: errorMsg };
-
-  revalidatePath("/dashboard/projects");
-  revalidateProjectCache(ctx.orgId, projectId);
-  revalidateMilestonesCache(ctx.orgId, projectId);
-  revalidateMembersCache(ctx.orgId, projectId);
-  return { success: true };
+  try {
+    await deleteProject(ctx.orgId, projectId);
+    revalidateTag(`org-${ctx.orgId}-projects`, "max");
+    revalidateTag(`org-${ctx.orgId}-project-${projectId}`, "max");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to delete project." };
+  }
 }

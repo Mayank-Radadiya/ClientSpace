@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActivityTimeline } from "@/features/activity/components/ActivityTimeline";
 
-export function RecentActivityFeed() {
+export function RecentActivityFeed({ initialData }: { initialData?: any }) {
   const { data, isLoading } = trpc.activity.getActivityLogs.useQuery(
     { limit: 10 },
     {
       staleTime: 30_000, // Activity data: refresh every 30s
+      initialData,
     },
   );
 

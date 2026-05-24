@@ -1,0 +1,3 @@
+CREATE INDEX "assets_project_folder_created_idx" ON "assets" USING btree ("project_id","folder_id","created_at" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "invoices_org_status_due_date_idx" ON "invoices" USING btree ("org_id","status","due_date");--> statement-breakpoint
+CREATE INDEX "projects_org_status_created_idx" ON "projects" USING btree ("org_id","status","created_at" DESC NULLS LAST);

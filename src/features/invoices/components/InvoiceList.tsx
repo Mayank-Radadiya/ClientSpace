@@ -56,6 +56,7 @@ interface InvoiceListProps {
     statusCounts: StatusCount[],
   ) => void;
   projectId?: string;
+  initialInvoices?: any;
 }
 
 interface InvoiceData {
@@ -69,6 +70,7 @@ interface InvoiceData {
   clientCompanyName: string | null;
   clientContactName: string | null;
   clientEmail: string | null;
+  clientId: string;
 }
 
 function timeValue(dateString?: string | null): number {
@@ -152,35 +154,41 @@ export function InvoiceList({
   onCreateClick,
   onCountsChange,
   projectId,
+  initialInvoices,
 }: InvoiceListProps) {
-  const globalQuery = trpc.invoice.getAll.useQuery(
-    { status: undefined },
+  const { data, isLoading, error, refetch } = trpc.invoices.list.useQuery(
+    { projectId },
     {
-      enabled: !projectId,
-    },
+      initialData: initialInvoices,
+    }
   );
-
-  const projectQuery = trpc.invoice.getByProject.useQuery(
-    { projectId: projectId! },
-    {
-      enabled: !!projectId,
-    },
-  );
-
-  const { data, isLoading, error, refetch } = projectId
-    ? projectQuery
-    : globalQuery;
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkPending, startBulkTransition] = useTransition();
   const [previewInvoiceId, setPreviewInvoiceId] = useState<string | null>(null);
 
+  const mappedInvoices = useMemo<InvoiceData[]>(() => {
+    const items = data?.items;
+    if (!items) return [];
+    return items.map((item: any) => ({
+      id: item.id,
+      number: item.number,
+      status: item.status,
+      amountCents: item.amountCents,
+      currency: item.currency,
+      dueDate: item.dueDate,
+      clientId: item.clientId,
+      clientCompanyName: item.client?.companyName ?? null,
+      clientContactName: item.client?.contactName ?? null,
+      clientEmail: item.client?.email ?? null,
+    }));
+  }, [data?.items]);
+
   const filteredData = useMemo(() => {
-    if (!data) return [] as InvoiceData[];
     const baseRows =
       statusFilter === "all"
-        ? (data as InvoiceData[])
-        : (data as InvoiceData[]).filter(
+        ? mappedInvoices
+        : mappedInvoices.filter(
             (invoice) => invoice.status === statusFilter,
           );
     if (!searchQuery) return baseRows;
@@ -203,7 +211,7 @@ export function InvoiceList({
         String(invoice.amountCents).includes(query)
       );
     });
-  }, [data, searchQuery, statusFilter]);
+  }, [mappedInvoices, searchQuery, statusFilter]);
 
   const sortedData = useMemo(() => {
     const rows = [...filteredData];
@@ -231,7 +239,7 @@ export function InvoiceList({
   }, [filteredData, sortBy, sortDir]);
 
   const summary = useMemo(() => {
-    const rows = (data as InvoiceData[] | undefined) ?? [];
+    const rows = mappedInvoices;
     let totalBilled = 0;
     let totalPaid = 0;
     let outstanding = 0;
@@ -267,10 +275,10 @@ export function InvoiceList({
       outstandingInvoices,
       overdueInvoices,
     };
-  }, [data]);
+  }, [mappedInvoices]);
 
   const statusCounts = useMemo<StatusCount[]>(() => {
-    const rows = (data as InvoiceData[] | undefined) ?? [];
+    const rows = mappedInvoices;
     const draft = rows.filter((r) => r.status === "draft").length;
     const sent = rows.filter((r) => r.status === "sent").length;
     const paid = rows.filter((r) => r.status === "paid").length;
@@ -283,10 +291,10 @@ export function InvoiceList({
       { key: "paid", label: "Paid", count: paid },
       { key: "overdue", label: "Overdue", count: overdue },
     ];
-  }, [data]);
+  }, [mappedInvoices]);
 
   React.useEffect(() => {
-    onCountsChange?.(data?.length ?? 0, sortedData.length, statusCounts);
+    onCountsChange?.(data?.items?.length ?? 0, sortedData.length, statusCounts);
   }, [data, sortedData.length, statusCounts, onCountsChange]);
 
   const allSelected =

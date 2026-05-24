@@ -4,6 +4,7 @@ import { DashboardClientExtras } from "./_components/DashboardClientExtras";
 import { getUser } from "@/lib/auth/getUser";
 import { requireOrg } from "@/lib/auth/requireOrg";
 import { createTRPCContext } from "@/lib/trpc/init";
+import { GlobalRealtimeProvider } from "@/lib/realtimeProvider";
 
 export const dynamic = "force-dynamic";
 
@@ -31,16 +32,18 @@ export default async function DashboardLayout({
   const currentOrg = ctx?.availableOrgs.find((org) => org.orgId === ctx.orgId);
 
   return (
-    <div className="relative h-full min-h-screen w-full overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950/20 dark:text-neutral-100">
-      <WorkspaceShell
-        organizations={ctx?.availableOrgs ?? []}
-        currentOrgId={ctx?.orgId ?? ""}
-        currentOrgName={currentOrg?.orgName ?? ""}
-        currentRole={ctx?.role ?? ""}
-      >
-        {children}
-      </WorkspaceShell>
-      <DashboardClientExtras />
-    </div>
+    <GlobalRealtimeProvider orgId={ctx?.orgId ?? ""}>
+      <div className="relative h-full min-h-screen w-full overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950/20 dark:text-neutral-100">
+        <WorkspaceShell
+          organizations={ctx?.availableOrgs ?? []}
+          currentOrgId={ctx?.orgId ?? ""}
+          currentOrgName={currentOrg?.orgName ?? ""}
+          currentRole={ctx?.role ?? ""}
+        >
+          {children}
+        </WorkspaceShell>
+        <DashboardClientExtras />
+      </div>
+    </GlobalRealtimeProvider>
   );
 }

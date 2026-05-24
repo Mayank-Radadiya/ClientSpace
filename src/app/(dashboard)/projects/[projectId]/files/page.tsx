@@ -75,10 +75,10 @@ export default async function FilesPage({ params }: FilesPageProps) {
               <h1 className="font-brand text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
                 Files
               </h1>
-              {project.clientCompanyName && (
+              {project.client?.companyName && (
                 <div className="text-muted-foreground flex items-center gap-1.5 text-sm">
                   <Building2 className="h-4 w-4 shrink-0 opacity-70" />
-                  <span className="font-sans">{project.clientCompanyName}</span>
+                  <span className="font-sans">{project.client.companyName}</span>
                 </div>
               )}
             </div>

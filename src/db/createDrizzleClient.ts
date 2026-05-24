@@ -84,3 +84,92 @@ export async function withRLS<T>(
     return callback(tx);
   });
 }
+
+function wrapQueryBuilder(builder: any, ctx: SessionContext): any {
+  return new Proxy(builder, {
+    get(target, prop, receiver) {
+      if (prop === "then") {
+        return (onfulfilled?: any, onrejected?: any) => {
+          return withRLS(ctx, async (tx) => {
+            target.session = (tx as any).session || tx;
+            return target;
+          }).then(onfulfilled, onrejected);
+        };
+      }
+      if (prop === "execute") {
+        return () => {
+          return withRLS(ctx, async (tx) => {
+            target.session = (tx as any).session || tx;
+            return target.execute();
+          });
+        };
+      }
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value === "function") {
+        return (...args: any[]) => {
+          const nextBuilder = value.apply(target, args);
+          return wrapQueryBuilder(nextBuilder, ctx);
+        };
+      }
+      return value;
+    }
+  });
+}
+
+function wrapRelationalQuery(modelQueries: any, qProp: string, ctx: SessionContext): any {
+  return new Proxy(modelQueries, {
+    get(target, prop) {
+      const method = target[prop as keyof typeof target];
+      if (typeof method === "function") {
+        return (...args: any[]) => {
+          return withRLS(ctx, async (tx) => {
+            const txModel = tx.query[qProp as keyof typeof tx.query];
+            return (txModel as any)[prop](...args);
+          });
+        };
+      }
+      return Reflect.get(target, prop);
+    }
+  });
+}
+
+/**
+ * Returns a secured, RLS-enforcing database client.
+ * Uses ES Proxies to transparently wrap all queries in a transaction
+ * where the active session context is injected.
+ */
+export async function createDrizzleClient(providedCtx?: SessionContext) {
+  let ctx = providedCtx;
+  if (!ctx) {
+    const { getSessionContext } = await import("@/lib/auth/session");
+    ctx = (await getSessionContext()) ?? undefined;
+  }
+  if (!ctx) {
+    throw new Error("Unauthorized: No session context found");
+  }
+
+  return new Proxy(db, {
+    get(target, prop, receiver) {
+      if (prop === "query") {
+        return new Proxy(target.query, {
+          get(qTarget, qProp) {
+            const modelQueries = qTarget[qProp as keyof typeof qTarget];
+            return wrapRelationalQuery(modelQueries, qProp as string, ctx);
+          }
+        });
+      }
+
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value === "function") {
+        return (...args: any[]) => {
+          const result = value.apply(target, args);
+          if (result && typeof result === "object") {
+            return wrapQueryBuilder(result, ctx);
+          }
+          return result;
+        };
+      }
+      return value;
+    }
+  });
+}

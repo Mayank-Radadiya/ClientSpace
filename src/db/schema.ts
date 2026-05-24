@@ -213,6 +213,7 @@ export const projects = pgTable(
       t.priority,
       t.createdAt,
     ), // Filtered getAll path
+    index("projects_org_status_created_idx").on(t.orgId, t.status, t.createdAt.desc()),
   ],
 ).enableRLS();
 
@@ -316,6 +317,7 @@ export const assets = pgTable(
       t.updatedAt,
     ),
     index("assets_auto_approve_idx").on(t.autoApproveAt), // Inngest cron hot path
+    index("assets_project_folder_created_idx").on(t.projectId, t.folderId, t.createdAt.desc()),
   ],
 ).enableRLS();
 
@@ -412,6 +414,7 @@ export const invoices = pgTable(
   (t) => [
     index("invoices_org_client_idx").on(t.orgId, t.clientId), // Invoice list
     index("invoices_overdue_idx").on(t.orgId, t.status, t.dueDate), // Overdue cron hot path
+    index("invoices_org_status_due_date_idx").on(t.orgId, t.status, t.dueDate),
   ],
 ).enableRLS();
 

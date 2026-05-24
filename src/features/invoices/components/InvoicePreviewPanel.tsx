@@ -63,10 +63,10 @@ export function InvoicePreviewPanel({ invoiceId, onClose }: InvoicePreviewPanelP
               <div>
                 <div className="font-data text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--inv-text-secondary)] mb-4">Line Items</div>
                 <div className="space-y-3">
-                  {invoice.items.length === 0 ? (
+                  {invoice.lineItems.length === 0 ? (
                     <div className="font-data text-sm text-[var(--inv-text-muted)] italic">No line items.</div>
                   ) : (
-                    invoice.items.map(item => (
+                    invoice.lineItems.map((item: any) => (
                       <div key={item.id} className="flex justify-between items-center py-3 border-b border-[var(--inv-border)] last:border-0 last:pb-0">
                         <div>
                           <div className="font-display text-[14px] font-medium text-[var(--inv-text-primary)]">{item.description}</div>

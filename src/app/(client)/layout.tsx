@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { clients, organizations } from "@/db/schema";
 import { ClientHeader } from "@/features/portal/components/ClientHeader";
+import { GlobalRealtimeProvider } from "@/lib/realtimeProvider";
 
 export const dynamic = "force-dynamic";
 
@@ -51,33 +52,35 @@ export default async function ClientLayout({
   }
 
   return (
-    <div
-      className="bg-background min-h-screen"
-      style={
-        org.accentColor
-          ? ({ "--brand-accent": org.accentColor } as CSSProperties)
-          : undefined
-      }
-    >
-      <ClientHeader
-        orgName={org.name}
-        orgLogoUrl={org.logoUrl ?? undefined}
-        clientName={client.contactName ?? client.email}
-      />
-      <main className="mx-auto max-w-5xl space-y-8 px-4 py-8">{children}</main>
+    <GlobalRealtimeProvider orgId={client.orgId}>
+      <div
+        className="bg-background min-h-screen"
+        style={
+          org.accentColor
+            ? ({ "--brand-accent": org.accentColor } as CSSProperties)
+            : undefined
+        }
+      >
+        <ClientHeader
+          orgName={org.name}
+          orgLogoUrl={org.logoUrl ?? undefined}
+          clientName={client.contactName ?? client.email}
+        />
+        <main className="mx-auto max-w-5xl space-y-8 px-4 py-8">{children}</main>
 
-      {org.plan === "starter" ? (
-        <footer className="text-muted-foreground py-6 text-center text-xs">
-          <a
-            href="https://clientspace.app?ref=powered-by"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Powered by ClientSpace
-          </a>
-        </footer>
-      ) : null}
-    </div>
+        {org.plan === "starter" ? (
+          <footer className="text-muted-foreground py-6 text-center text-xs">
+            <a
+              href="https://clientspace.app?ref=powered-by"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              Powered by ClientSpace
+            </a>
+          </footer>
+        ) : null}
+      </div>
+    </GlobalRealtimeProvider>
   );
 }

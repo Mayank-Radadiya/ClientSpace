@@ -11,8 +11,10 @@ function formatCents(cents: number, currency = "USD"): string {
   }).format(cents / 100);
 }
 
-export function StatsCards() {
-  const { data, isLoading } = trpc.analytics.getDashboardStats.useQuery();
+export function StatsCards({ initialData }: { initialData?: any }) {
+  const { data, isLoading } = trpc.analytics.getDashboardStats.useQuery(undefined, {
+    initialData,
+  });
 
   if (isLoading || !data) {
     return (

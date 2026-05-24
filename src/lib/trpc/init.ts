@@ -126,3 +126,25 @@ export const protectedProcedure = t.procedure
     if (!ctx) throw new TRPCError({ code: "UNAUTHORIZED" });
     return next({ ctx });
   });
+
+/**
+ * Mutation procedure that applies user-scoped rate limiting (max 30 writes/min).
+ */
+export const rateLimitedProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  try {
+    const { mutationRateLimiter } = await import("@/lib/redis");
+    if (mutationRateLimiter) {
+      const { success } = await mutationRateLimiter.limit(ctx.userId);
+      if (!success) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "You have exceeded the rate limit of 30 writes per minute. Please try again later.",
+        });
+      }
+    }
+  } catch (error) {
+    if (error instanceof TRPCError) throw error;
+    console.error("[rateLimitedProcedure] Rate limiting check error:", error);
+  }
+  return next();
+});

@@ -31,6 +31,7 @@ interface InvoicesPageClientProps {
   projects: Project[];
   isOwnerOrAdmin: boolean;
   userRole: string;
+  initialInvoices?: any;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -40,6 +41,7 @@ export function InvoicesPageClient({
   projects,
   isOwnerOrAdmin,
   userRole,
+  initialInvoices,
 }: InvoicesPageClientProps) {
   const {
     search,
@@ -119,6 +121,7 @@ export function InvoicesPageClient({
             : undefined
         }
         onCountsChange={handleCountsChange}
+        initialInvoices={initialInvoices}
       />
     </motion.div>
   );
