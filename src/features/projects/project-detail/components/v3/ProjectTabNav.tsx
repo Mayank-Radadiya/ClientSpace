@@ -1,11 +1,16 @@
 "use client";
 
+// src/features/projects/project-detail/components/v3/ProjectTabNav.tsx
+// Tab navigation with count badges and unread dot indicators.
+
+import { motion } from "framer-motion";
 import type { ActiveSection } from "../../types";
 
 interface Tab {
   id: ActiveSection;
   label: string;
   count?: number;
+  hasUnread?: boolean;
 }
 
 interface ProjectTabNavProps {
@@ -17,19 +22,47 @@ interface ProjectTabNavProps {
     invoices: number;
     activity: number;
   };
+  unreadTabs?: Set<string>;
+  hideInvoices?: boolean;
 }
 
 export function ProjectTabNav({
   activeTab,
   onTabChange,
   counts,
+  unreadTabs,
+  hideInvoices = false,
 }: ProjectTabNavProps) {
-  const tabs: Tab[] = [
-    { id: "milestones", label: "Milestones", count: counts.milestones },
-    { id: "files", label: "Files & Assets", count: counts.files },
-    { id: "invoices", label: "Invoices", count: counts.invoices },
-    { id: "activity", label: "Activity Log", count: counts.activity },
+  const allTabs: Tab[] = [
+    {
+      id: "milestones",
+      label: "Milestones",
+      count: counts.milestones,
+      hasUnread: unreadTabs?.has("milestones"),
+    },
+    {
+      id: "files",
+      label: "Files & Assets",
+      count: counts.files,
+      hasUnread: unreadTabs?.has("files"),
+    },
+    {
+      id: "invoices",
+      label: "Invoices",
+      count: counts.invoices,
+      hasUnread: unreadTabs?.has("invoices"),
+    },
+    {
+      id: "activity",
+      label: "Activity Log",
+      count: counts.activity,
+      hasUnread: unreadTabs?.has("activity"),
+    },
   ];
+
+  const tabs = hideInvoices
+    ? allTabs.filter((t) => t.id !== "invoices")
+    : allTabs;
 
   return (
     <div
@@ -72,13 +105,13 @@ export function ProjectTabNav({
               >
                 <span className="flex items-center" style={{ gap: 6 }}>
                   {tab.label}
+
+                  {/* Count badge */}
                   {tab.count !== undefined && tab.count > 0 && (
                     <span
                       className="inline-flex items-center justify-center rounded-full"
                       style={{
-                        background: isActive
-                          ? "var(--pd-accent-subtle)"
-                          : "var(--pd-accent-subtle)",
+                        background: "var(--pd-accent-subtle)",
                         color: "var(--pd-accent)",
                         fontFamily: "var(--font-data)",
                         fontSize: 10,
@@ -92,15 +125,44 @@ export function ProjectTabNav({
                       {tab.count}
                     </span>
                   )}
+
+                  {/* Unread dot — teal, 6px, animated */}
+                  {tab.hasUnread && !isActive && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 20,
+                        duration: 0.15,
+                      }}
+                      className="inline-block rounded-full"
+                      style={{
+                        width: 6,
+                        height: 6,
+                        background: "var(--pd-accent)",
+                        flexShrink: 0,
+                      }}
+                      aria-label="New activity"
+                    />
+                  )}
                 </span>
 
-                {/* Active underline — 2px blue */}
+                {/* Active underline — 2px accent */}
                 {isActive && (
-                  <span
+                  <motion.span
                     className="absolute bottom-0 left-0 right-0 rounded-full"
                     style={{
                       height: 2,
                       background: "var(--pd-accent)",
+                    }}
+                    layoutId="tab-underline"
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30,
                     }}
                   />
                 )}

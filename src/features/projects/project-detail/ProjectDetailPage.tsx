@@ -18,18 +18,40 @@ import type {
 } from "./types";
 import { gooeyToast } from "goey-toast";
 import type { ActivityEventMetadata } from "@/db/schema";
+import { differenceInDays } from "date-fns";
+import { computeHealthScore } from "./lib/healthScore";
 
-// v3 components
+// Zone 0 — Preview bar
+import { GuestPreviewBar } from "./components/v3/GuestPreviewBar";
+
+// Zone 1 — Top bar + Health ring
 import { ProjectTopBar } from "./components/v3/ProjectTopBar";
+import { HealthScoreRing } from "./components/v3/HealthScoreRing";
+
+// Zone 2 — Client approval
+import { ClientApprovalCentre } from "./components/v3/ClientApprovalCentre";
+
+// Zone 3 — Stats + Tab nav
 import { HeroStatsBand } from "./components/v3/HeroStatsBand";
 import { ProjectTabNav } from "./components/v3/ProjectTabNav";
-import { ProjectRightPanel } from "./components/v3/ProjectRightPanel";
+
+// Zone 4 — Risk banner
+import { RiskBanner } from "./components/v3/RiskBanner";
+
+// Zone 5 — Tab content
 import { MilestonesKanban } from "./components/v3/MilestonesKanban";
-import { MilestoneSlideOver } from "./components/v3/MilestoneSlideOver";
 import { FilesAssetsTab } from "./components/v3/FilesAssetsTab";
 import { InvoicesDetailTab } from "./components/v3/InvoicesDetailTab";
 import { ActivityLogTab } from "./components/v3/ActivityLogTab";
 import { SAMPLE_ACTIVITY, type ActivityEntry } from "./components/v3/sampleData";
+
+// Zone 6 — Right panel + overlays
+import { ProjectRightPanel } from "./components/v3/ProjectRightPanel";
+import { MilestoneCommandPanel } from "./components/v3/MilestoneCommandPanel";
+import { ReportBuilderPanel } from "./components/v3/ReportBuilderPanel";
+import { ProjectCommandPalette } from "./components/v3/ProjectCommandPalette";
+
+/* ────────────────────────────────────────────────────────────── */
 
 interface ProjectDetailPageProps {
   orgId: string;
@@ -73,6 +95,7 @@ export function ProjectDetailPage({
 }: ProjectDetailPageProps) {
   const permissions = useProjectPermissions(role);
   const reduced = useReducedMotion();
+  const effectiveRole: OrgRole = role ?? "member";
 
   const {
     milestones,
@@ -92,14 +115,73 @@ export function ProjectDetailPage({
     0,
   );
 
-  // ── UI State ────────────────────────────────────────────────
-  const [activeSection, setActiveSection] =
-    useState<ActiveSection>("milestones");
-  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
-    null,
+  // ── Computed Data ──────────────────────────────────────────
+  const completionPct = useMemo(() => {
+    if (milestones.length === 0) return 0;
+    return Math.round(
+      (milestones.filter((m) => m.completed).length / milestones.length) * 100,
+    );
+  }, [milestones]);
+
+  const daysRemaining = useMemo(() => {
+    if (!initialProject.deadline) return null;
+    return differenceInDays(new Date(initialProject.deadline), new Date());
+  }, [initialProject.deadline]);
+
+  const totalDays = useMemo(() => {
+    if (!initialProject.start_date || !initialProject.deadline) return null;
+    return differenceInDays(
+      new Date(initialProject.deadline),
+      new Date(initialProject.start_date),
+    );
+  }, [initialProject.start_date, initialProject.deadline]);
+
+  const health = useMemo(
+    () =>
+      computeHealthScore({
+        completionPct,
+        daysRemaining,
+        totalDays,
+        budgetUsed: invoicesTotal,
+        budgetTotal: initialProject.budget,
+      }),
+    [completionPct, daysRemaining, totalDays, invoicesTotal, initialProject.budget],
   );
 
-  // ── Transform activity data to v3 format ────────────────────
+  // ── UI State ───────────────────────────────────────────────
+  const [activeSection, setActiveSection] = useState<ActiveSection>("milestones");
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [reportPanelOpen, setReportPanelOpen] = useState(false);
+
+  // Check for ?preview=guest on mount
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("preview") === "guest") {
+        setIsPreviewMode(true);
+      }
+    } catch {
+      // SSR safe
+    }
+  }, []);
+
+  const exitPreview = useCallback(() => {
+    setIsPreviewMode(false);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("preview");
+      window.history.replaceState({}, "", url.toString());
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Effective role for rendering (preview mode forces "client")
+  const renderRole = isPreviewMode ? "client" : effectiveRole;
+  const isClient = renderRole === "client";
+
+  // ── Transform activity data to v3 format ──────────────────
   const activityEntries: ActivityEntry[] =
     initialActivity.length > 0
       ? initialActivity.map((a) => ({
@@ -121,11 +203,8 @@ export function ProjectDetailPage({
         }))
       : SAMPLE_ACTIVITY;
 
-  // ── Handlers ────────────────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────
   const handleEdit = () => gooeyToast.success("Edit mode");
-  const handleDuplicate = () => gooeyToast.success("Project duplicated");
-  const handleExport = () => gooeyToast.success("Report exported");
-  const handleShare = () => gooeyToast.success("Link copied");
   const handleArchive = () => gooeyToast.success("Project archived");
   const handleDelete = () => gooeyToast.error("Project deleted");
   const handleCreateInvoice = () => gooeyToast.success("Creating invoice...");
@@ -140,7 +219,8 @@ export function ProjectDetailPage({
         title: "New Milestone",
         due_date: null,
         completed: presetStatus === "done",
-        completed_at: presetStatus === "done" ? new Date().toISOString() : null,
+        completed_at:
+          presetStatus === "done" ? new Date().toISOString() : null,
         order: milestones.length,
         status: (presetStatus || "todo") as Milestone["status"],
       };
@@ -177,10 +257,21 @@ export function ProjectDetailPage({
     [updateMilestoneOptimistic],
   );
 
-  // ── Keyboard shortcuts ──────────────────────────────────────
+  const handleMilestoneCreated = useCallback(
+    (id: string) => {
+      gooeyToast.success("Milestone created");
+    },
+    [],
+  );
+
+  // ── Keyboard shortcuts ────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+      if (
+        (e.target as HTMLElement).tagName === "INPUT" ||
+        (e.target as HTMLElement).tagName === "TEXTAREA"
+      )
+        return;
       if (e.key === "Escape" && selectedMilestone) {
         setSelectedMilestone(null);
       }
@@ -189,7 +280,7 @@ export function ProjectDetailPage({
     return () => window.removeEventListener("keydown", handler);
   }, [selectedMilestone]);
 
-  // ── Tab counts ──────────────────────────────────────────────
+  // ── Tab counts ────────────────────────────────────────────
   const counts = {
     milestones: milestones.length,
     files: files.length,
@@ -197,7 +288,17 @@ export function ProjectDetailPage({
     activity: activityEntries.length,
   };
 
-  // ── Render active section ───────────────────────────────────
+  // ── Pending assets for client approval ────────────────────
+  const pendingAssets = useMemo(
+    () => files.filter((f) => (f as Asset & { approval_status?: string }).approval_status === "pending"),
+    [files],
+  );
+
+  // ── Client email for report builder ───────────────────────
+  const clientEmail =
+    initialProject.client?.email ?? "client@example.com";
+
+  // ── Render active section ─────────────────────────────────
   const renderSection = () => {
     switch (activeSection) {
       case "milestones":
@@ -213,8 +314,8 @@ export function ProjectDetailPage({
         return (
           <FilesAssetsTab
             files={files}
-            onUpload={(f) => gooeyToast.success("Upload started...")}
-            onDelete={(id) => gooeyToast.success("Asset deleted")}
+            onUpload={() => gooeyToast.success("Upload started...")}
+            onDelete={() => gooeyToast.success("Asset deleted")}
           />
         );
       case "invoices":
@@ -231,51 +332,93 @@ export function ProjectDetailPage({
     }
   };
 
-  // ── Completion percentage for header badge ──────────────────
-  const completionPct = useMemo(() => {
-    if (milestones.length === 0) return 0;
-    return Math.round((milestones.filter((m) => m.completed).length / milestones.length) * 100);
-  }, [milestones]);
-
   return (
     <div
       className="flex min-h-screen flex-col"
-      style={{ background: "var(--pd-body)", color: "var(--pd-text-primary)" }}
+      style={{
+        background: "var(--pd-body)",
+        color: "var(--pd-text-primary)",
+      }}
     >
-      {/* Zone A — Top Bar */}
-      <ProjectTopBar
-        project={initialProject}
-        completionPct={completionPct}
-        onEdit={handleEdit}
-        onAddMilestone={() => handleAddMilestone()}
-        onDuplicate={handleDuplicate}
-        onExport={handleExport}
-        onShare={handleShare}
-        onArchive={handleArchive}
-        onDelete={handleDelete}
-      />
+      {/* ═══ Zone 0 — Guest Preview Bar ═══════════════════════ */}
+      {isPreviewMode && <GuestPreviewBar onExitPreview={exitPreview} />}
 
-      {/* Zone B — Hero Stats Band */}
+      {/* ═══ Zone 1 — Top Bar + Health Ring ═══════════════════ */}
+      <div className="flex items-start gap-4 px-8 pt-6 pb-4"
+        style={{ background: "var(--pd-body)" }}
+      >
+        <div className="min-w-0 flex-1">
+          <ProjectTopBar
+            project={initialProject}
+            onEdit={handleEdit}
+            onAddMilestone={() => handleAddMilestone()}
+            onArchive={handleArchive}
+            onDelete={handleDelete}
+            onGenerateReport={
+              !isClient ? () => setReportPanelOpen(true) : undefined
+            }
+          />
+        </div>
+        {/* Health ring — pinned top-right of Zone 1 */}
+        <div
+          className="pd-animate-fade-up shrink-0 pt-2"
+          style={{ animationDelay: "120ms" }}
+        >
+          <HealthScoreRing health={health} size={80} />
+        </div>
+      </div>
+
+      {/* ═══ Zone 2 — Client Approval Centre ════════════════ */}
+      {isClient && (
+        <ClientApprovalCentre
+          pendingAssets={pendingAssets}
+          projectId={projectId}
+        />
+      )}
+
+      {/* ═══ Zone 3 — Stats Band + Tab Nav ══════════════════ */}
       <HeroStatsBand
         project={initialProject}
         milestones={milestones}
         invoicesTotal={invoicesTotal}
       />
 
-      {/* Zone C — Tab Navigation */}
+      {/* ═══ Zone 4 — Risk Banner ═══════════════════════════ */}
+      {!isClient && (
+        <RiskBanner
+          milestones={milestones}
+          deadline={initialProject.deadline}
+          projectId={projectId}
+        />
+      )}
+
       <ProjectTabNav
         activeTab={activeSection}
         onTabChange={setActiveSection}
         counts={counts}
+        hideInvoices={isClient}
       />
 
-      {/* Zone D — Main Content + Right Panel */}
+      {/* ═══ Zone 5+6 — Main Content + Right Panel ══════════ */}
       <div
-        className="flex flex-1 px-8 pt-6 pb-8"
+        className="relative flex flex-1 px-8 pt-6 pb-8"
         style={{ background: "var(--pd-body)", gap: 24 }}
       >
         {/* Main content area */}
         <main className="min-w-0 flex-1">
+          {/* Command palette trigger */}
+          <div className="mb-4 flex items-center justify-between">
+            <ProjectCommandPalette
+              projectId={projectId}
+              role={renderRole}
+              onNavigate={setActiveSection}
+              onMilestoneCreated={handleMilestoneCreated}
+              onGenerateReport={
+                !isClient ? () => setReportPanelOpen(true) : undefined
+              }
+            />
+          </div>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={activeSection}
@@ -289,28 +432,35 @@ export function ProjectDetailPage({
           </AnimatePresence>
         </main>
 
-        {/* Right panel — 320px fixed */}
+        {/* Right panel — 288px sticky */}
         <ProjectRightPanel
           project={initialProject}
           members={initialMembers}
+          role={renderRole}
           onCreateInvoice={handleCreateInvoice}
-          onDuplicate={handleDuplicate}
-          onExport={handleExport}
           onArchive={handleArchive}
           onDelete={handleDelete}
           onEdit={handleEdit}
           onAddMember={handleAddMember}
         />
-      </div>
 
-      {/* Slide-over overlay */}
-      <MilestoneSlideOver
-        milestone={selectedMilestone}
-        onClose={() => setSelectedMilestone(null)}
-        onUpdate={handleUpdateMilestone}
-        onDelete={handleDeleteMilestone}
-      />
+        {/* Milestone Command Panel — position: absolute inside this relative wrapper */}
+        <MilestoneCommandPanel
+          milestone={selectedMilestone}
+          onClose={() => setSelectedMilestone(null)}
+          onUpdate={handleUpdateMilestone}
+          onDelete={handleDeleteMilestone}
+        />
+
+        {/* Report Builder Panel — position: absolute inside this relative wrapper */}
+        <ReportBuilderPanel
+          open={reportPanelOpen}
+          onClose={() => setReportPanelOpen(false)}
+          projectId={projectId}
+          projectName={initialProject.name}
+          clientEmail={clientEmail}
+        />
+      </div>
     </div>
   );
 }
-

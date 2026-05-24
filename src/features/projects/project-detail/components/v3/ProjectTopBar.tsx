@@ -6,34 +6,14 @@ import {
   Pencil,
   Plus,
   MoreHorizontal,
-  Copy,
   Archive,
   Trash2,
   Clock,
-  AlertTriangle,
+  FileDown,
 } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import type { Project } from "../../types";
 import { formatStatus } from "../../../utils/formatters";
-
-/* ── Health score (minimal, for inline badge) ─────────────── */
-function calcHealthGrade(project: Project, completionPct: number): { grade: string; color: string } {
-  let score = 0;
-  score += completionPct * 0.4;
-  if (project.deadline) {
-    const days = differenceInDays(new Date(project.deadline), new Date());
-    if (days >= 7) score += 30;
-    else if (days >= 0) score += 15;
-    else score += Math.max(0, 10 + days);
-  } else {
-    score += 20;
-  }
-  score += 20; // neutral budget assumption for header
-  if (score >= 80) return { grade: "A", color: "var(--pd-status-done)" };
-  if (score >= 60) return { grade: "B+", color: "var(--pd-status-done)" };
-  if (score >= 40) return { grade: "C", color: "var(--pd-status-warning)" };
-  return { grade: "D", color: "var(--pd-status-overdue)" };
-}
 
 /* ── Status color helpers ─────────────────────────────────── */
 function statusColor(s: string) {
@@ -64,15 +44,15 @@ function statusBg(s: string) {
 function MoreMenu({
   open,
   onClose,
-  onDuplicate,
   onArchive,
   onDelete,
+  onGenerateReport,
 }: {
   open: boolean;
   onClose: () => void;
-  onDuplicate: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  onGenerateReport?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -98,31 +78,78 @@ function MoreMenu({
         boxShadow: "var(--pd-shadow-elevated)",
       }}
     >
-      {[
-        { icon: Archive, label: "Archive Project", onClick: onArchive },
-        { icon: Copy, label: "Duplicate Project", onClick: onDuplicate },
-      ].map((item) => (
+      {onGenerateReport && (
         <button
-          key={item.label}
-          onClick={() => { item.onClick(); onClose(); }}
+          onClick={() => {
+            onGenerateReport();
+            onClose();
+          }}
           className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left transition-colors"
-          style={{ color: "var(--pd-text-secondary)", fontFamily: "var(--font-data)", fontSize: 13 }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--pd-accent-subtle)"; e.currentTarget.style.color = "var(--pd-text-primary)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--pd-text-secondary)"; }}
+          style={{
+            color: "var(--pd-text-secondary)",
+            fontFamily: "var(--font-data)",
+            fontSize: 13,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--pd-accent-subtle)";
+            e.currentTarget.style.color = "var(--pd-text-primary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--pd-text-secondary)";
+          }}
         >
-          <item.icon size={14} />
-          {item.label}
+          <FileDown size={14} />
+          Generate Report
         </button>
-      ))}
-
-      <div className="my-1.5" style={{ height: 1, background: "var(--pd-divider)" }} />
+      )}
 
       <button
-        onClick={() => { onDelete(); onClose(); }}
+        onClick={() => {
+          onArchive();
+          onClose();
+        }}
         className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left transition-colors"
-        style={{ color: "var(--pd-status-overdue)", fontFamily: "var(--font-data)", fontSize: 13 }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--pd-status-overdue-bg)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+        style={{
+          color: "var(--pd-text-secondary)",
+          fontFamily: "var(--font-data)",
+          fontSize: 13,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "var(--pd-accent-subtle)";
+          e.currentTarget.style.color = "var(--pd-text-primary)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.color = "var(--pd-text-secondary)";
+        }}
+      >
+        <Archive size={14} />
+        Archive Project
+      </button>
+
+      <div
+        className="my-1.5"
+        style={{ height: 1, background: "var(--pd-divider)" }}
+      />
+
+      <button
+        onClick={() => {
+          onDelete();
+          onClose();
+        }}
+        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left transition-colors"
+        style={{
+          color: "var(--pd-status-overdue)",
+          fontFamily: "var(--font-data)",
+          fontSize: 13,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "var(--pd-status-overdue-bg)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "transparent";
+        }}
       >
         <Trash2 size={14} />
         Delete Project
@@ -134,29 +161,28 @@ function MoreMenu({
 /* ── Main Component ───────────────────────────────────────── */
 interface ProjectTopBarProps {
   project: Project;
-  completionPct?: number;
   onEdit: () => void;
   onAddMilestone: () => void;
-  onDuplicate: () => void;
-  onExport: () => void;
-  onShare: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  onGenerateReport?: () => void;
 }
 
 export function ProjectTopBar({
   project,
-  completionPct = 0,
   onEdit,
   onAddMilestone,
-  onDuplicate,
   onArchive,
   onDelete,
+  onGenerateReport,
 }: ProjectTopBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const clientName = useMemo(
-    () => project.client?.company_name || project.client?.contact_name || "No client",
+    () =>
+      project.client?.company_name ||
+      project.client?.contact_name ||
+      "No client",
     [project.client],
   );
 
@@ -165,11 +191,6 @@ export function ProjectTopBar({
     const diff = differenceInDays(new Date(), new Date(project.deadline));
     return diff > 0 ? diff : null;
   }, [project.deadline]);
-
-  const health = useMemo(
-    () => calcHealthGrade(project, completionPct),
-    [project, completionPct],
-  );
 
   return (
     <div
@@ -185,13 +206,19 @@ export function ProjectTopBar({
           href="/projects"
           className="transition-colors hover:underline"
           style={{ color: "var(--pd-text-muted)" }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "var(--pd-text-primary)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "var(--pd-text-muted)"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--pd-text-primary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--pd-text-muted)";
+          }}
         >
           Projects
         </a>
         <span style={{ color: "var(--pd-text-muted)", fontSize: 10 }}>›</span>
-        <span style={{ color: "var(--pd-text-secondary)" }}>{project.name}</span>
+        <span style={{ color: "var(--pd-text-secondary)" }}>
+          {project.name}
+        </span>
       </div>
 
       {/* Title + Actions */}
@@ -263,24 +290,6 @@ export function ProjectTopBar({
               {clientName}
             </span>
 
-            {/* Health badge */}
-            <span
-              className="inline-flex items-center gap-1"
-              style={{
-                background: health.grade === "D" || health.grade === "C"
-                  ? "var(--pd-status-overdue-bg)"
-                  : "var(--pd-status-done-bg)",
-                color: health.color,
-                fontFamily: "var(--font-data)",
-                fontSize: 12,
-                borderRadius: 6,
-                padding: "6px 10px",
-                fontWeight: 500,
-              }}
-            >
-              Health · {health.grade}
-            </span>
-
             {/* Overdue badge */}
             {daysOverdue && (
               <span
@@ -318,8 +327,14 @@ export function ProjectTopBar({
               height: 36,
               borderRadius: 10,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--pd-accent)"; e.currentTarget.style.color = "var(--pd-text-primary)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--pd-border)"; e.currentTarget.style.color = "var(--pd-text-secondary)"; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--pd-accent)";
+              e.currentTarget.style.color = "var(--pd-text-primary)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--pd-border)";
+              e.currentTarget.style.color = "var(--pd-text-secondary)";
+            }}
           >
             <Pencil size={14} />
             Edit
@@ -338,8 +353,12 @@ export function ProjectTopBar({
               height: 36,
               borderRadius: 10,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--pd-accent-hover)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--pd-accent)"; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "var(--pd-accent-hover)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "var(--pd-accent)";
+            }}
           >
             <Plus size={14} />
             Add Milestone
@@ -355,8 +374,12 @@ export function ProjectTopBar({
               height: 36,
               borderRadius: 10,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--pd-accent-subtle)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "var(--pd-accent-subtle)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
           >
             <MoreHorizontal size={16} />
           </button>
@@ -364,9 +387,9 @@ export function ProjectTopBar({
           <MoreMenu
             open={menuOpen}
             onClose={() => setMenuOpen(false)}
-            onDuplicate={onDuplicate}
             onArchive={onArchive}
             onDelete={onDelete}
+            onGenerateReport={onGenerateReport}
           />
         </div>
       </div>

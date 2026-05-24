@@ -8,55 +8,18 @@ import { useCountUp } from "../../hooks/useCountUp";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { formatCurrency } from "../../../utils/formatters";
 
-/* ── Health score calculator ──────────────────────────────── */
-function calcHealthScore(
-  completionPct: number,
-  daysRemaining: number | null,
-  budgetRatio: number | null,
-): { grade: string; label: string; color: string; segments: number } {
-  let score = 0;
-  score += completionPct * 0.4;
-  if (daysRemaining === null) score += 20;
-  else if (daysRemaining >= 7) score += 30;
-  else if (daysRemaining >= 0) score += 15;
-  else score += Math.max(0, 10 + daysRemaining);
-  if (budgetRatio === null) score += 20;
-  else if (budgetRatio <= 0.7) score += 30;
-  else if (budgetRatio <= 1.0) score += 20;
-  else score += Math.max(0, 15 - (budgetRatio - 1) * 20);
-
-  if (score >= 80) return { grade: "A", label: "On track", color: "var(--pd-status-done)", segments: 5 };
-  if (score >= 60) return { grade: "B+", label: "Minor issues", color: "var(--pd-status-done)", segments: 4 };
-  if (score >= 40) return { grade: "C", label: "At risk", color: "var(--pd-status-warning)", segments: 3 };
-  return { grade: "D", label: "Needs attention", color: "var(--pd-status-overdue)", segments: 1 };
-}
-
-/* ── 5-segment health bar ─────────────────────────────────── */
-function HealthBar({ segments, color }: { segments: number; color: string }) {
-  return (
-    <div className="mt-2 flex gap-[3px]">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div
-          key={i}
-          className={i < segments ? "pd-animate-health-seg" : ""}
-          style={{
-            width: 18,
-            height: 6,
-            borderRadius: 2,
-            background: i < segments ? color : "var(--pd-divider)",
-            animationDelay: `${300 + i * 80}ms`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 /* ── Vertical Divider ─────────────────────────────────────── */
 function VDivider() {
   return (
     <div className="flex items-center" style={{ padding: "0 0" }}>
-      <div style={{ width: 1, height: "60%", background: "var(--pd-divider)", minHeight: 60 }} />
+      <div
+        style={{
+          width: 1,
+          height: "60%",
+          background: "var(--pd-divider)",
+          minHeight: 60,
+        }}
+      />
     </div>
   );
 }
@@ -105,14 +68,8 @@ export function HeroStatsBand({
 
   /* Budget */
   const budgetCents = project.budget ?? null;
-  const isOverBudget = budgetCents !== null && invoicesTotal > budgetCents;
-  const budgetRatio = budgetCents && budgetCents > 0 ? invoicesTotal / budgetCents : null;
-
-  /* Health */
-  const health = useMemo(
-    () => calcHealthScore(percentage, daysRemaining, budgetRatio),
-    [percentage, daysRemaining, budgetRatio],
-  );
+  const isOverBudget =
+    budgetCents !== null && invoicesTotal > budgetCents;
 
   const labelStyle = {
     fontFamily: "var(--font-data)",
@@ -145,11 +102,17 @@ export function HeroStatsBand({
         {/* ── Column 1: Completion ─────────────────────────── */}
         <div className="flex flex-1 flex-col justify-center p-6">
           <span style={labelStyle}>COMPLETION</span>
-          <span className="mt-2" style={{ ...valueStyle, color: "var(--pd-text-primary)" }}>
+          <span
+            className="mt-2"
+            style={{ ...valueStyle, color: "var(--pd-text-primary)" }}
+          >
             {reduced ? percentage : animPct}%
           </span>
           <div className="pd-progress-track mt-3 w-full">
-            <div className="pd-progress-fill" style={{ width: `${percentage}%` }} />
+            <div
+              className="pd-progress-fill"
+              style={{ width: `${percentage}%` }}
+            />
           </div>
           <span className="mt-2" style={subStyle}>
             {completed} of {total} milestones
@@ -161,11 +124,19 @@ export function HeroStatsBand({
         {/* ── Column 2: Deadline ───────────────────────────── */}
         <div className="flex flex-1 flex-col justify-center p-6">
           <span style={labelStyle}>DEADLINE</span>
-          <span className="mt-2" style={{ ...valueStyle, color: timelineColor }}>
+          <span
+            className="mt-2"
+            style={{ ...valueStyle, color: timelineColor }}
+          >
             {deadlineLabel}
           </span>
-          <span className="mt-2 flex items-center gap-1" style={{ ...subStyle, color: timelineColor }}>
-            {daysRemaining !== null && daysRemaining < 0 && <AlertTriangle size={11} />}
+          <span
+            className="mt-2 flex items-center gap-1"
+            style={{ ...subStyle, color: timelineColor }}
+          >
+            {daysRemaining !== null && daysRemaining < 0 && (
+              <AlertTriangle size={11} />
+            )}
             {daysRemaining === null
               ? "No deadline"
               : daysRemaining < 0
@@ -181,7 +152,10 @@ export function HeroStatsBand({
         {/* ── Column 3: Budget ─────────────────────────────── */}
         <div className="flex flex-1 flex-col justify-center p-6">
           <span style={labelStyle}>BUDGET</span>
-          <span className="mt-2" style={{ ...valueStyle, color: "var(--pd-text-primary)" }}>
+          <span
+            className="mt-2"
+            style={{ ...valueStyle, color: "var(--pd-text-primary)" }}
+          >
             {formatCurrency(budgetCents)}
           </span>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -230,24 +204,6 @@ export function HeroStatsBand({
               </span>
             ) : null}
           </div>
-        </div>
-
-        <VDivider />
-
-        {/* ── Column 4: Health Score ───────────────────────── */}
-        <div className="flex flex-1 flex-col justify-center p-6">
-          <span style={labelStyle}>HEALTH</span>
-          <span className="mt-2" style={{ ...valueStyle, color: health.color }}>
-            {health.grade}
-          </span>
-          <span className="mt-2 flex items-center gap-1.5" style={{ ...subStyle, color: health.color }}>
-            <span
-              className="inline-block h-1.5 w-1.5 rounded-full"
-              style={{ background: health.color }}
-            />
-            {health.label}
-          </span>
-          <HealthBar segments={health.segments} color={health.color} />
         </div>
       </div>
     </div>

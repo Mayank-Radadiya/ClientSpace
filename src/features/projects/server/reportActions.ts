@@ -1,23 +1,8 @@
 "use server";
-// Fix 1: @react-pdf/renderer requires Node.js canvas APIs — cannot run on Edge runtime.
-export const runtime = "nodejs";
 
 import { getSessionContext } from "@/lib/auth/session";
-import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { Buffer } from "buffer";
-
-// ── PDF style sheet ───────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  page: { padding: 40, fontFamily: "Helvetica" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 8 },
-  subtitle: { fontSize: 12, color: "#6b7280", marginBottom: 24 },
-  sectionTitle: { fontSize: 14, fontWeight: "bold", marginBottom: 8, marginTop: 16 },
-  row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
-  label: { fontSize: 10, color: "#374151" },
-  value: { fontSize: 10, color: "#111827" },
-  divider: { borderBottom: "1pt solid #e5e7eb", marginVertical: 8 },
-});
 
 export interface ReportSection {
   key: "overview" | "milestones" | "files" | "invoices" | "activity";
@@ -49,6 +34,20 @@ export async function generateProjectPdf(data: ReportData): Promise<{
   if (ctx.role === "client") return { success: false, error: "Clients cannot generate reports." };
 
   try {
+    const { Document, Page, Text, View, StyleSheet, pdf } = await import("@react-pdf/renderer");
+
+    // ── PDF style sheet ───────────────────────────────────────────────────────────
+    const styles = StyleSheet.create({
+      page: { padding: 40, fontFamily: "Helvetica" },
+      title: { fontSize: 24, fontWeight: "bold", marginBottom: 8 },
+      subtitle: { fontSize: 12, color: "#6b7280", marginBottom: 24 },
+      sectionTitle: { fontSize: 14, fontWeight: "bold", marginBottom: 8, marginTop: 16 },
+      row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
+      label: { fontSize: 10, color: "#374151" },
+      value: { fontSize: 10, color: "#111827" },
+      divider: { borderBottom: "1pt solid #e5e7eb", marginVertical: 8 },
+    });
+
     const doc = createElement(
       Document,
       null,
