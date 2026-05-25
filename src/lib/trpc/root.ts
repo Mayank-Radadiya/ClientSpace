@@ -9,6 +9,7 @@ import { activityRouter } from "@/features/activity/server/router";
 import { commentsRouter } from "@/features/comments/server/router";
 import { analyticsRouter } from "@/features/analytics/server/router";
 import { clientRouter } from "@/features/clients/server/router";
+import { clientNotesRouter } from "@/features/clients/server/clientNotesRouter";
 
 // Pluralized cached routers
 import { projectsRouter } from "@/features/projects/server/projectsRouter";
@@ -41,6 +42,7 @@ export const appRouter = createTRPCRouter({
   comments: commentsRouter,
   analytics: analyticsRouter,
   clients: clientRouter,
+  clientNotes: clientNotesRouter,
 });
 
 export type AppRouter = typeof appRouter;

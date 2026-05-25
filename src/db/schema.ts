@@ -76,6 +76,13 @@ export const approvalStatusEnum = pgEnum("approval_status", [
   "changes_requested",
 ]);
 export const clientStatusEnum = pgEnum("client_status", ["active", "revoked"]);
+export const clientLifecycleStatusEnum = pgEnum("client_lifecycle_status", [
+  "prospect",
+  "active",
+  "on_hold",
+  "churned",
+  "archived",
+]);
 export const invitationTypeEnum = pgEnum("invitation_type", [
   "member",
   "client",
@@ -187,6 +194,8 @@ export const clients = pgTable("clients", {
   email: text("email").notNull(), // Invite target email
   invitedAt: timestamp("invited_at", { withTimezone: true }).defaultNow(),
   status: clientStatusEnum("status").default("active").notNull(),
+  // Lifecycle state for the 5-state relationship selector (prospect → active → on_hold → churned → archived)
+  lifecycleStatus: clientLifecycleStatusEnum("lifecycle_status").default("active").notNull(),
 }).enableRLS();
 
 // Projects
@@ -571,6 +580,36 @@ export const projectNotes = pgTable(
       .notNull(),
   },
   (t) => [index("project_notes_org_project_idx").on(t.orgId, t.projectId)],
+).enableRLS();
+
+// Client Notes (internal team notes per client — never visible to clients)
+export const clientNotes = pgTable(
+  "client_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // orgId de-normalized for O(1) RLS — avoids JOIN to clients on every query.
+    orgId: uuid("org_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    clientId: uuid("client_id")
+      .references(() => clients.id, { onDelete: "cascade" })
+      .notNull(),
+    authorId: uuid("author_id")
+      .references(() => users.id)
+      .notNull(),
+    content: text("content").notNull(),
+    isPinned: boolean("is_pinned").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("client_notes_org_client_idx").on(t.orgId, t.clientId),
+    index("client_notes_client_created_idx").on(t.clientId, t.createdAt.desc()),
+  ],
 ).enableRLS();
 
 // ─── Phase 2 Stub Tables ─────────────────────────────────────────────────────

@@ -22,6 +22,21 @@ const updateClientSchema = z.object({
   contactName: z.string().trim().min(1).max(120),
 });
 
+export type ClientLifecycleStatus =
+  | "prospect"
+  | "active"
+  | "on_hold"
+  | "churned"
+  | "archived";
+
+const lifecycleStatusSchema = z.enum([
+  "prospect",
+  "active",
+  "on_hold",
+  "churned",
+  "archived",
+]);
+
 function deriveDisplayStatus(input: {
   dbStatus: "active" | "revoked";
   pendingInvite: boolean;
@@ -533,6 +548,7 @@ export const clientRouter = createTRPCRouter({
           email: row.email,
           dbStatus: row.status,
           displayStatus,
+          lifecycleStatus: row.lifecycleStatus,
           invitedAt: row.invitedAt?.toISOString() ?? null,
           activeProjectCount,
           outstandingAmountCents,
@@ -540,6 +556,55 @@ export const clientRouter = createTRPCRouter({
           pendingInvite,
           lastActivityAt: lastActivityAt?.toISOString() ?? null,
         };
+      });
+    }),
+
+  /** Update the lifecycle status (prospect → active → on_hold → churned → archived). */
+  updateLifecycle: protectedProcedure
+    .input(
+      z.object({
+        clientId: z.string().uuid(),
+        lifecycleStatus: lifecycleStatusSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.role !== "owner" && ctx.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only owner/admin can change client lifecycle status.",
+        });
+      }
+
+      return withRLS(ctx, async (tx) => {
+        const existing = await tx.query.clients.findFirst({
+          where: and(
+            eq(clients.id, input.clientId),
+            eq(clients.orgId, ctx.orgId),
+          ),
+          columns: { id: true, lifecycleStatus: true },
+        });
+
+        if (!existing) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Client not found." });
+        }
+
+        // Keep legacy status in sync: archived → revoked, everything else → active
+        const legacyStatus =
+          input.lifecycleStatus === "archived" ? "revoked" : "active";
+
+        const [updated] = await tx
+          .update(clients)
+          .set({
+            lifecycleStatus: input.lifecycleStatus,
+            status: legacyStatus,
+          })
+          .where(eq(clients.id, input.clientId))
+          .returning({
+            id: clients.id,
+            lifecycleStatus: clients.lifecycleStatus,
+          });
+
+        return { ...updated, previousStatus: existing.lifecycleStatus };
       });
     }),
 });
