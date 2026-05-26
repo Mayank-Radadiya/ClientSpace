@@ -1,11 +1,14 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { cache } from "react";
+import { headers, cookies } from "next/headers";
 import { withRLS } from "@/db/createDrizzleClient";
 import { orgMemberships } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getUser } from "@/lib/auth/getUser";
 import { getActiveOrgId } from "@/lib/auth/orgSwitcher";
+import { getCachedUser } from "@/lib/auth/getCachedUser";
+import { createClient } from "@/lib/supabase/server";
+
 
 // Context shape available in all procedures
 export type TRPCContext = {
@@ -39,8 +42,27 @@ export type TRPCContext = {
  */
 export const createTRPCContext = cache(
   async (): Promise<TRPCContext | null> => {
-    // Uses the cached getUser to avoid duplicate network calls
-    const user = await getUser();
+    let jwt: string | null = null;
+
+    try {
+      const headersList = await headers();
+      const authHeader = headersList.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        jwt = authHeader.substring(7);
+      }
+
+      if (!jwt) {
+        const supabase = await createClient();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        jwt = session?.access_token ?? null;
+      }
+    } catch (e) {
+      console.error("[createTRPCContext] Failed to extract JWT:", e);
+    }
+
+    const user = jwt ? await getCachedUser(jwt) : null;
     if (!user) return null;
 
     const userId = user.id;

@@ -1,9 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createTRPCContext } from "@/lib/trpc/init";
-import { setActiveOrg } from "@/lib/auth/orgSwitcher";
+import { setActiveOrg, clearActiveOrg } from "@/lib/auth/orgSwitcher";
+import { invalidateUserCache } from "@/lib/auth/invalidateUserCache";
 import {
   loginSchema,
   signupSchema,
@@ -212,4 +214,22 @@ export async function resendOtpAction(
   }
 
   return { success: true };
+}
+
+export async function logoutAction(): Promise<never> {
+  const supabase = await createClient();
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const jwt = session?.access_token;
+    if (jwt) {
+      await invalidateUserCache(jwt);
+    }
+  } catch (e) {
+    console.error("[logoutAction] Failed to extract session JWT for cache invalidation:", e);
+  }
+
+  await supabase.auth.signOut();
+  await clearActiveOrg();
+
+  return redirect("/login");
 }
