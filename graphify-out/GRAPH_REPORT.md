@@ -1,16 +1,16 @@
 # Graph Report - clientspace  (2026-05-26)
 
 ## Corpus Check
-- 470 files · ~244,974 words
+- 471 files · ~245,582 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3012 nodes · 5765 edges · 213 communities (196 shown, 17 thin omitted)
+- 3012 nodes · 5765 edges · 212 communities (195 shown, 17 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ee20fc5d`
+- Built from commit: `b52f69f1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -207,7 +207,7 @@
 - [[_COMMUNITY_Community 191|Community 191]]
 - [[_COMMUNITY_Community 192|Community 192]]
 - [[_COMMUNITY_Community 193|Community 193]]
-- [[_COMMUNITY_Community 194|Community 194]]
+- [[_COMMUNITY_Community 198|Community 198]]
 - [[_COMMUNITY_Community 199|Community 199]]
 - [[_COMMUNITY_Community 200|Community 200]]
 - [[_COMMUNITY_Community 201|Community 201]]
@@ -217,7 +217,6 @@
 - [[_COMMUNITY_Community 205|Community 205]]
 - [[_COMMUNITY_Community 206|Community 206]]
 - [[_COMMUNITY_Community 207|Community 207]]
-- [[_COMMUNITY_Community 208|Community 208]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 264 edges
@@ -243,135 +242,135 @@
 - `ProjectPage()` --calls--> `NotFound()`  [INFERRED]
   src/app/(dashboard)/projects/[projectId]/page.tsx → src/app/not-found.tsx
 
-## Communities (213 total, 17 thin omitted)
+## Communities (212 total, 17 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.06
-Nodes (33): ErrorPage(), ErrorPageProps, ClientSignUpTabProps, containerVariants, initialState, itemVariants, DeleteDialog(), DeleteDialogProps (+25 more)
-
-### Community 1 - "Community 1"
 Cohesion: 0.05
 Nodes (35): AuthLayoutProps, ClientSidebarProps, Organization, CLIENT_NAV_ITEMS, AuthLayoutProps, Organization, WorkspaceShellProps, DesktopSidebar() (+27 more)
 
-### Community 2 - "Community 2"
+### Community 1 - "Community 1"
 Cohesion: 0.06
 Nodes (50): ACTIVE_STATUS_OPTIONS, PRIORITY_OPTIONS, ProjectInput, projectPriorityEnum, PRIORITY_LABELS, PriorityBadge(), PriorityBadgeProps, ANTIGRAVITY (+42 more)
+
+### Community 2 - "Community 2"
+Cohesion: 0.07
+Nodes (43): DeleteFileDialogProps, CurrencyTooltip(), formatMoney(), formatCents(), StatsCards(), UploadDropzone(), UploadDropzoneProps, UploadQueueItem (+35 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.06
 Nodes (40): getCachedUser(), mockGetUser, mockUser, invalidateUserCache(), clearActiveOrg(), setActiveOrg(), LoginFormType, loginSchema (+32 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.05
-Nodes (47): activityLogsRelations, assetsRelations, clientsRelations, commentsRelations, contractsRelations, csatResponsesRelations, fileVersionsRelations, foldersRelations (+39 more)
+Cohesion: 0.06
+Nodes (38): MilestoneCard, MilestoneCardProps, useProjectDetail(), UseProjectDetailProps, useProjectPermissions(), ProjectDetailPage(), ProjectDetailPageProps, ActiveSection (+30 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.07
-Nodes (33): getActiveOrgId(), clientNotes, clients, invitations, projectNotes, InvoicesPage(), clientNotesRouter, createSchema (+25 more)
+Cohesion: 0.06
+Nodes (33): CommentInput(), CommentInputProps, Client, DEFAULT_ITEM, InvoiceBuilder(), InvoiceBuilderProps, Project, useDescriptionHistory() (+25 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.08
-Nodes (28): ActivityFeedCardProps, ActivityItem, ActivityRow, ActivityTimelineProps, DiscussionsTabProps, MilestoneCard, MilestoneCardProps, ProjectSidebarProps (+20 more)
+Nodes (31): ActivityFeedCardProps, ActivityItem, ActivityRow, ActivityTimelineProps, DiscussionsTabProps, ProjectSidebar(), ProjectSidebarProps, TeamTabProps (+23 more)
 
 ### Community 7 - "Community 7"
+Cohesion: 0.08
+Nodes (34): InvoicePDF(), RecentActivityFeed(), RevenueChart(), DashboardPage(), metadata, activityLogs, approvalStatusEnum, clientLifecycleStatusEnum (+26 more)
+
+### Community 8 - "Community 8"
 Cohesion: 0.04
 Nodes (46): API Structure, `app_metadata` vs `user_metadata`, Backend Requirements, code:block1 (Type:    Next.js Server Action (progressive enhancement form), code:ts (import { NextResponse } from "next/server";), code:ts (import { NextResponse } from "next/server";), code:block12 (Scenario: User has org in DB but no `has_org` cookie (cleare), code:block2 (Purpose: Repair missing has_org cookie without causing an in) (+38 more)
 
-### Community 8 - "Community 8"
-Cohesion: 0.09
-Nodes (34): CurrencyTooltip(), formatMoney(), formatCents(), StatsCards(), ThemeToggle(), UploadDropzone(), UploadDropzoneProps, UploadQueueItem (+26 more)
-
 ### Community 9 - "Community 9"
-Cohesion: 0.08
-Nodes (28): CreateCommentInput, createCommentSchema, deleteCommentSchema, EditCommentInput, editCommentSchema, CommentView, CommentThreadProps, Role (+20 more)
+Cohesion: 0.09
+Nodes (35): getActiveOrgId(), getSessionContext(), createDrizzleClient(), projectStatusEnum, updateProjectSchema, projectColumns, createInvoice(), createProjectAction() (+27 more)
 
 ### Community 10 - "Community 10"
-Cohesion: 0.05
-Nodes (42): API Structure, Auth Callback Route, Auth Trigger: `auth.users` → `public.users`, Backend Requirements, code:block1 (src/), code:sql (-- =========================================================), code:sql (-- Phase 2 replacement for org membership checks:), code:ts (import { createBrowserClient } from "@supabase/ssr";) (+34 more)
+Cohesion: 0.08
+Nodes (23): ErrorPage(), ErrorPageProps, containerVariants, initialState, itemVariants, DeleteDialog(), DeleteDialogProps, EmptyInvoiceStateProps (+15 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.11
-Nodes (36): getSessionContext(), withRLS(), isNextControlError(), NextControlError, ProjectPage(), ProjectPageProps, createInvoice(), createProjectAction() (+28 more)
+Cohesion: 0.05
+Nodes (42): API Structure, Auth Callback Route, Auth Trigger: `auth.users` → `public.users`, Backend Requirements, code:block1 (src/), code:sql (-- =========================================================), code:sql (-- Phase 2 replacement for org membership checks:), code:ts (import { createBrowserClient } from "@supabase/ssr";) (+34 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.05
 Nodes (40): **10.1 Core Data Validation (Zod)**, **10.2 Architectural Rules & Safety**, **13.1 Freelancer Onboarding**, **13.2 Client First Login**, **13.3 File Delivery & Approval**, **13.4 Invoice Lifecycle**, **3.1 Freelancers (Primary Paying User)**, **3.2 Small Agencies (Primary Paying User)** (+32 more)
 
 ### Community 13 - "Community 13"
-Cohesion: 0.08
-Nodes (28): ClientListItem, ClientsPage(), metadata, BulkActionBar(), BulkActionBarProps, ClientDetailSheet(), ClientsEmptyState(), ClientsEmptyStateProps (+20 more)
+Cohesion: 0.1
+Nodes (27): ClientFileUploader(), ClientFileUploaderProps, PlanTier, assets, fileVersions, folders, ActionState, ALLOWED_MIME_TYPES (+19 more)
 
 ### Community 14 - "Community 14"
 Cohesion: 0.08
-Nodes (24): CommentInput(), CommentInputProps, Client, DEFAULT_ITEM, InvoiceBuilder(), InvoiceBuilderProps, Project, useDescriptionHistory() (+16 more)
+Nodes (17): InsightWidgetsProps, MetricCardsProps, useCountUp(), ProjectPermissions, Project, formatCurrency(), PRIORITY_MAP, PriorityStyle (+9 more)
 
 ### Community 15 - "Community 15"
-Cohesion: 0.09
-Nodes (23): AddClientPage(), metadata, COOKIE_OPTIONS, GET(), ClientLayout(), AddClientForm(), ClientHeader(), ClientHeaderProps (+15 more)
+Cohesion: 0.07
+Nodes (27): ClientDetailPage(), MetricBlock(), Tab, TABS, AlertSeverity, ClientHealthAlert, ClientHealthBanner(), ClientHealthBannerProps (+19 more)
 
 ### Community 16 - "Community 16"
 Cohesion: 0.09
 Nodes (31): baseStyles, InvoicePDFProps, Client, InvoicePreview(), InvoicePreviewProps, InvoiceStatusButton(), InvoiceStatusButtonProps, canTransition() (+23 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.1
-Nodes (25): RecentActivityFeed(), RevenueChart(), DashboardPage(), metadata, createDrizzleClient(), invoices, projectMembers, projects (+17 more)
+Cohesion: 0.08
+Nodes (10): SidebarUser, SidebarUserProps, SidebarUserContainer, fileKeys, invoiceKeys, projectKeys, revalidateTagAction(), GlobalRealtimeProvider() (+2 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.1
-Nodes (20): DiscussionsTab(), InsightWidgetsProps, InvoicesTab(), MetricCardsProps, ProjectTabsProps, TeamTab(), UseProjectDetailProps, ProjectPermissions (+12 more)
+Cohesion: 0.11
+Nodes (28): AddClientPage(), metadata, AddClientForm(), withRLS(), isNextControlError(), NextControlError, ProjectPage(), ProjectPageProps (+20 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.09
-Nodes (24): EmptyProjects(), EmptyProjectsProps, Client, ProjectData, ProjectList(), ProjectListProps, generateProgressBar(), ProjectsStats() (+16 more)
+Cohesion: 0.12
+Nodes (19): getUser, requireOrg(), TimeoutError, withTimeout(), COOKIE_OPTIONS, GET(), ClientLayout(), ClientHeader() (+11 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.09
-Nodes (21): useProjectDetail(), useProjectPermissions(), ProjectDetailPage(), ProjectDetailPageProps, ActiveSection, OrgRole, AddMilestoneDialog(), TeamPopover() (+13 more)
-
-### Community 21 - "Community 21"
 Cohesion: 0.12
 Nodes (23): FileCard(), FileCardProps, ApprovalBadge(), FileRow(), FileRowProps, FileTypeBadge(), FileTypeIcon(), FileTypeIconProps (+15 more)
 
+### Community 21 - "Community 21"
+Cohesion: 0.09
+Nodes (22): ClientsPage(), metadata, BulkActionBar(), BulkActionBarProps, ClientDetailSheet(), ClientsEmptyState(), ClientsEmptyStateProps, ClientsHeader() (+14 more)
+
 ### Community 22 - "Community 22"
 Cohesion: 0.09
-Nodes (13): useCountUp(), useReducedMotion(), ChatPanel(), ChatPanelProps, THREADS, CommandAction, CommandPalette(), CommandPaletteProps (+5 more)
+Nodes (22): clientNotes, comments, milestones, projectNotes, clientNotesRouter, createSchema, listSchema, noteIdSchema (+14 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.07
 Nodes (29): AI Provider Configuration, Architecture, Automation (Git Hooks), code:block1 (graphify-out/), code:block10 (/opt/homebrew/bin/python3.12), code:bash (# From project root), code:bash (# 1. Create venv with Python 3.12+ (Homebrew)), code:bash (bash scripts/graphify-setup.sh) (+21 more)
 
 ### Community 24 - "Community 24"
-Cohesion: 0.14
-Nodes (20): ClientFileUploader(), ClientFileUploaderProps, PlanTier, assets, fileVersions, folders, ActionState, ALLOWED_MIME_TYPES (+12 more)
+Cohesion: 0.07
+Nodes (26): activityLogsRelations, assetsRelations, clientsRelations, commentsRelations, contractsRelations, csatResponsesRelations, fileVersionsRelations, foldersRelations (+18 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.1
 Nodes (19): ClientLifecycleSelector(), ClientLifecycleSelectorProps, LIFECYCLE_OPTIONS, LifecycleOption, QUERY_INPUT, GetNotificationsOutput, iconMap, NotificationItem() (+11 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.09
-Nodes (19): ClientDetailPage(), MetricBlock(), Tab, TABS, ArchiveClientModal(), ArchiveClientModalProps, AlertSeverity, ClientHealthAlert (+11 more)
+Cohesion: 0.1
+Nodes (21): EmptyProjects(), EmptyProjectsProps, Client, ProjectData, ProjectList(), ProjectListProps, generateProgressBar(), ProjectsStats() (+13 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.1
-Nodes (18): ProjectSidebar(), formatClientName(), formatCurrency(), formatStatus(), getPriorityStyle(), PRIORITY_MAP, PriorityStyle, STATUS_LABELS (+10 more)
-
-### Community 28 - "Community 28"
-Cohesion: 0.1
-Nodes (6): fileKeys, invoiceKeys, projectKeys, revalidateTagAction(), GlobalRealtimeProvider(), RealtimeProviderProps
-
-### Community 29 - "Community 29"
 Cohesion: 0.11
 Nodes (23): CreateInvoiceDialog(), InvoiceList(), tableLayoutClass(), Client, InvoicesPageClient(), InvoicesPageClientProps, Project, InvoiceToolbar() (+15 more)
 
-### Community 30 - "Community 30"
+### Community 28 - "Community 28"
 Cohesion: 0.11
 Nodes (19): DeleteFileDialog(), EmptyState(), EmptyStateProps, FileListEmpty(), stateConfig, FilesContent(), FilesContentProps, FilesPageClient() (+11 more)
 
-### Community 31 - "Community 31"
+### Community 29 - "Community 29"
 Cohesion: 0.1
 Nodes (20): AssetDetailView(), AssetDetailViewProps, Role, CommentThread(), FileCommentsSheet(), FileCommentsSheetProps, Role, InvoicePreviewPanel() (+12 more)
+
+### Community 30 - "Community 30"
+Cohesion: 0.13
+Nodes (18): ArchiveDialog(), ArchiveDialogProps, Client, CreateInvoiceDialogProps, Project, DeleteProjectDialogProps, Client, CreateProjectDialog() (+10 more)
+
+### Community 31 - "Community 31"
+Cohesion: 0.11
+Nodes (18): CommentItem(), CommentItemProps, initials(), Role, DiscussionsTab(), FilesTab(), FilesTabProps, InvoicesTab() (+10 more)
 
 ### Community 32 - "Community 32"
 Cohesion: 0.13
@@ -383,47 +382,47 @@ Nodes (16): containerVariants, initialState, itemVariants, CreateOrgInput, creat
 
 ### Community 34 - "Community 34"
 Cohesion: 0.14
-Nodes (19): MilestoneCommandPanel(), MilestoneCommandPanelProps, PRIORITY_OPTIONS, STATUS_OPTIONS, Milestone, MilestonePriority, MilestoneStatus, SubTask (+11 more)
+Nodes (13): db, globalForDb, notifications, users, notificationDispatch, resend, inngest, { GET, POST, PUT } (+5 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.13
-Nodes (17): CLIENT_DISPLAY_STATUSES, CLIENT_SORT_OPTIONS, ClientActivityItem, ClientBootstrapStats, ClientDisplayStatus, ClientInvoiceItem, ClientProjectItem, ClientsFilterBar() (+9 more)
+Cohesion: 0.12
+Nodes (16): AcceptInviteFormProps, containerVariants, itemVariants, ClientAuthFormProps, containerVariants, itemVariants, ClientSignInTab(), ClientSignInTabProps (+8 more)
 
 ### Community 36 - "Community 36"
+Cohesion: 0.12
+Nodes (14): useReducedMotion(), formatStatus(), getPriorityStyle(), ChatPanel(), ChatPanelProps, THREADS, CommandHeader(), CommandAction (+6 more)
+
+### Community 37 - "Community 37"
+Cohesion: 0.13
+Nodes (19): MilestoneCommandPanel(), MilestoneCommandPanelProps, PRIORITY_OPTIONS, STATUS_OPTIONS, MilestoneStatus, SubTask, useMilestones(), revalidateMilestones() (+11 more)
+
+### Community 38 - "Community 38"
 Cohesion: 0.09
 Nodes (22): Accessibility, Clients Header, Clients Redesign — Dashboard (Clarity First), Components and Redesign Notes, Current UX Reference, Design Principles, Detail Sheet, Empty State (+14 more)
 
-### Community 37 - "Community 37"
+### Community 39 - "Community 39"
 Cohesion: 0.09
-Nodes (14): `activity_logs`, code:ts (export const planLimits = pgTable("plan_limits", {), code:ts (// Mirrors auth.users — id MUST match Supabase Auth UID. No ), `comments`, `file_versions`, `invoices`, `milestones`, `notifications` (+6 more)
+Nodes (16): `activity_logs`, code:ts (export const invoiceLineItems = pgTable("invoice_line_items"), code:ts (export const invitations = pgTable("invitations", {), code:ts (export const planLimits = pgTable("plan_limits", {), code:ts (// ─── Phase 2 Stubs ───────────────────────────────────────), `comments`, `folders`, `invitations` (+8 more)
 
-### Community 38 - "Community 38"
+### Community 40 - "Community 40"
+Cohesion: 0.11
+Nodes (16): CLIENT_DISPLAY_STATUSES, CLIENT_SORT_OPTIONS, ClientActivityItem, ClientBootstrapStats, ClientInvoiceItem, ClientListItem, ClientProjectItem, ArchiveClientModal() (+8 more)
+
+### Community 41 - "Community 41"
 Cohesion: 0.13
 Nodes (17): deriveClientName(), formatDate(), initialsFromName(), InvoiceRow(), InvoiceRowData, InvoiceRowProps, InvoiceUiStatus, normalizeStatus() (+9 more)
 
-### Community 39 - "Community 39"
-Cohesion: 0.1
-Nodes (15): MilestoneKanbanCard(), MilestoneKanbanCardProps, PRIORITY_DOT, MilestoneListView(), MilestoneListViewProps, PRIORITY_ORDER, SortDir, SortKey (+7 more)
-
-### Community 40 - "Community 40"
+### Community 42 - "Community 42"
 Cohesion: 0.1
 Nodes (17): AssetStatus, AssetStatusEmail(), AssetStatusEmailProps, button, buttonContainer, container, content, divider (+9 more)
 
-### Community 41 - "Community 41"
-Cohesion: 0.1
-Nodes (16): GridCard(), NoteCard(), NoteCardProps, NoteItem, NotesFeedSection(), NotesFeedSectionProps, Activity, INV_STATUS_COLOR (+8 more)
-
-### Community 42 - "Community 42"
-Cohesion: 0.13
-Nodes (15): AcceptInviteFormProps, containerVariants, itemVariants, ClientAuthFormProps, containerVariants, itemVariants, ClientSignInTab(), ClientSignInTabProps (+7 more)
-
 ### Community 43 - "Community 43"
-Cohesion: 0.11
-Nodes (15): FILTER_TABS, FilterState, FilterTab, pad(), PRIORITY_COLORS, ProjectsHeader(), ProjectsHeaderProps, STATUS_COLORS (+7 more)
+Cohesion: 0.13
+Nodes (16): CreateCommentInput, createCommentSchema, deleteCommentSchema, EditCommentInput, editCommentSchema, CommentView, CommentThreadProps, Role (+8 more)
 
 ### Community 44 - "Community 44"
-Cohesion: 0.15
-Nodes (15): ArchiveDialog(), ArchiveDialogProps, Client, CreateInvoiceDialogProps, Project, DeleteProjectDialogProps, DialogBackdrop(), DialogDescription() (+7 more)
+Cohesion: 0.11
+Nodes (15): FILTER_TABS, FilterState, FilterTab, pad(), PRIORITY_COLORS, ProjectsHeader(), ProjectsHeaderProps, STATUS_COLORS (+7 more)
 
 ### Community 45 - "Community 45"
 Cohesion: 0.2
@@ -438,144 +437,144 @@ Cohesion: 0.1
 Nodes (19): 16. Multi-Org Client Portal QA and Deployment Runbook, 1) Team Member Onboarding, 2) Client First Invite, 3) Client Multi-Org Invite, 4) Organization Switching, 5) Portal Isolation, 6) Security Cases, Authentication (+11 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.1
-Nodes (20): code:ts (import { z } from "zod";), code:ts (import { portalRouter } from "@/features/portal/server/route), code:ts ("use server";), code:tsx ({), code:css (@keyframes confetti-burst {), code:sql (-- Clients can read their own clients row), code:ts (export type PlanTier = "starter" | "pro" | "growth" | "busin), code:ts (import { createServerClient } from "@supabase/ssr";) (+12 more)
-
-### Community 49 - "Community 49"
 Cohesion: 0.11
 Nodes (18): button, buttonContainer, container, content, detailLabel, detailRow, detailsContainer, detailsTitle (+10 more)
 
-### Community 50 - "Community 50"
-Cohesion: 0.15
-Nodes (14): CommentItem(), CommentItemProps, initials(), Role, FilesTab(), FilesTabProps, Folder, DropdownMenu() (+6 more)
-
-### Community 51 - "Community 51"
-Cohesion: 0.14
-Nodes (13): ClientProjectCard(), ClientProjectCardProps, getStatusBadgeVariant(), Milestone, statusLabel(), badgeConfig, FileTypeBadgeProps, AssetStatus (+5 more)
-
-### Community 52 - "Community 52"
+### Community 49 - "Community 49"
 Cohesion: 0.2
 Nodes (14): AcceptInviteSignInInput, acceptInviteSignInSchema, AcceptInviteSignUpInput, acceptInviteSignUpSchema, InviteClientInput, inviteClientSchema, inviteRateLimit(), AcceptInviteResult (+6 more)
 
-### Community 53 - "Community 53"
+### Community 50 - "Community 50"
+Cohesion: 0.12
+Nodes (12): MilestoneListView(), MilestoneListViewProps, PRIORITY_ORDER, SortDir, SortKey, STATUS_LABEL, STATUS_ORDER, COLUMNS (+4 more)
+
+### Community 51 - "Community 51"
 Cohesion: 0.14
 Nodes (12): computeBudgetScore(), computeHealthScore(), computeScheduleScore(), computeVelocityScore(), HealthScoreInput, HealthScoreInvoice, HealthScoreMilestone, HealthScoreProject (+4 more)
 
-### Community 54 - "Community 54"
-Cohesion: 0.14
-Nodes (11): ActivityFeed(), ActivityFeedProps, EVENT_LABELS, ClientInvoiceList(), ClientInvoiceListProps, WhatHappensNextBanner(), WhatHappensNextBannerProps, metadata (+3 more)
-
-### Community 55 - "Community 55"
+### Community 52 - "Community 52"
 Cohesion: 0.11
 Nodes (18): code:ts (import { relations } from "drizzle-orm";), code:ts (import { drizzle } from "drizzle-orm/postgres-js";), code:ts (import { db } from "./index";), code:bash (# 1. Generate SQL migration from schema), code:sql (CREATE OR REPLACE FUNCTION update_asset_latest_version()), code:sql (SELECT tablename, rowsecurity), code:sql (ALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;), code:ts (import {) (+10 more)
 
-### Community 56 - "Community 56"
-Cohesion: 0.11
-Nodes (18): code:ts (import { and, count, desc, eq, sql, sum } from "drizzle-orm"), code:ts (import { analyticsRouter } from "@/features/analytics/server), code:bash (bun add recharts), code:ts (// Does it accept logs as a prop?), code:ts (import type { RouterOutputs } from "@/lib/trpc/client";), code:ts (// Flat array variant:), code:ts (// src/lib/trpc/server.ts), code:sql (CREATE INDEX IF NOT EXISTS invoices_org_status_idx) (+10 more)
+### Community 53 - "Community 53"
+Cohesion: 0.17
+Nodes (10): db, DbType, SessionContext, TransactionScope, InvoicesPage(), invoicesRouter, getInvoiceDetail(), getInvoiceList() (+2 more)
 
-### Community 57 - "Community 57"
-Cohesion: 0.12
-Nodes (12): Invoice, ActivityLogTab(), ActivityLogTabProps, Category, FILTERS, ActivityEntry, SAMPLE_ACTIVITY, SAMPLE_FILES (+4 more)
+### Community 54 - "Community 54"
+Cohesion: 0.15
+Nodes (12): ActivityFeed(), ActivityFeedProps, EVENT_LABELS, ClientProjectCard(), ClientProjectCardProps, getStatusBadgeVariant(), Milestone, statusLabel() (+4 more)
 
-### Community 58 - "Community 58"
+### Community 55 - "Community 55"
 Cohesion: 0.14
 Nodes (12): APPROVAL_CONFIG, FILE_ICON_CONFIG, FILE_KIND_COLORS, FILE_KIND_LABELS, fileKindColor(), fileKindLabel(), FileTypeBadge(), FileTypeIcon() (+4 more)
 
-### Community 59 - "Community 59"
+### Community 56 - "Community 56"
+Cohesion: 0.12
+Nodes (17): code:ts (function handleItemClick(notificationId: string, link?: stri), code:ts (import { keepPreviousData } from "@tanstack/react-query";), code:ts (import { cn } from "@/lib/utils";), code:ts (// ❌ Original), code:tsx (import { Toaster } from "@/components/ui/sonner";), code:tsx (// src/app/(dashboard)/ClientLayoutExtras.tsx), code:tsx (import { ClientLayoutExtras } from "./ClientLayoutExtras";), code:ts (export const notificationsRelations = relations(notification) (+9 more)
+
+### Community 57 - "Community 57"
 Cohesion: 0.12
 Nodes (17): code:ts (const PUBLIC_PATHS = ["/login", "/invite/accept"];), code:ts (import { createClient as createSupabaseClient } from "@supab), code:ts (import { createHash } from "crypto";), code:ts (import { z } from "zod";), code:ts ("use server";), code:tsx ("use client";), code:tsx (import { redirect } from "next/navigation";), code:ts (// Add these imports at the top if not already present) (+9 more)
 
-### Community 60 - "Community 60"
+### Community 58 - "Community 58"
 Cohesion: 0.12
 Nodes (17): code:bash (bun add @react-pdf/renderer), code:ts (import { z } from "zod";), code:ts ("use server";), code:ts (import { z } from "zod";), code:ts (import { invoiceRouter } from "@/features/invoices/server/ro), code:block15 (INTERNAL_API_SECRET=your-random-secret-string-here), code:ts (import { NextRequest, NextResponse } from "next/server";), code:tsx (import { redirect } from "next/navigation";) (+9 more)
 
-### Community 61 - "Community 61"
+### Community 59 - "Community 59"
+Cohesion: 0.12
+Nodes (17): code:ts (import { z } from "zod";), code:ts (import { portalRouter } from "@/features/portal/server/route), code:ts ("use server";), code:sql (-- Clients can read their own clients row), code:ts (export type PlanTier = "starter" | "pro" | "growth" | "busin), code:ts (import { createServerClient } from "@supabase/ssr";), code:tsx (import { redirect } from "next/navigation";), code:tsx (import Image from "next/image";) (+9 more)
+
+### Community 60 - "Community 60"
 Cohesion: 0.21
 Nodes (13): AcceptInvitePage(), metadata, PageProps, ClientAuthPage(), metadata, PageProps, AcceptInviteForm(), ClientAuthForm() (+5 more)
+
+### Community 61 - "Community 61"
+Cohesion: 0.18
+Nodes (11): ClientDisplayStatus, ClientsFilterBar(), ClientsFilterBarProps, SORT_OPTIONS, ClientsList(), ClientsListProps, ALL_STATUSES, STATUS_CONFIG (+3 more)
 
 ### Community 62 - "Community 62"
 Cohesion: 0.12
 Nodes (15): button, buttonWrap, container, content, divider, footer, footerText, heading (+7 more)
 
 ### Community 63 - "Community 63"
+Cohesion: 0.13
+Nodes (11): ActivityLogTab(), ActivityLogTabProps, Category, FILTERS, ActivityEntry, SAMPLE_ACTIVITY, SAMPLE_FILES, SAMPLE_INVOICES (+3 more)
+
+### Community 64 - "Community 64"
 Cohesion: 0.14
 Nodes (11): RiskBannerProps, ActivityEntry, AssetVersion, MilestoneAssignee, MilestoneView, PreviewMode, ProjectMember, ProjectNotes (+3 more)
 
-### Community 64 - "Community 64"
-Cohesion: 0.12
-Nodes (16): code:json ({), code:ts (import { defineConfig } from "drizzle-kit";), code:json ("scripts": {), code:bash (# Feature modules), code:json ({), code:bash (bun create next-app ./ --typescript --tailwind --eslint --ap), code:bash (# UI & Animation), code:bash (bunx --bun shadcn@latest init) (+8 more)
-
 ### Community 65 - "Community 65"
 Cohesion: 0.12
-Nodes (16): code:ts (import { createClient } from "@/lib/supabase/server";), code:ts (import { z } from "zod";), code:ts ("use server";), code:ts (import { z } from "zod";), code:ts (import { projectRouter } from "@/features/projects/server/ro), code:tsx (import { redirect } from "next/navigation";), code:tsx ("use client";), code:tsx (export default function ProjectDetailPage({) (+8 more)
+Nodes (16): code:ts (import { z } from "zod";), code:ts (import { fileRouter } from "@/features/files/server/router";), code:tsx ("use client";), code:tsx ("use client";), code:tsx (import { FileUploader } from "@/features/files/components/Fi), code:sql (INSERT INTO storage.buckets (id, name, public)), code:ts (import { z } from "zod";), code:ts ("use server";) (+8 more)
 
-### Community 67 - "Community 67"
+### Community 66 - "Community 66"
+Cohesion: 0.12
+Nodes (16): code:ts (import { createClient } from "@/lib/supabase/server";), code:ts (import { z } from "zod";), code:ts ("use server";), code:ts (import { z } from "zod";), code:ts (import { projectRouter } from "@/features/projects/server/ro), code:tsx (import Link from "next/link";), code:tsx (import { FolderOpen } from "lucide-react";), code:tsx (export default function ProjectDetailPage({) (+8 more)
+
+### Community 68 - "Community 68"
 Cohesion: 0.13
 Nodes (14): button, buttonContainer, ClientInviteEmailProps, container, content, divider, footer, footerText (+6 more)
 
-### Community 68 - "Community 68"
-Cohesion: 0.26
-Nodes (9): getUser, requireOrg(), TimeoutError, withTimeout(), DashboardLayout(), ProjectsPage(), metadata, SwitchOrgPage() (+1 more)
-
 ### Community 70 - "Community 70"
+Cohesion: 0.18
+Nodes (12): ProjectCommandPalette(), ProjectCommandPaletteProps, ProjectHeader(), ProjectHeaderProps, STATUS_STYLES, ReportBuilderPanel(), ReportBuilderPanelProps, ReportSectionKey (+4 more)
+
+### Community 71 - "Community 71"
 Cohesion: 0.13
 Nodes (15): Backend Requirements, `byAssetId` — Include All Comments (No `isNull(deletedAt)` Filter), code:ts (import { dispatchNotification } from "@/lib/notifications/se), code:ts (await dispatchNotification({), code:ts (// ❌ Original), code:ts (export const commentsRelations = relations(comments, ({ one,), code:ts (const ctx = await getSessionContext();), `comments.byAssetId` tRPC Router — File Structure (+7 more)
 
-### Community 71 - "Community 71"
+### Community 72 - "Community 72"
+Cohesion: 0.13
+Nodes (15): code:bash (cp .env.local .env.example), code:bash (# Feature modules), code:json ({), code:bash (bun create next-app ./ --typescript --tailwind --eslint --ap), code:bash (# UI & Animation), code:bash (bunx --bun shadcn@latest init), code:bash (bunx --bun shadcn@latest add button card input label textare), code:ini (# ─── Supabase ─────────────────────────────────────────────) (+7 more)
+
+### Community 73 - "Community 73"
+Cohesion: 0.13
+Nodes (15): code:ts (import { and, count, desc, eq, sql, sum } from "drizzle-orm"), code:ts (import { analyticsRouter } from "@/features/analytics/server), code:bash (bun add recharts), code:ts (// Does it accept logs as a prop?), code:ts (// src/lib/trpc/server.ts), code:sql (CREATE INDEX IF NOT EXISTS invoices_org_status_idx), Implementation Steps, Step 1 — Create `analyticsRouter` (+7 more)
+
+### Community 74 - "Community 74"
 Cohesion: 0.18
 Nodes (10): ClientAvatar(), ClientAvatarProps, getGradient(), SIZE_CLASSES, ClientsGrid(), ClientsGridProps, GridCardProps, Contact (+2 more)
 
-### Community 72 - "Community 72"
+### Community 75 - "Community 75"
 Cohesion: 0.16
 Nodes (6): AuthCardProps, config, LoginForm(), metadata, metadata, SignupForm()
 
-### Community 73 - "Community 73"
-Cohesion: 0.16
-Nodes (7): ActivityTimeline(), DashboardPageClientProps, MetricsSection(), MetricsSectionProps, Project, RecentProjectsCard(), RecentProjectsCardProps
-
-### Community 74 - "Community 74"
+### Community 76 - "Community 76"
 Cohesion: 0.34
 Nodes (8): FilesPageProps, InvoicesPageProps, Breadcrumb(), BreadcrumbItem(), BreadcrumbLink(), BreadcrumbList(), BreadcrumbPage(), BreadcrumbSeparator()
 
-### Community 75 - "Community 75"
-Cohesion: 0.19
-Nodes (11): ProjectCommandPalette(), ProjectCommandPaletteProps, ProjectHeader(), ProjectHeaderProps, STATUS_STYLES, ReportBuilderPanel(), ReportBuilderPanelProps, ReportSectionKey (+3 more)
-
-### Community 76 - "Community 76"
-Cohesion: 0.14
-Nodes (14): code:ts (import { z } from "zod";), code:ts (import { z } from "zod";), code:ts (import { commentsRouter } from "@/features/comments/server/r), code:ts (import { getQueryKey } from "@trpc/react-query";), code:ts (author: {), code:ts (import { useMutation, useQueryClient } from "@tanstack/react), code:tsx (import { redirect } from "next/navigation";), code:tsx (// Inside AssetDetailView (adapt to your existing structure)) (+6 more)
-
 ### Community 77 - "Community 77"
-Cohesion: 0.14
-Nodes (14): code:ts (import { Inngest } from "inngest";), code:ts (import { serve } from "inngest/next";), code:tsx (import { render } from "@react-email/render";), code:ts (export const activityLogsRelations = relations(activityLogs,), code:ts (| { event: "asset.approved";           assetName: string; ac), code:ts (import { z } from "zod";), code:ts (import { activityRouter } from "@/features/activity/server/r), Implementation Steps (+6 more)
+Cohesion: 0.16
+Nodes (7): ActivityTimeline(), DashboardPageClientProps, MetricsSection(), MetricsSectionProps, Project, RecentProjectsCard(), RecentProjectsCardProps
 
 ### Community 78 - "Community 78"
 Cohesion: 0.14
-Nodes (14): `activity.dashboard` — `orgId` from Session, Not Input, `activity.unreadCount` — `userId` from Session, Not Input, `activityRouter` File Structure, Backend Requirements, code:block2 (INNGEST_EVENT_KEY=your-event-key), code:ts (const ctx = await getSessionContext();), code:ts (// ❌ Original — accepts orgId from caller), code:ts (const assetWithVersion = await db.query.assets.findFirst({) (+6 more)
+Nodes (14): code:ts (import { z } from "zod";), code:ts (export const commentsRelations = relations(comments, ({ one,), code:bash (bun run db:generate   # generates SQL migration), code:ts (import { z } from "zod";), code:ts (import { commentsRouter } from "@/features/comments/server/r), code:ts (import { getQueryKey } from "@trpc/react-query";), code:ts (author: {), code:ts (import { useMutation, useQueryClient } from "@tanstack/react) (+6 more)
 
 ### Community 79 - "Community 79"
+Cohesion: 0.14
+Nodes (14): code:ts (import { Inngest } from "inngest";), code:ts (import { serve } from "inngest/next";), code:tsx (import { render } from "@react-email/render";), code:ts (export const activityLogsRelations = relations(activityLogs,), code:ts (| { event: "asset.approved";           assetName: string; ac), code:ts (import { z } from "zod";), code:ts (import { activityRouter } from "@/features/activity/server/r), Implementation Steps (+6 more)
+
+### Community 80 - "Community 80"
+Cohesion: 0.14
+Nodes (14): `activity.dashboard` — `orgId` from Session, Not Input, `activity.unreadCount` — `userId` from Session, Not Input, `activityRouter` File Structure, Backend Requirements, code:block2 (INNGEST_EVENT_KEY=your-event-key), code:ts (const ctx = await getSessionContext();), code:ts (// ❌ Original — accepts orgId from caller), code:ts (const assetWithVersion = await db.query.assets.findFirst({) (+6 more)
+
+### Community 81 - "Community 81"
 Cohesion: 0.27
 Nodes (9): CUBIC_BEZIER, STATUS_DOT, STATUS_STYLES, AnimatedCounter(), ClientSheetTab, DetailSheetProps, ClientsPremiumStatsProps, StatCard (+1 more)
 
-### Community 80 - "Community 80"
-Cohesion: 0.15
-Nodes (13): code:bash (bun run build), code:block17 (✓ Compiled successfully), code:bash (bun run build 2>&1 | tee build.log), code:bash (# Core (Task 01)), code:tsx ("use client";), code:ts (// Add at the top-level of layout.tsx (not inside the compon), Implementation Steps, Step 1 — Create `src/app/not-found.tsx` (+5 more)
-
-### Community 81 - "Community 81"
-Cohesion: 0.15
-Nodes (13): code:ts (function handleItemClick(notificationId: string, link?: stri), code:ts (import { keepPreviousData } from "@tanstack/react-query";), code:ts (import { cn } from "@/lib/utils";), code:ts (// ❌ Original), code:ts (export const notificationsRelations = relations(notification), Implementation Steps, Step 1 — Verify and Update Drizzle Relations, Step 3 — Create `NotificationItem` (+5 more)
-
 ### Community 82 - "Community 82"
-Cohesion: 0.15
-Nodes (12): API Structure, Architecture: Three Layers + Cache Alignment, code:block1 (┌───────────────────────────────────────────────────────────), code:block6 (activity.getNotifications), code:block7 (src/), Expected Final Output, Extended `activityRouter` Procedures, Folder / File Structure (+4 more)
+Cohesion: 0.19
+Nodes (8): badgeConfig, FileTypeBadgeProps, AssetStatus, PortalAssetListProps, updateAssetStatusAction(), Badge(), BadgeProps, badgeVariants
 
 ### Community 83 - "Community 83"
 Cohesion: 0.15
-Nodes (13): code:ts (import { z } from "zod";), code:ts ("use server";), code:ts (import { Resend } from "resend";), code:tsx (import {), code:tsx ("use client";), code:tsx (import { InviteClientDialog } from "@/features/clients/compo), Implementation Steps, Step 2 — Create Zod Schema (+5 more)
+Nodes (12): API Structure, Architecture: Three Layers + Cache Alignment, code:block1 (┌───────────────────────────────────────────────────────────), code:block6 (activity.getNotifications), code:block7 (src/), Expected Final Output, Extended `activityRouter` Procedures, Folder / File Structure (+4 more)
 
 ### Community 84 - "Community 84"
 Cohesion: 0.15
-Nodes (13): code:tsx ("use client";), code:tsx ("use client";), code:tsx (import { FileUploader } from "@/features/files/components/Fi), code:sql (INSERT INTO storage.buckets (id, name, public)), code:ts (import { z } from "zod";), code:ts ("use server";), Implementation Steps, Step 1 — Verify Storage Bucket Exists (+5 more)
+Nodes (13): code:ts (import { z } from "zod";), code:ts ("use server";), code:ts (import { Resend } from "resend";), code:tsx (import {), code:tsx ("use client";), code:tsx (import { InviteClientDialog } from "@/features/clients/compo), Implementation Steps, Step 2 — Create Zod Schema (+5 more)
 
 ### Community 85 - "Community 85"
 Cohesion: 0.15
@@ -594,12 +593,12 @@ Cohesion: 0.27
 Nodes (8): viewport, barlowCondensed, dmMono, dmSans, geist, jakarta, montserrat, syne
 
 ### Community 89 - "Community 89"
-Cohesion: 0.24
-Nodes (9): DeleteFileDialogProps, AlertDialogBackdrop(), AlertDialogClose(), AlertDialogDescription(), AlertDialogFooter(), AlertDialogHeader(), AlertDialogPopup(), AlertDialogTitle() (+1 more)
-
-### Community 90 - "Community 90"
 Cohesion: 0.2
 Nodes (7): ColumnId, COLUMNS, MilestoneCard(), MilestonesKanban(), MilestonesKanbanProps, priorityDotColor(), statusLineColor()
+
+### Community 90 - "Community 90"
+Cohesion: 0.17
+Nodes (12): code:js (// At the bottom of next.config.mjs:), code:bash (# Core (Task 01)), code:tsx ("use client";), code:ts (// Add at the top-level of layout.tsx (not inside the compon), code:js (// next.config.mjs), Implementation Steps, Step 1 — Create `src/app/not-found.tsx`, Step 2 — Create `src/app/error.tsx` (+4 more)
 
 ### Community 91 - "Community 91"
 Cohesion: 0.17
@@ -610,8 +609,8 @@ Cohesion: 0.17
 Nodes (12): Approval Status Reset, `assets.org_id` — Required Field, Auto-Approve Configuration, Backend Requirements, code:block1 (Step 1: getUploadToken (Server Action)), code:block2 ({org_id}/{project_id}/{folder_name?}/{timestamp}-{safe_filen), Database Interaction, Security Rules (+4 more)
 
 ### Community 93 - "Community 93"
-Cohesion: 0.22
-Nodes (9): generateProjectPdf(), ReportData, ReportSection, sendReportToClient(), styles, ReportBuilderPanel(), ReportBuilderPanelProps, ReportSectionKey (+1 more)
+Cohesion: 0.18
+Nodes (8): Activity, INV_STATUS_COLOR, Invoice, OverviewTabProps, PROJ_STATUS_COLOR, PROJ_STATUS_DOT, Project, Tab
 
 ### Community 94 - "Community 94"
 Cohesion: 0.25
@@ -647,11 +646,11 @@ Nodes (9): API Structure, code:block2 (src/), Expected Final Output, Folder / Fi
 
 ### Community 102 - "Community 102"
 Cohesion: 0.2
-Nodes (10): Components: 5, `/dashboard/notifications/page.tsx` — NEW Server Component, Frontend Requirements, `NotificationBell` — `src/features/notifications/components/NotificationBell.tsx`, `NotificationHistoryList` — `src/features/notifications/components/NotificationHistoryList.tsx`, `NotificationItem` — `src/features/notifications/components/NotificationItem.tsx`, `NotificationList` — `src/features/notifications/components/NotificationList.tsx`, `NotificationToastListener` — `src/features/notifications/components/NotificationToastListener.tsx` (+2 more)
+Nodes (10): `cn` Missing in `NotificationHistoryList`, `ctx.session.user.id` Does Not Exist — Use `ctx.userId`, `isRead` vs `read` — Check Your Schema, `keepPreviousData` → `placeholderData` in TanStack Query v5, `markRead`/`markAllRead` May Already Exist from Task 11, Notes for AI Developer, `NotificationToastListener` Must Be in a Client Component, `total` Is Needed Even in the Bell (+2 more)
 
 ### Community 103 - "Community 103"
 Cohesion: 0.2
-Nodes (10): `cn` Missing in `NotificationHistoryList`, `ctx.session.user.id` Does Not Exist — Use `ctx.userId`, `isRead` vs `read` — Check Your Schema, `keepPreviousData` → `placeholderData` in TanStack Query v5, `markRead`/`markAllRead` May Already Exist from Task 11, Notes for AI Developer, `NotificationToastListener` Must Be in a Client Component, `total` Is Needed Even in the Bell (+2 more)
+Nodes (10): Components: 5, `/dashboard/notifications/page.tsx` — NEW Server Component, Frontend Requirements, `NotificationBell` — `src/features/notifications/components/NotificationBell.tsx`, `NotificationHistoryList` — `src/features/notifications/components/NotificationHistoryList.tsx`, `NotificationItem` — `src/features/notifications/components/NotificationItem.tsx`, `NotificationList` — `src/features/notifications/components/NotificationList.tsx`, `NotificationToastListener` — `src/features/notifications/components/NotificationToastListener.tsx` (+2 more)
 
 ### Community 104 - "Community 104"
 Cohesion: 0.2
@@ -687,11 +686,11 @@ Nodes (4): Activity, ActivityTab(), ActivityTabProps, CATEGORY_STYLES
 
 ### Community 112 - "Community 112"
 Cohesion: 0.22
-Nodes (9): Build Errors From Previous Tasks, `error.tsx` Component Name Should Not Be `GlobalError`, `generateMetadata` Must Not Throw Without a Session, `global-error.tsx` Is Missing from the Original, `metadataBase` Throws at Build Time Without Protocol, Notes for AI Developer, Sentry `connect-src` in CSP, `@sentry/nextjs` Is Not in the Established Dependencies (+1 more)
+Nodes (8): Backend Requirements, code:block6 (src/), Expected Final Output, Folder / File Structure, Manual Verification Checklist, Objective, Scope, Task 15 — Launch Preparation
 
 ### Community 113 - "Community 113"
 Cohesion: 0.22
-Nodes (8): Backend Requirements, code:block6 (src/), Expected Final Output, Folder / File Structure, Manual Verification Checklist, Objective, Scope, Task 15 — Launch Preparation
+Nodes (9): Build Errors From Previous Tasks, `error.tsx` Component Name Should Not Be `GlobalError`, `generateMetadata` Must Not Throw Without a Session, `global-error.tsx` Is Missing from the Original, `metadataBase` Throws at Build Time Without Protocol, Notes for AI Developer, Sentry `connect-src` in CSP, `@sentry/nextjs` Is Not in the Established Dependencies (+1 more)
 
 ### Community 114 - "Community 114"
 Cohesion: 0.22
@@ -727,19 +726,19 @@ Nodes (8): code:ts ({), Components: 3, `/dashboard/invoices` — `src/app/(dashb
 
 ### Community 122 - "Community 122"
 Cohesion: 0.22
-Nodes (9): Backend Requirements, Client Uploads Folder — Transaction Pattern, `ClientInvoiceList` — Use `pdfSignedUrl`, Not `pdfStoragePath`, code:ts (const folder = await ctx.db.transaction(async (tx) => {), `portalRouter` — File Structure, `recentActivity` — EXISTS Subquery Pattern, `src/config/plans.ts` — Create First, tRPC Context Fields (+1 more)
+Nodes (9): `ActivityFeed` — `src/features/portal/components/ActivityFeed.tsx`, `ClientFileUploader` — `src/features/portal/components/ClientFileUploader.tsx`, `ClientHeader` — `src/features/portal/components/ClientHeader.tsx`, `ClientInvoiceList` — `src/features/portal/components/ClientInvoiceList.tsx`, `ClientProjectCard` — `src/features/portal/components/ClientProjectCard.tsx`, Components: 9, `PortalAssetList` — `src/features/portal/components/PortalAssetList.tsx`, `SlideToApprove` — `src/features/portal/components/SlideToApprove.tsx` (+1 more)
 
 ### Community 123 - "Community 123"
 Cohesion: 0.22
-Nodes (9): `ActivityFeed` — `src/features/portal/components/ActivityFeed.tsx`, `ClientFileUploader` — `src/features/portal/components/ClientFileUploader.tsx`, `ClientHeader` — `src/features/portal/components/ClientHeader.tsx`, `ClientInvoiceList` — `src/features/portal/components/ClientInvoiceList.tsx`, `ClientProjectCard` — `src/features/portal/components/ClientProjectCard.tsx`, Components: 9, `PortalAssetList` — `src/features/portal/components/PortalAssetList.tsx`, `SlideToApprove` — `src/features/portal/components/SlideToApprove.tsx` (+1 more)
+Nodes (9): Backend Requirements, Client Uploads Folder — Transaction Pattern, `ClientInvoiceList` — Use `pdfSignedUrl`, Not `pdfStoragePath`, code:ts (const folder = await ctx.db.transaction(async (tx) => {), `portalRouter` — File Structure, `recentActivity` — EXISTS Subquery Pattern, `src/config/plans.ts` — Create First, tRPC Context Fields (+1 more)
 
 ### Community 124 - "Community 124"
-Cohesion: 0.25
-Nodes (6): AddClientModal(), AddClientModalProps, ContactExtra, CURRENCIES, INDUSTRIES, PAYMENT_TERMS
-
-### Community 125 - "Community 125"
 Cohesion: 0.29
 Nodes (5): checkRateLimit(), cleanup(), inviteAttempts, RateLimitEntry, tokenAttempts
+
+### Community 125 - "Community 125"
+Cohesion: 0.25
+Nodes (6): AddClientModal(), AddClientModalProps, ContactExtra, CURRENCIES, INDUSTRIES, PAYMENT_TERMS
 
 ### Community 126 - "Community 126"
 Cohesion: 0.32
@@ -750,92 +749,92 @@ Cohesion: 0.29
 Nodes (6): AssetApprovalCard(), AssetApprovalCardProps, ClientApprovalCentre(), ClientApprovalCentreProps, getMimeIcon(), MIME_ICON_MAP
 
 ### Community 128 - "Community 128"
-Cohesion: 0.25
-Nodes (7): COLUMNS, KanbanBoard(), KanbanBoardProps, KanbanCard(), KanbanCardProps, KanbanColumn(), KanbanColumnProps
-
-### Community 129 - "Community 129"
 Cohesion: 0.29
 Nodes (7): 1. Graph-First Architecture, 2. Graph Synchronization, 3. Token Optimization, AI Agent Protocol, code:bash (/Users/aizen/Downloads/clientspace/.graphify-venv/bin/graphi), graphify, Rules:
 
-### Community 130 - "Community 130"
+### Community 129 - "Community 129"
 Cohesion: 0.25
 Nodes (8): Architecture Notes, code:ts (// TODO Phase 2: Replace with actual plan check), code:bash (bun add @sentry/nextjs), code:bash (bunx @sentry/wizard@latest -i nextjs), CSP and Next.js Dev vs Production, `error.tsx` vs `global-error.tsx`, `generateMetadata` in Root Layout — Session Context, Sentry — `@sentry/nextjs` Not in Original Dependencies
 
-### Community 131 - "Community 131"
+### Community 130 - "Community 130"
 Cohesion: 0.25
 Nodes (7): code:ts ("use server";), code:ts (async function dispatchMentionNotifications({), code:ts (async function dispatchCommentNotification({), code:ts (export async function createCommentAction(rawInput: unknown)), code:ts (export async function editCommentAction(rawInput: unknown) {), code:ts (export async function deleteCommentAction(rawInput: unknown)), Step 4 — Create Server Actions
 
-### Community 132 - "Community 132"
+### Community 131 - "Community 131"
 Cohesion: 0.25
 Nodes (8): Architectural Rules (Non-Negotiable), code:ts (// ✅ Correct — explicit deep import), code:block20 (app/ → features/ → lib/ | db/ | components/ui/), `createDrizzleClient` is Security-Critical, Import Direction (Enforced by ESLint), No Barrel Files in Features, Notes for AI Developer, Supabase Service Role Key Warning
 
-### Community 133 - "Community 133"
+### Community 132 - "Community 132"
 Cohesion: 0.25
 Nodes (8): `activity.dashboard` and `activity.unreadCount` — IDOR Fixes, `ActivityEventMetadata` Union Must Have `ipAddress`, `activityRouter` Placement — Feature-Sliced, Email Rendered Once, Not Per Recipient, Idempotency Key — No `assetId`, Notes for AI Developer, `resolveNotificationRecipients` — Two Queries, Not Three, `step.sleep` Must Be First
 
-### Community 134 - "Community 134"
+### Community 133 - "Community 133"
 Cohesion: 0.25
 Nodes (7): code:block6 (src/), Expected Final Output, Folder / File Structure, Manual Verification Checklist, Objective, Scope, Task 06 — File System: Upload, Versioning & Asset Management
 
-### Community 135 - "Community 135"
+### Community 134 - "Community 134"
 Cohesion: 0.25
 Nodes (7): code:block9 (src/), Expected Final Output, Folder / File Structure, Manual Verification Checklist, Objective, Scope, Task 05 — Projects CRUD: Dashboard & Management
 
-### Community 136 - "Community 136"
+### Community 135 - "Community 135"
 Cohesion: 0.25
 Nodes (7): code:block9 (src/), Expected Final Output, Folder / File Structure, Manual Verification Checklist, Objective, Scope, Task 07 — Invoicing Engine: CRUD, Math & PDF Generation
 
-### Community 137 - "Community 137"
+### Community 136 - "Community 136"
 Cohesion: 0.25
 Nodes (8): code:block4 (src/app/(client)/), Frontend Requirements, Pages: 4, `/portal/invoices` — All Invoices, `/portal` — Portal Home, `/portal/projects/[id]/files` — Files Page, `/portal/projects/[id]` — Project Detail, Route Group
 
-### Community 138 - "Community 138"
+### Community 137 - "Community 137"
 Cohesion: 0.25
 Nodes (7): code:block5 (src/), Expected Final Output, Folder / File Structure, Manual Verification Checklist, Objective, Scope, Task 10 — Client Dashboard (The Client Portal)
 
-### Community 139 - "Community 139"
+### Community 138 - "Community 138"
 Cohesion: 0.43
 Nodes (5): config, getRateLimiters(), proxy(), ADMIN_ROLES, updateSession()
 
-### Community 140 - "Community 140"
+### Community 139 - "Community 139"
 Cohesion: 0.33
 Nodes (5): Invoice, InvoicesTab(), InvoicesTabProps, STATUS_COLOR, STATUS_STYLES
 
-### Community 141 - "Community 141"
+### Community 140 - "Community 140"
 Cohesion: 0.29
 Nodes (6): register(), CreateProjectForm(), LoginFormFields(), useLoginForm(), SignUpFormFields(), useSignUpForm()
 
+### Community 141 - "Community 141"
+Cohesion: 0.33
+Nodes (4): ClientInvoiceList(), ClientInvoiceListProps, metadata, PortalInvoicesPage()
+
 ### Community 142 - "Community 142"
-Cohesion: 0.38
-Nodes (4): DashboardClientExtras(), NotificationToastListener(), QUERY_INPUT, Toaster()
+Cohesion: 0.29
+Nodes (6): MilestonePriority, FilterState, MilestonesTabProps, PRIORITY_ICON, PRIORITY_STYLES, STATUS_STYLES
 
 ### Community 143 - "Community 143"
 Cohesion: 0.38
-Nodes (4): SidebarUser, SidebarUserProps, SidebarUserContainer, createClient()
+Nodes (4): DashboardClientExtras(), NotificationToastListener(), QUERY_INPUT, Toaster()
 
 ### Community 144 - "Community 144"
 Cohesion: 0.29
-Nodes (7): `ActivityTimeline` — `src/features/activity/components/ActivityTimeline.tsx`, code:ts ({), Components: 1, `/dashboard/page.tsx` — MODIFIED, `/dashboard/projects/[id]/page.tsx` — MODIFIED, Frontend Requirements, Pages Modified: 2
+Nodes (7): API Structure, code:block6 (Event name: "notification/asset-status"), code:block7 (updateAssetStatusAction — MODIFIED from Task 10), code:block8 (activity.byProject), New Inngest Function, New tRPC Procedures, Updated Server Action
 
 ### Community 145 - "Community 145"
 Cohesion: 0.29
-Nodes (7): API Structure, code:block6 (Event name: "notification/asset-status"), code:block7 (updateAssetStatusAction — MODIFIED from Task 10), code:block8 (activity.byProject), New Inngest Function, New tRPC Procedures, Updated Server Action
+Nodes (7): `ActivityTimeline` — `src/features/activity/components/ActivityTimeline.tsx`, code:ts ({), Components: 1, `/dashboard/page.tsx` — MODIFIED, `/dashboard/projects/[id]/page.tsx` — MODIFIED, Frontend Requirements, Pages Modified: 2
 
 ### Community 146 - "Community 146"
 Cohesion: 0.29
-Nodes (7): `AssetList` — `src/features/files/components/AssetList.tsx`, code:ts ({), Components: 2, `/dashboard/projects/[projectId]/files` — `src/app/(dashboard)/projects/[projectId]/files/page.tsx`, `FileUploader` — `src/features/files/components/FileUploader.tsx`, Frontend Requirements, Pages: 1
+Nodes (7): Bug Fixed: `getSignedDownloadUrl` Must Be a Mutation, code:ts (// ✅ Correct), Double-Write Orphan Risk, No Suspense on Client Components, Notes for AI Developer, `org_id` Is Required on Asset and File Version Inserts, The `autoApproveAt` Timestamp
 
 ### Community 147 - "Community 147"
 Cohesion: 0.29
-Nodes (7): Bug Fixed: `getSignedDownloadUrl` Must Be a Mutation, code:ts (// ✅ Correct), Double-Write Orphan Risk, No Suspense on Client Components, Notes for AI Developer, `org_id` Is Required on Asset and File Version Inserts, The `autoApproveAt` Timestamp
+Nodes (7): `AssetList` — `src/features/files/components/AssetList.tsx`, code:ts ({), Components: 2, `/dashboard/projects/[projectId]/files` — `src/app/(dashboard)/projects/[projectId]/files/page.tsx`, `FileUploader` — `src/features/files/components/FileUploader.tsx`, Frontend Requirements, Pages: 1
 
 ### Community 148 - "Community 148"
 Cohesion: 0.29
-Nodes (7): code:ts (import { initTRPC, TRPCError } from "@trpc/server";), code:ts (import { createTRPCRouter } from "./init";), code:ts (import { fetchRequestHandler } from "@trpc/server/adapters/f), code:ts (import { createTRPCReact } from "@trpc/react-query";), code:tsx ("use client";), code:tsx (import { TRPCProvider } from "@/lib/trpc/provider";), tRPC Bootstrap (Required Before the Router)
+Nodes (7): `computeOverdue` Must Run Server-Side, Date Handling in FormData, Notes for AI Developer, `org_id` Is Never Accepted From the Client, Query/Mutation Split (PRD §10.2), The `initialData` Pattern (No Suspense Waterfall), tRPC Context Uses the Same Factory
 
 ### Community 149 - "Community 149"
 Cohesion: 0.29
-Nodes (7): `computeOverdue` Must Run Server-Side, Date Handling in FormData, Notes for AI Developer, `org_id` Is Never Accepted From the Client, Query/Mutation Split (PRD §10.2), The `initialData` Pattern (No Suspense Waterfall), tRPC Context Uses the Same Factory
+Nodes (7): code:ts (import { initTRPC, TRPCError } from "@trpc/server";), code:ts (import { createTRPCRouter } from "./init";), code:ts (import { fetchRequestHandler } from "@trpc/server/adapters/f), code:ts (import { createTRPCReact } from "@trpc/react-query";), code:tsx ("use client";), code:tsx (import { TRPCProvider } from "@/lib/trpc/provider";), tRPC Bootstrap (Required Before the Router)
 
 ### Community 150 - "Community 150"
 Cohesion: 0.29
@@ -863,11 +862,11 @@ Nodes (6): code:bash (bun add @sentry/nextjs), code:ts (// sentry.client.config.
 
 ### Community 156 - "Community 156"
 Cohesion: 0.33
-Nodes (6): Backend Requirements, code:sql (CREATE OR REPLACE FUNCTION update_asset_latest_version()), Key Design Rules, PostgreSQL Trigger (File Versioning), Security Notes, Tables to Create (20 total)
+Nodes (6): code:sql (UPDATE organizations), Composite Index Pattern (Why Every Child Table Has `org_id`), `db` vs `createDrizzleClient`, Invoice Number Sequencing, Notes for AI Developer, `users.id` Must Not Use `defaultRandom()`
 
 ### Community 157 - "Community 157"
 Cohesion: 0.33
-Nodes (6): code:sql (UPDATE organizations), Composite Index Pattern (Why Every Child Table Has `org_id`), `db` vs `createDrizzleClient`, Invoice Number Sequencing, Notes for AI Developer, `users.id` Must Not Use `defaultRandom()`
+Nodes (6): Backend Requirements, code:sql (CREATE OR REPLACE FUNCTION update_asset_latest_version()), Key Design Rules, PostgreSQL Trigger (File Versioning), Security Notes, Tables to Create (20 total)
 
 ### Community 158 - "Community 158"
 Cohesion: 0.33
@@ -879,23 +878,23 @@ Nodes (6): Backend Requirements, Database Changes, `getSessionContext()` — Sha
 
 ### Community 160 - "Community 160"
 Cohesion: 0.4
-Nodes (4): Project, ProjectsTab(), ProjectsTabProps, STATUS_COLOR
-
-### Community 161 - "Community 161"
-Cohesion: 0.4
 Nodes (4): ClientSignInInput, clientSignInSchema, ClientSignUpInput, clientSignUpSchema
 
-### Community 163 - "Community 163"
+### Community 162 - "Community 162"
 Cohesion: 0.7
 Nodes (3): TRPCProvider(), getQueryClient(), makeQueryClient()
 
-### Community 164 - "Community 164"
+### Community 163 - "Community 163"
 Cohesion: 0.6
 Nodes (4): HealthScoreRing(), HealthScoreRingProps, scoreColor(), scoreLabel()
 
-### Community 165 - "Community 165"
+### Community 164 - "Community 164"
 Cohesion: 0.4
 Nodes (4): code:bash (npm run dev), Deploy on Vercel, Getting Started, Learn More
+
+### Community 165 - "Community 165"
+Cohesion: 0.4
+Nodes (5): code:bash (bun drizzle-kit generate), code:bash (bun add resend @react-email/components), code:block8 (RESEND_API_KEY=re_xxxxxxxxxxxx), code:ts (export const invitationStatusEnum = pgEnum("invitation_statu), Step 1 — Install Dependencies
 
 ### Community 166 - "Community 166"
 Cohesion: 0.4
@@ -903,47 +902,47 @@ Nodes (5): Components: 1, `/dashboard/clients` — `src/app/(dashboard)/clients/
 
 ### Community 167 - "Community 167"
 Cohesion: 0.4
-Nodes (5): code:bash (bun drizzle-kit generate), code:bash (bun add resend @react-email/components), code:block8 (RESEND_API_KEY=re_xxxxxxxxxxxx), code:ts (export const invitationStatusEnum = pgEnum("invitation_statu), Step 1 — Install Dependencies
+Nodes (5): API Structure, code:block4 (inviteClientAction(rawInput: unknown)), code:block5 (From:    INVITE_FROM_EMAIL env var), Email, Server Actions
 
 ### Community 168 - "Community 168"
 Cohesion: 0.4
-Nodes (5): API Structure, code:block4 (inviteClientAction(rawInput: unknown)), code:block5 (From:    INVITE_FROM_EMAIL env var), Email, Server Actions
+Nodes (5): API Structure, code:block7 (comments.byAssetId), code:block8 (createCommentAction(rawInput: unknown): Promise<{ success: t), New Server Actions, New tRPC Procedures
 
 ### Community 169 - "Community 169"
 Cohesion: 0.4
-Nodes (5): API Structure, code:block7 (comments.byAssetId), code:block8 (createCommentAction(rawInput: unknown): Promise<{ success: t), New Server Actions, New tRPC Procedures
+Nodes (5): API Structure, code:block3 (getUploadToken(input: unknown): Promise<ActionState>), code:block4 (file.getAssets), Server Actions, tRPC Procedures
 
 ### Community 170 - "Community 170"
 Cohesion: 0.4
-Nodes (5): API Structure, code:block3 (getUploadToken(input: unknown): Promise<ActionState>), code:block4 (file.getAssets), Server Actions, tRPC Procedures
+Nodes (5): API Structure, code:block7 (project.getAll), code:block8 (createProjectAction(prevState, formData)), Server Actions, tRPC Procedures
 
 ### Community 171 - "Community 171"
 Cohesion: 0.4
-Nodes (5): API Structure, code:block7 (project.getAll), code:block8 (createProjectAction(prevState, formData)), Server Actions, tRPC Procedures
+Nodes (5): Architecture: Two-Gate Defence for the Portal, Gate 1: Middleware (Edge Runtime — fast check), Gate 2: ClientLayout (Node.js Server Component — authoritative), Isolation in tRPC: `resolveClient()`, Why This Is Safe
 
 ### Community 172 - "Community 172"
 Cohesion: 0.4
-Nodes (5): Architecture: Two-Gate Defence for the Portal, Gate 1: Middleware (Edge Runtime — fast check), Gate 2: ClientLayout (Node.js Server Component — authoritative), Isolation in tRPC: `resolveClient()`, Why This Is Safe
-
-### Community 173 - "Community 173"
-Cohesion: 0.4
 Nodes (5): API Structure, code:block2 (portal.activeProjects     → Project[] (status ≠ 'archived'; ), code:block3 (updateAssetStatusAction(rawInput: unknown): Promise<{ succes), New Server Action, New tRPC Router: `portalRouter`
+
+### Community 174 - "Community 174"
+Cohesion: 0.5
+Nodes (4): code:bash (bun run build), code:block17 (✓ Compiled successfully), code:bash (bun run build 2>&1 | tee build.log), Step 7 — Build Verification Pass
 
 ### Community 175 - "Community 175"
 Cohesion: 0.5
-Nodes (4): code:tsx (import { Toaster } from "@/components/ui/sonner";), code:tsx (// src/app/(dashboard)/ClientLayoutExtras.tsx), code:tsx (import { ClientLayoutExtras } from "./ClientLayoutExtras";), Step 9 — Mount in Dashboard Layout
+Nodes (4): code:css (@tailwind base;), code:tsx (export default function Home() {), code:tsx (import type { Metadata } from "next";), Step 4 — Clean Up Boilerplate
 
 ### Community 176 - "Community 176"
 Cohesion: 0.5
-Nodes (4): code:bash (touch src/db/schema.ts), code:ts (import { drizzle } from "drizzle-orm/postgres-js";), code:ts (// Seed script: populates the database with dummy data for l), Step 8 — Create Stub Files
+Nodes (4): code:json ({), code:ts (import { defineConfig } from "drizzle-kit";), code:json ("scripts": {), Step 6 — Configure Root Files
 
 ### Community 177 - "Community 177"
 Cohesion: 0.5
-Nodes (4): code:css (@tailwind base;), code:tsx (export default function Home() {), code:tsx (import type { Metadata } from "next";), Step 4 — Clean Up Boilerplate
+Nodes (4): Frontend Requirements, `src/app/globals.css`, `src/app/layout.tsx`, `src/app/page.tsx`
 
 ### Community 178 - "Community 178"
 Cohesion: 0.5
-Nodes (4): Frontend Requirements, `src/app/globals.css`, `src/app/layout.tsx`, `src/app/page.tsx`
+Nodes (4): code:bash (touch src/db/schema.ts), code:ts (import { drizzle } from "drizzle-orm/postgres-js";), code:ts (// Seed script: populates the database with dummy data for l), Step 8 — Create Stub Files
 
 ### Community 179 - "Community 179"
 Cohesion: 0.5
@@ -955,39 +954,35 @@ Nodes (4): code:bash (bun add inngest), code:block12 (INNGEST_EVENT_KEY=your-eve
 
 ### Community 183 - "Community 183"
 Cohesion: 0.67
-Nodes (3): code:js (// At the bottom of next.config.mjs:), code:js (// next.config.mjs), Step 5 — Update `next.config.mjs`
+Nodes (3): code:ts (import { and, asc, count, desc, eq, lt } from "drizzle-orm";), code:ts (// Add to existing activityRouter:), Step 2 — Extend `activityRouter`
 
 ### Community 184 - "Community 184"
 Cohesion: 0.67
-Nodes (3): code:ts (import { and, asc, count, desc, eq, lt } from "drizzle-orm";), code:ts (// Add to existing activityRouter:), Step 2 — Extend `activityRouter`
+Nodes (3): code:tsx (import { redirect } from "next/navigation";), code:tsx (// Inside AssetDetailView (adapt to your existing structure)), Step 7 — Create Asset Detail Page
 
 ### Community 185 - "Community 185"
 Cohesion: 0.67
-Nodes (3): code:ts (export const commentsRelations = relations(comments, ({ one,), code:bash (bun run db:generate   # generates SQL migration), Step 3 — Update Drizzle Schema Relations
+Nodes (3): code:ts (// ✅ Single call gives both userId and RLS-scoped db), code:ts (try {), Step 6 — Refactor `updateAssetStatusAction`
 
 ### Community 186 - "Community 186"
 Cohesion: 0.67
-Nodes (3): code:bash (cp .env.local .env.example), code:ini (# ─── Supabase ─────────────────────────────────────────────), Step 5 — Create Environment Files
+Nodes (3): code:tsx (// Add to Promise.all:), code:tsx (// Add to fetch:), Step 9 — Integrate Timeline into Dashboard Pages
 
 ### Community 187 - "Community 187"
 Cohesion: 0.67
-Nodes (3): code:tsx (// Add to Promise.all:), code:tsx (// Add to fetch:), Step 9 — Integrate Timeline into Dashboard Pages
+Nodes (3): code:tsx (import { redirect } from "next/navigation";), code:tsx ("use client";), Step 7 — Create Projects Page
 
 ### Community 188 - "Community 188"
 Cohesion: 0.67
-Nodes (3): code:ts (// ✅ Single call gives both userId and RLS-scoped db), code:ts (try {), Step 6 — Refactor `updateAssetStatusAction`
+Nodes (3): API Structure, code:block6 (acceptInviteAction(input: unknown): Promise<AcceptActionResu), Server Actions
 
 ### Community 189 - "Community 189"
 Cohesion: 0.67
-Nodes (3): code:ts (import { z } from "zod";), code:ts (import { fileRouter } from "@/features/files/server/router";), Step 4 — Create tRPC Router
+Nodes (3): code:ts (import type { RouterOutputs } from "@/lib/trpc/client";), code:ts (// Flat array variant:), Step 6 — Create `RecentActivityFeed`
 
 ### Community 190 - "Community 190"
 Cohesion: 0.67
-Nodes (3): code:tsx (import Link from "next/link";), code:tsx (import { FolderOpen } from "lucide-react";), Step 6 — Create UI Components
-
-### Community 191 - "Community 191"
-Cohesion: 0.67
-Nodes (3): API Structure, code:block6 (acceptInviteAction(input: unknown): Promise<AcceptActionResu), Server Actions
+Nodes (3): code:tsx ({), code:css (@keyframes confetti-burst {), Step 7 — Create UI Components
 
 ## Knowledge Gaps
 - **1240 isolated node(s):** `config`, `eslintConfig`, `nextConfig`, `config`, `viewport` (+1235 more)
@@ -997,17 +992,17 @@ Nodes (3): API Structure, code:block6 (acceptInviteAction(input: unknown): Promi
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Community 8` to `Community 0`, `Community 1`, `Community 128`, `Community 2`, `Community 3`, `Community 6`, `Community 140`, `Community 13`, `Community 14`, `Community 141`, `Community 19`, `Community 21`, `Community 25`, `Community 26`, `Community 153`, `Community 29`, `Community 31`, `Community 160`, `Community 32`, `Community 34`, `Community 35`, `Community 164`, `Community 38`, `Community 41`, `Community 42`, `Community 43`, `Community 44`, `Community 45`, `Community 46`, `Community 50`, `Community 51`, `Community 54`, `Community 58`, `Community 71`, `Community 74`, `Community 75`, `Community 79`, `Community 89`, `Community 99`, `Community 100`, `Community 109`, `Community 110`, `Community 111`, `Community 124`, `Community 126`?**
+- **Why does `cn()` connect `Community 2` to `Community 0`, `Community 1`, `Community 3`, `Community 5`, `Community 6`, `Community 10`, `Community 139`, `Community 140`, `Community 141`, `Community 142`, `Community 15`, `Community 20`, `Community 21`, `Community 25`, `Community 26`, `Community 27`, `Community 153`, `Community 29`, `Community 30`, `Community 31`, `Community 32`, `Community 163`, `Community 35`, `Community 37`, `Community 40`, `Community 41`, `Community 44`, `Community 45`, `Community 46`, `Community 54`, `Community 55`, `Community 61`, `Community 70`, `Community 74`, `Community 76`, `Community 81`, `Community 82`, `Community 93`, `Community 99`, `Community 100`, `Community 109`, `Community 110`, `Community 111`, `Community 125`, `Community 126`?**
   _High betweenness centrality (0.103) - this node is a cross-community bridge._
-- **Why does `trpc` connect `Community 25` to `Community 1`, `Community 8`, `Community 9`, `Community 140`, `Community 13`, `Community 14`, `Community 142`, `Community 143`, `Community 19`, `Community 20`, `Community 153`, `Community 26`, `Community 28`, `Community 30`, `Community 31`, `Community 34`, `Community 163`, `Community 41`, `Community 44`, `Community 45`, `Community 63`, `Community 73`, `Community 74`, `Community 75`, `Community 79`, `Community 110`, `Community 111`, `Community 127`?**
+- **Why does `trpc` connect `Community 25` to `Community 0`, `Community 2`, `Community 4`, `Community 5`, `Community 139`, `Community 15`, `Community 143`, `Community 17`, `Community 21`, `Community 153`, `Community 26`, `Community 28`, `Community 29`, `Community 30`, `Community 162`, `Community 37`, `Community 40`, `Community 43`, `Community 45`, `Community 64`, `Community 70`, `Community 76`, `Community 77`, `Community 81`, `Community 110`, `Community 111`, `Community 127`?**
   _High betweenness centrality (0.027) - this node is a cross-community bridge._
-- **Why does `Button()` connect `Community 0` to `Community 3`, `Community 6`, `Community 8`, `Community 14`, `Community 15`, `Community 16`, `Community 19`, `Community 21`, `Community 22`, `Community 24`, `Community 25`, `Community 29`, `Community 31`, `Community 32`, `Community 33`, `Community 38`, `Community 39`, `Community 42`, `Community 43`, `Community 44`, `Community 45`, `Community 50`, `Community 51`, `Community 74`, `Community 89`?**
+- **Why does `Button()` connect `Community 10` to `Community 2`, `Community 3`, `Community 5`, `Community 6`, `Community 13`, `Community 16`, `Community 19`, `Community 20`, `Community 25`, `Community 26`, `Community 27`, `Community 29`, `Community 30`, `Community 31`, `Community 32`, `Community 33`, `Community 35`, `Community 36`, `Community 41`, `Community 44`, `Community 45`, `Community 50`, `Community 76`, `Community 82`?**
   _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `config`, `eslintConfig`, `nextConfig` to the rest of the system?**
   _1240 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.06 - nodes in this community are weakly interconnected._
-- **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
-- **Should `Community 2` be split into smaller, more focused modules?**
+- **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.06 - nodes in this community are weakly interconnected._
+- **Should `Community 2` be split into smaller, more focused modules?**
+  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
