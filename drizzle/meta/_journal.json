@@ -57,6 +57,13 @@
       "when": 1779721699324,
       "tag": "0007_add_client_notes_and_lifecycle",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779782322461,
+      "tag": "0008_perf_composite_indexes_invoices_assets",
+      "breakpoints": true
     }
   ]
 }

@@ -349,6 +349,14 @@ export const assets = pgTable(
       t.deletedAt,
       t.updatedAt,
     ),
+    // Revenue dashboard: file manager query — WHERE project_id = $1 AND deleted_at IS NULL ORDER BY updated_at DESC
+    // Covers the high-frequency soft-delete filter without the folder_id column so the planner
+    // can use an index-only scan on the two most selective predicates.
+    index("assets_project_deleted_updated_idx").on(
+      t.projectId,
+      t.deletedAt,
+      t.updatedAt,
+    ),
     index("assets_auto_approve_idx").on(t.autoApproveAt), // Inngest cron hot path
     index("assets_project_folder_created_idx").on(t.projectId, t.folderId, t.createdAt.desc()),
   ],
@@ -448,6 +456,10 @@ export const invoices = pgTable(
     index("invoices_org_client_idx").on(t.orgId, t.clientId), // Invoice list
     index("invoices_overdue_idx").on(t.orgId, t.status, t.dueDate), // Overdue cron hot path
     index("invoices_org_status_due_date_idx").on(t.orgId, t.status, t.dueDate),
+    // Agency revenue dashboard: WHERE org_id = $1 AND status IN ('paid','overdue') ORDER BY paid_at DESC LIMIT 50
+    // With this index, Postgres can satisfy the entire query from the index (index-only scan),
+    // eliminating the full table scan over all org invoices.
+    index("invoices_org_status_paid_idx").on(t.orgId, t.status, t.paidAt),
   ],
 ).enableRLS();
 
