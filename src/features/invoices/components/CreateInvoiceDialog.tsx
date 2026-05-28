@@ -61,8 +61,8 @@ export function CreateInvoiceDialog({
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
           handleCloseAttempt();
@@ -76,7 +76,7 @@ export function CreateInvoiceDialog({
         render={
           <Button className="group from-primary shadow-primary/25 hover:shadow-primary/40 relative overflow-hidden rounded-xl bg-linear-to-br to-indigo-600 px-6 font-bold tracking-wide text-white shadow-lg transition-[transform,shadow] duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-95">
             <div className="absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <PlusIcon className="hover:scale-105 text-white" />
+            <PlusIcon className="text-white hover:scale-105" />
             <span className="relative z-10 text-white">Create Invoice</span>
           </Button>
         }
@@ -85,31 +85,28 @@ export function CreateInvoiceDialog({
       {/* We use a raw DialogPortal to completely customize the modal shell instead of the default DialogPopup */}
       {open && (
         <DialogPortal>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[rgba(15,15,25,0.60)] dark:bg-[rgba(0,0,0,0.75)] backdrop-blur-[8px] dark:backdrop-blur-[12px] animate-in fade-in duration-200">
-            <div 
-              className={`relative flex flex-col bg-[var(--inv-modal-bg)] rounded-[18px] 
-              border border-[var(--inv-input-border)] dark:border-[rgba(255,255,255,0.07)]
-              shadow-[0_32px_80px_rgba(0,0,0,0.18)] dark:shadow-[0_32px_80px_rgba(0,0,0,0.6)]
-              max-h-[88vh] overflow-hidden animate-inv-modal-enter transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-              ${previewOpen ? "w-full max-w-[1360px]" : "w-full max-w-[680px]"}`}
+          <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,15,25,0.60)] p-4 backdrop-blur-[8px] duration-200 sm:p-6 dark:bg-[rgba(0,0,0,0.75)] dark:backdrop-blur-[12px]">
+            <div
+              className={`animate-inv-modal-enter relative flex max-h-[88vh] flex-col overflow-hidden rounded-[18px] border border-[var(--inv-input-border)] bg-[var(--inv-modal-bg)] shadow-[0_32px_80px_rgba(0,0,0,0.18)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] dark:border-[rgba(255,255,255,0.07)] dark:shadow-[0_32px_80px_rgba(0,0,0,0.6)] ${previewOpen ? "w-full max-w-[1360px]" : "w-full max-w-[680px]"}`}
               role="dialog"
               aria-modal="true"
             >
-              
               {/* Confirm Close Guard */}
               {showConfirmClose && (
-                <div className="absolute inset-x-0 top-0 z-50 bg-[var(--inv-modal-bg)] border-b border-[var(--inv-divider)] p-4 flex justify-between items-center shadow-lg animate-inv-slide-down">
-                  <span className="text-[var(--inv-text-primary)] font-medium text-sm">Discard changes?</span>
+                <div className="animate-inv-slide-down absolute inset-x-0 top-0 z-50 flex items-center justify-between border-b border-[var(--inv-divider)] bg-[var(--inv-modal-bg)] p-4 shadow-lg">
+                  <span className="text-sm font-medium text-[var(--inv-text-primary)]">
+                    Discard changes?
+                  </span>
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={() => setShowConfirmClose(false)}
-                      className="px-3 py-1.5 text-sm font-medium text-[var(--inv-text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors"
+                      className="rounded-md px-3 py-1.5 text-sm font-medium text-(--inv-text-secondary) transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                     >
                       Keep editing
                     </button>
-                    <button 
+                    <button
                       onClick={forceClose}
-                      className="px-3 py-1.5 text-sm font-medium bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                      className="rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
                     >
                       Discard
                     </button>
@@ -118,15 +115,15 @@ export function CreateInvoiceDialog({
               )}
 
               {/* Modal Header */}
-              <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[var(--inv-divider)] sticky top-0 z-40 bg-[var(--inv-modal-bg)]">
+              <div className="sticky top-0 z-40 flex shrink-0 items-center justify-between border-b border-[var(--inv-divider)] bg-[var(--inv-modal-bg)] px-6 py-4">
                 <div>
-                  <h2 className="font-syne font-extrabold text-[26px] text-[var(--inv-text-primary)] leading-tight">
+                  <h2 className="font-syne text-[26px] leading-tight font-extrabold text-[var(--inv-text-primary)]">
                     Create Invoice
                   </h2>
-                  <div className="mt-1 flex items-center gap-2 font-dm-mono text-xs text-[var(--inv-text-secondary)]">
+                  <div className="font-dm-mono mt-1 flex items-center gap-2 text-xs text-(--inv-text-secondary)">
                     <span>INV-1002</span>
-                    <span className="w-1 h-1 rounded-full bg-[var(--inv-text-secondary)]/50" />
-                    <span className="px-2 py-0.5 rounded-full bg-[var(--inv-text-secondary)]/10 text-[10px] uppercase tracking-wider font-semibold">
+                    <span className="h-1 w-1 rounded-full bg-[var(--inv-text-secondary)]/50" />
+                    <span className="rounded-full bg-[var(--inv-text-secondary)]/10 px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase">
                       Draft
                     </span>
                   </div>
@@ -135,23 +132,23 @@ export function CreateInvoiceDialog({
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setPreviewOpen(!previewOpen)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full text-[var(--inv-text-secondary)] hover:text-[var(--inv-accent-primary)] hover:bg-[var(--inv-accent-primary)]/10 transition-colors"
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-(--inv-text-secondary) transition-colors hover:bg-[var(--inv-accent-primary)]/10 hover:text-(--inv-accent-primary)"
                     title="Toggle Preview"
                   >
-                    <EyeIcon className="w-5 h-5" />
+                    <EyeIcon className="h-5 w-5" />
                   </button>
                   <button
                     onClick={handleCloseAttempt}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-[var(--inv-text-primary)] transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-[var(--inv-text-primary)] transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
                     title="Close"
                   >
-                    <XIcon className="w-4 h-4" />
+                    <XIcon className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
               {/* Modal Body */}
-              <div className="flex-1 overflow-y-auto obsidian-scroll relative flex">
+              <div className="obsidian-scroll relative flex flex-1 overflow-y-auto">
                 <InvoiceBuilder
                   clients={clients}
                   projects={projects}

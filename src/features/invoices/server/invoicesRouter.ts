@@ -11,8 +11,9 @@ import {
   projectFinancialsSchema,
 } from "../schemas";
 import { createDrizzleClient } from "@/db/createDrizzleClient";
-import { clients } from "@/db/schema";
+import { clients, invoices } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
+import { inngest } from "@/inngest/client";
 
 export const invoicesRouter = createTRPCRouter({
   list: protectedProcedure
@@ -118,7 +119,8 @@ export const invoicesRouter = createTRPCRouter({
         });
       }
       try {
-        return await updateInvoiceStatusInDb(ctx.orgId, input.id, input.status, input.pdfUrl);
+        // pdfUrl is now managed exclusively by the Inngest worker
+        return await updateInvoiceStatusInDb(ctx.orgId, input.id, input.status);
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -157,5 +159,71 @@ export const invoicesRouter = createTRPCRouter({
           message: "Failed to fetch project financials.",
         });
       }
+    }),
+
+  /**
+   * Manually re-trigger PDF generation for an invoice.
+   * Rate-limited: cannot re-trigger within 60 seconds of the last generation attempt.
+   * Used by the UI "Retry PDF" button when pdfStatus = 'failed'.
+   */
+  regeneratePdf: rateLimitedProcedure
+    .input(invoiceIdSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.role !== "owner" && ctx.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Admins and Owners can regenerate invoice PDFs.",
+        });
+      }
+
+      const db = await createDrizzleClient();
+
+      // Fetch current invoice to check pdfGeneratedAt for rate-limiting
+      const invoice = await db.query.invoices.findFirst({
+        where: and(
+          eq(invoices.id, input.id),
+          eq(invoices.orgId, ctx.orgId),
+        ),
+        columns: {
+          id: true,
+          orgId: true,
+          pdfGeneratedAt: true,
+          pdfStatus: true,
+          status: true,
+        },
+      });
+
+      if (!invoice) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invoice not found.",
+        });
+      }
+
+      // Rate limit: prevent re-generation within 60 seconds of the last attempt
+      if (invoice.pdfGeneratedAt) {
+        const secondsSinceLastAttempt =
+          (Date.now() - new Date(invoice.pdfGeneratedAt).getTime()) / 1000;
+        if (secondsSinceLastAttempt < 60) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: `PDF was last generated ${Math.ceil(secondsSinceLastAttempt)}s ago. Please wait ${Math.ceil(60 - secondsSinceLastAttempt)}s before retrying.`,
+          });
+        }
+      }
+
+      // Reset pdfStatus to 'pending' so the UI shows the spinner immediately
+      await db
+        .update(invoices)
+        .set({ pdfStatus: "pending", updatedAt: new Date() })
+        .where(and(eq(invoices.id, input.id), eq(invoices.orgId, ctx.orgId)));
+
+      // Dispatch the Inngest event — generation happens in background
+      await inngest.send({
+        name: "invoices/generate.pdf.requested",
+        data: { invoiceId: input.id, orgId: ctx.orgId },
+      });
+
+      return { ok: true };
     }),
 });

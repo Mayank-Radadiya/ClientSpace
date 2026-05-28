@@ -448,7 +448,9 @@ export const invoices = pgTable(
     taxRateBasisPoints: integer("tax_rate_basis_points").default(0),
     notes: text("notes"),
     paidAt: timestamp("paid_at", { withTimezone: true }), // Set when status → "paid"; used for revenue chart grouping
-    pdfUrl: text("pdf_url"), // Cached signed URL after "Send"
+    pdfUrl: text("pdf_url"), // Public URL of the pre-compiled PDF in Supabase Storage
+    pdfGeneratedAt: timestamp("pdf_generated_at", { withTimezone: true }), // When the PDF was last compiled by Inngest
+    pdfStatus: text("pdf_status").default("pending").notNull(), // 'pending' | 'generating' | 'ready' | 'failed'
     // Stripe payment tracking
     stripePaymentIntentId: text("stripe_payment_intent_id"), // Nullable: set when client initiates payment
     stripeCheckoutSessionId: text("stripe_checkout_session_id"), // Nullable: reserved for future Checkout use
@@ -468,6 +470,8 @@ export const invoices = pgTable(
     // With this index, Postgres can satisfy the entire query from the index (index-only scan),
     // eliminating the full table scan over all org invoices.
     index("invoices_org_status_paid_idx").on(t.orgId, t.status, t.paidAt),
+    // Nightly cron: WHERE org_id = $1 AND pdf_status = 'failed' — hot path for retry job
+    index("invoices_pdf_status_idx").on(t.orgId, t.pdfStatus),
   ],
 ).enableRLS();
 

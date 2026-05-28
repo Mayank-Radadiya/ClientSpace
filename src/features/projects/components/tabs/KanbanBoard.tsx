@@ -20,21 +20,40 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-  arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, GripVertical, Loader2 } from "lucide-react";
+import { GripVertical, Loader2 } from "lucide-react";
 import { useMilestones } from "../hooks/useMilestones";
 import { MilestoneCommandPanel } from "../MilestoneCommandPanel";
 import type { Milestone, MilestoneStatus } from "../types";
 import { cn } from "@/lib/utils";
 
 // ── Column config ──────────────────────────────────────────────────────────────
-const COLUMNS: { id: MilestoneStatus; label: string; color: string; dot: string }[] = [
-  { id: "todo", label: "To Do", color: "border-t-slate-400", dot: "bg-slate-400" },
-  { id: "in_progress", label: "In Progress", color: "border-t-blue-500", dot: "bg-blue-500" },
-  { id: "done", label: "Done", color: "border-t-green-500", dot: "bg-green-500" },
+const COLUMNS: {
+  id: MilestoneStatus;
+  label: string;
+  color: string;
+  dot: string;
+}[] = [
+  {
+    id: "todo",
+    label: "To Do",
+    color: "border-t-slate-400",
+    dot: "bg-slate-400",
+  },
+  {
+    id: "in_progress",
+    label: "In Progress",
+    color: "border-t-blue-500",
+    dot: "bg-blue-500",
+  },
+  {
+    id: "done",
+    label: "Done",
+    color: "border-t-green-500",
+    dot: "bg-green-500",
+  },
 ];
 
 // ── Card component ─────────────────────────────────────────────────────────────
@@ -45,8 +64,14 @@ interface KanbanCardProps {
 }
 
 function KanbanCard({ milestone, onClick, overlay }: KanbanCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: milestone.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: milestone.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -62,7 +87,7 @@ function KanbanCard({ milestone, onClick, overlay }: KanbanCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-sm transition-shadow",
+        "group border-border bg-card flex flex-col gap-2 rounded-lg border p-3 shadow-sm transition-shadow",
         isDragging && "opacity-30",
         overlay && "shadow-xl",
       )}
@@ -79,15 +104,18 @@ function KanbanCard({ milestone, onClick, overlay }: KanbanCardProps) {
         <button
           {...attributes}
           {...listeners}
-          className="mt-0.5 flex-shrink-0 cursor-grab text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none active:cursor-grabbing"
+          className="text-muted-foreground mt-0.5 shrink-0 cursor-grab opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none active:cursor-grabbing"
           aria-label="Drag to reorder"
           onClick={(e) => e.stopPropagation()}
         >
           <GripVertical size={13} />
         </button>
-        <span className={cn("flex-1 text-sm font-medium text-foreground leading-snug",
-          milestone.status === "done" && "line-through text-muted-foreground"
-        )}>
+        <span
+          className={cn(
+            "text-foreground flex-1 text-sm leading-snug font-medium",
+            milestone.status === "done" && "text-muted-foreground line-through",
+          )}
+        >
           {milestone.title}
         </span>
       </div>
@@ -95,10 +123,13 @@ function KanbanCard({ milestone, onClick, overlay }: KanbanCardProps) {
       {/* Sub-task progress bar */}
       {subPct !== null && (
         <div className="flex items-center gap-2">
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${subPct}%` }} />
+          <div className="bg-muted h-1 flex-1 overflow-hidden rounded-full">
+            <div
+              className="bg-primary h-full rounded-full transition-all"
+              style={{ width: `${subPct}%` }}
+            />
           </div>
-          <span className="text-[10px] tabular-nums text-muted-foreground">
+          <span className="text-muted-foreground text-[10px] tabular-nums">
             {completedSubs}/{totalSubs}
           </span>
         </div>
@@ -108,13 +139,17 @@ function KanbanCard({ milestone, onClick, overlay }: KanbanCardProps) {
       {milestone.dueDate && (
         <span
           className={cn(
-            "text-[10px] text-muted-foreground",
+            "text-muted-foreground text-[10px]",
             !milestone.completed &&
               new Date(milestone.dueDate).getTime() < Date.now() &&
               "text-red-600",
           )}
         >
-          Due {new Date(milestone.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          Due{" "}
+          {new Date(milestone.dueDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
         </span>
       )}
     </div>
@@ -123,7 +158,7 @@ function KanbanCard({ milestone, onClick, overlay }: KanbanCardProps) {
 
 // ── Column component ───────────────────────────────────────────────────────────
 interface KanbanColumnProps {
-  column: typeof COLUMNS[number];
+  column: (typeof COLUMNS)[number];
   milestones: Milestone[];
   onCardClick: (m: Milestone) => void;
 }
@@ -132,22 +167,28 @@ function KanbanColumn({ column, milestones, onCardClick }: KanbanColumnProps) {
   const ids = milestones.map((m) => m.id);
 
   return (
-    <div className={cn(
-      "flex flex-1 min-w-[240px] flex-col gap-3 rounded-xl border border-border border-t-2 bg-muted/30 p-3",
-      column.color,
-    )}>
+    <div
+      className={cn(
+        "border-border bg-muted/30 flex min-w-[240px] flex-1 flex-col gap-3 rounded-xl border border-t-2 p-3",
+        column.color,
+      )}
+    >
       <div className="flex items-center gap-2">
         <span className={cn("h-2 w-2 rounded-full", column.dot)} aria-hidden />
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
           {column.label}
         </h3>
-        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <span className="bg-muted text-muted-foreground ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium">
           {milestones.length}
         </span>
       </div>
 
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2" role="list" aria-label={`${column.label} milestones`}>
+        <div
+          className="flex flex-col gap-2"
+          role="list"
+          aria-label={`${column.label} milestones`}
+        >
           <AnimatePresence initial={false}>
             {milestones.map((m, i) => (
               <motion.div
@@ -164,7 +205,7 @@ function KanbanColumn({ column, milestones, onCardClick }: KanbanColumnProps) {
           </AnimatePresence>
 
           {milestones.length === 0 && (
-            <div className="rounded-md border border-dashed border-border py-8 text-center text-xs text-muted-foreground">
+            <div className="border-border text-muted-foreground rounded-md border border-dashed py-8 text-center text-xs">
               Drop here
             </div>
           )}
@@ -181,10 +222,15 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ projectId, members }: KanbanBoardProps) {
-  const { milestones, isLoading, reorder, isReordering } = useMilestones(projectId);
-  const [activeMilestone, setActiveMilestone] = useState<Milestone | null>(null);
+  const { milestones, isLoading, reorder, isReordering } =
+    useMilestones(projectId);
+  const [activeMilestone, setActiveMilestone] = useState<Milestone | null>(
+    null,
+  );
   const [panelMilestone, setPanelMilestone] = useState<Milestone | null>(null);
-  const [localMilestones, setLocalMilestones] = useState<Milestone[] | null>(null);
+  const [localMilestones, setLocalMilestones] = useState<Milestone[] | null>(
+    null,
+  );
 
   // Use local state during drag for instant feedback, fall back to server state
   const displayedMilestones = localMilestones ?? milestones;
@@ -271,7 +317,7 @@ export function KanbanBoard({ projectId, members }: KanbanBoardProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24 text-muted-foreground">
+      <div className="text-muted-foreground flex items-center justify-center py-24">
         <Loader2 size={18} className="animate-spin" />
       </div>
     );
@@ -297,7 +343,11 @@ export function KanbanBoard({ projectId, members }: KanbanBoardProps) {
 
         <DragOverlay>
           {activeMilestone && (
-            <KanbanCard milestone={activeMilestone} onClick={() => {}} overlay />
+            <KanbanCard
+              milestone={activeMilestone}
+              onClick={() => {}}
+              overlay
+            />
           )}
         </DragOverlay>
       </DndContext>

@@ -118,19 +118,15 @@ export async function updateInvoiceStatusInDb(
   orgId: string,
   invoiceId: string,
   newStatus: "draft" | "sent" | "paid" | "overdue",
-  pdfUrl?: string | null
 ) {
   try {
     const db = await createDrizzleClient();
-    const updateValues: Record<string, any> = {
+    const updateValues: Record<string, unknown> = {
       status: newStatus,
       updatedAt: new Date(),
     };
     if (newStatus === "paid") {
       updateValues.paidAt = new Date();
-    }
-    if (pdfUrl !== undefined) {
-      updateValues.pdfUrl = pdfUrl;
     }
 
     const [updated] = await db
@@ -150,6 +146,8 @@ export async function updateInvoiceStatusInDb(
         taxRateBasisPoints: invoices.taxRateBasisPoints,
         notes: invoices.notes,
         pdfUrl: invoices.pdfUrl,
+        pdfStatus: invoices.pdfStatus,
+        pdfGeneratedAt: invoices.pdfGeneratedAt,
         createdAt: invoices.createdAt,
         updatedAt: invoices.updatedAt,
       });
@@ -163,6 +161,7 @@ export async function updateInvoiceStatusInDb(
     throw error;
   }
 }
+
 
 /**
  * Deletes invoices bulk/single.
@@ -189,3 +188,37 @@ export async function deleteInvoicesInDb(orgId: string, invoiceIds: string[]) {
     throw error;
   }
 }
+
+/**
+ * Updates PDF generation state fields on an invoice.
+ * Called by the Inngest generateInvoicePdf worker steps.
+ * orgId is required to scope the update to the correct tenant.
+ */
+export async function updateInvoicePdfStatus(
+  orgId: string,
+  invoiceId: string,
+  update: {
+    pdfStatus: "pending" | "generating" | "ready" | "failed";
+    pdfUrl?: string | null;
+    pdfGeneratedAt?: Date | null;
+  },
+) {
+  try {
+    const db = await createDrizzleClient();
+    await db
+      .update(invoices)
+      .set({
+        pdfStatus: update.pdfStatus,
+        ...(update.pdfUrl !== undefined ? { pdfUrl: update.pdfUrl } : {}),
+        ...(update.pdfGeneratedAt !== undefined
+          ? { pdfGeneratedAt: update.pdfGeneratedAt }
+          : {}),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(invoices.id, invoiceId), eq(invoices.orgId, orgId)));
+  } catch (error) {
+    console.error("[updateInvoicePdfStatus] Database update failed:", error);
+    throw error;
+  }
+}
+

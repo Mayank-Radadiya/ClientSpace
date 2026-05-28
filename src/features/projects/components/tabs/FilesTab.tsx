@@ -5,7 +5,13 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { FileText, CheckCircle, AlertCircle, Clock, Loader2 } from "lucide-react";
+import {
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Loader2,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import type { OrgRole } from "../types";
@@ -14,17 +20,20 @@ const APPROVAL_CONFIG = {
   approved: {
     label: "Approved",
     icon: <CheckCircle size={11} className="text-green-600" />,
-    badge: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/40",
+    badge:
+      "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-800/40",
   },
   pending_review: {
     label: "Pending",
     icon: <Clock size={11} className="text-amber-600" />,
-    badge: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/40",
+    badge:
+      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/40",
   },
   changes_requested: {
     label: "Changes requested",
     icon: <AlertCircle size={11} className="text-red-600" />,
-    badge: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/40",
+    badge:
+      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/40",
   },
 } as const;
 
@@ -55,16 +64,22 @@ export function FilesTab({ projectId, role }: FilesTabProps) {
 
   const assets = data?.items ?? [];
 
-  const stats = useMemo(() => ({
-    total: assets.length,
-    approved: assets.filter((a) => a.approvalStatus === "approved").length,
-    pending: assets.filter((a) => a.approvalStatus === "pending_review").length,
-    changesRequested: assets.filter((a) => a.approvalStatus === "changes_requested").length,
-  }), [assets]);
+  const stats = useMemo(
+    () => ({
+      total: assets.length,
+      approved: assets.filter((a) => a.approvalStatus === "approved").length,
+      pending: assets.filter((a) => a.approvalStatus === "pending_review")
+        .length,
+      changesRequested: assets.filter(
+        (a) => a.approvalStatus === "changes_requested",
+      ).length,
+    }),
+    [assets],
+  );
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24 text-muted-foreground">
+      <div className="text-muted-foreground flex items-center justify-center py-24">
         <Loader2 size={18} className="animate-spin" />
       </div>
     );
@@ -72,7 +87,7 @@ export function FilesTab({ projectId, role }: FilesTabProps) {
 
   if (assets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
+      <div className="text-muted-foreground flex flex-col items-center justify-center gap-3 py-24">
         <FileText size={32} className="opacity-30" />
         <p className="text-sm">No files uploaded yet.</p>
       </div>
@@ -82,11 +97,17 @@ export function FilesTab({ projectId, role }: FilesTabProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* Stats row */}
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex items-center gap-4 text-xs">
         <span>{stats.total} files</span>
         <span className="text-green-600">✓ {stats.approved} approved</span>
-        {stats.pending > 0 && <span className="text-amber-600">⏳ {stats.pending} pending</span>}
-        {stats.changesRequested > 0 && <span className="text-red-600">! {stats.changesRequested} need changes</span>}
+        {stats.pending > 0 && (
+          <span className="text-amber-600">⏳ {stats.pending} pending</span>
+        )}
+        {stats.changesRequested > 0 && (
+          <span className="text-red-600">
+            ! {stats.changesRequested} need changes
+          </span>
+        )}
       </div>
 
       {/* Grid */}
@@ -106,7 +127,7 @@ export function FilesTab({ projectId, role }: FilesTabProps) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04, duration: 0.25 }}
-              className="group flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
+              className="group border-border bg-card flex cursor-pointer flex-col overflow-hidden rounded-lg border shadow-sm transition-shadow hover:shadow-md"
               role="listitem"
               tabIndex={0}
               aria-label={`File: ${asset.name}, status: ${asset.approvalStatus}`}
@@ -114,7 +135,7 @@ export function FilesTab({ projectId, role }: FilesTabProps) {
               {/* Preview area */}
               <div
                 className={cn(
-                  "flex h-28 items-center justify-center bg-gradient-to-br",
+                  "flex h-28 items-center justify-center bg-linear-to-br",
                   gradient,
                 )}
               >
@@ -123,8 +144,10 @@ export function FilesTab({ projectId, role }: FilesTabProps) {
 
               {/* Info */}
               <div className="flex flex-col gap-1.5 px-3 py-2.5">
-                <p className="truncate text-sm font-medium text-foreground">{asset.name}</p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-foreground truncate text-sm font-medium">
+                  {asset.name}
+                </p>
+                <p className="text-muted-foreground text-[10px]">
                   {versionCount} version{versionCount !== 1 ? "s" : ""} ·{" "}
                   {asset.type.split("/")[0]}
                 </p>

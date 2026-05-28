@@ -10,6 +10,7 @@ import {
   Loader2,
   MoreHorizontal,
   Pencil,
+  RefreshCw,
   Send,
   Trash2,
 } from "lucide-react";
@@ -34,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCents, type Currency } from "../schemas";
 import { deleteInvoices, updateInvoiceStatus } from "../server/actions";
+import { trpc } from "@/lib/trpc/client";
 
 export type InvoiceUiStatus =
   | "draft"
@@ -54,6 +56,8 @@ interface InvoiceRowData {
   clientCompanyName: string | null;
   clientContactName: string | null;
   clientEmail: string | null;
+  pdfUrl: string | null;
+  pdfStatus: string | null;
 }
 
 interface InvoiceRowProps {
@@ -155,9 +159,9 @@ function StatusBadge({ status }: { status: InvoiceUiStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.06em]",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium tracking-[0.06em] uppercase",
         cfg.badge,
-        cfg.borderColor
+        cfg.borderColor,
       )}
       aria-label={`Invoice status ${cfg.label}`}
     >
@@ -165,12 +169,55 @@ function StatusBadge({ status }: { status: InvoiceUiStatus }) {
         className={cn(
           "inline-block h-1.5 w-1.5 rounded-full",
           cfg.dot,
-          cfg.pulse && "inv-animate-pulse-sent"
+          cfg.pulse && "inv-animate-pulse-sent",
         )}
       />
       <span className={cfg.labelClass}>{cfg.label}</span>
     </span>
   );
+}
+
+// ─── PDF Status Indicator (icon-only badge for the table row) ─────────────────
+
+type PdfStatus = "pending" | "generating" | "ready" | "failed" | null;
+
+function PdfStatusBadge({ pdfStatus }: { pdfStatus: PdfStatus }) {
+  if (pdfStatus === "ready") return null; // No badge when ready — the download button is the indicator
+  if (pdfStatus === "pending" || pdfStatus === "generating") {
+    return (
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/10"
+              aria-label="PDF being prepared"
+            >
+              <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>PDF being prepared…</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  if (pdfStatus === "failed") {
+    return (
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500/10"
+              aria-label="PDF generation failed"
+            >
+              <AlertTriangle className="h-3 w-3 text-red-500" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>PDF generation failed — use Retry PDF</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  return null;
 }
 
 export function InvoiceRow({
@@ -183,6 +230,16 @@ export function InvoiceRow({
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isActionPending, startActionTransition] = useTransition();
   const [copied, setCopied] = useState(false);
+
+  const regeneratePdfMutation = trpc.invoices.regeneratePdf.useMutation({
+    onSuccess: () => {
+      gooeyToast.success("PDF regeneration queued — this takes a few seconds.");
+      onStatusUpdate?.();
+    },
+    onError: (err) => {
+      gooeyToast.error(err.message || "Failed to queue PDF regeneration.");
+    },
+  });
 
   const status = normalizeStatus(invoice.status);
   const clientName = deriveClientName(invoice);
@@ -266,9 +323,10 @@ export function InvoiceRow({
     <TableRow
       onClick={onClickRow}
       className={cn(
-        "group cursor-pointer border-b border-[var(--inv-border)] transition-colors duration-150 ease-out",
+        "group cursor-pointer border-b border-(--inv-border) transition-colors duration-150 ease-out",
         "hover:bg-[var(--inv-accent-subtle)]",
-        isSelected && "bg-[var(--inv-accent-subtle)] shadow-[inset_2px_0_0_var(--inv-accent-primary)]",
+        isSelected &&
+          "bg-[var(--inv-accent-subtle)] shadow-[inset_2px_0_0_var(--inv-accent-primary)]",
       )}
       data-state={isSelected ? "selected" : undefined}
     >
@@ -277,7 +335,7 @@ export function InvoiceRow({
           checked={isSelected}
           onCheckedChange={(checked) => onSelectChange?.(!!checked)}
           aria-label={`Select invoice ${invoiceCode}`}
-          className="border-[var(--inv-border)] data-[state=checked]:bg-[var(--inv-accent-primary)] data-[state=checked]:border-[var(--inv-accent-primary)] text-white"
+          className="border-(--inv-border) text-white data-[state=checked]:border-[var(--inv-accent-primary)] data-[state=checked]:bg-[var(--inv-accent-primary)]"
         />
       </TableCell>
 
@@ -292,14 +350,14 @@ export function InvoiceRow({
                 <button
                   type="button"
                   onClick={copyInvoiceNumber}
-                  className="opacity-0 transition-opacity duration-200 group-hover:opacity-100 text-[var(--inv-text-muted)] hover:text-[var(--inv-accent-primary)]"
+                  className="text-[var(--inv-text-muted)] opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:text-(--inv-accent-primary)"
                   aria-label={`Copy ${invoiceCode}`}
                 >
                   <Copy className="h-3.5 w-3.5" />
                 </button>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="bg-[var(--inv-surface-elevated)] border-[var(--inv-border)] text-[var(--inv-text-primary)]">
+            <TooltipContent className="border-(--inv-border) bg-[var(--inv-surface-elevated)] text-[var(--inv-text-primary)]">
               {copied ? "Copied" : "Copy invoice number"}
             </TooltipContent>
           </Tooltip>
@@ -309,38 +367,46 @@ export function InvoiceRow({
       <TableCell className="min-w-[180px]">
         <div className="flex items-center gap-3">
           <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4F7FFF]/20 to-[#4F7FFF]/40 text-[#4F7FFF] dark:text-[#6B95FF] text-[11px] font-semibold"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4F7FFF]/20 to-[#4F7FFF]/40 text-[11px] font-semibold text-[#4F7FFF] dark:text-[#6B95FF]"
             aria-hidden
           >
             {avatar}
           </div>
           <div className="min-w-0">
-            <div className="truncate font-display text-sm font-medium text-[var(--inv-text-primary)]">
+            <div className="font-display truncate text-sm font-medium text-[var(--inv-text-primary)]">
               {clientName}
             </div>
-            <div className="truncate font-data text-[12px] text-[var(--inv-text-muted)]">
+            <div className="font-data truncate text-[12px] text-[var(--inv-text-muted)]">
               {email}
             </div>
           </div>
         </div>
       </TableCell>
 
-      <TableCell className="font-data text-sm text-[var(--inv-text-secondary)]">
-        {issuedDate === "--" ? <span className="text-[var(--inv-text-muted)]">—</span> : issuedDate}
+      <TableCell className="font-data text-sm text-(--inv-text-secondary)">
+        {issuedDate === "--" ? (
+          <span className="text-[var(--inv-text-muted)]">—</span>
+        ) : (
+          issuedDate
+        )}
       </TableCell>
 
       <TableCell>
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 font-data text-sm",
+            "font-data inline-flex items-center gap-1.5 text-sm",
             urgency === "overdue" && "text-[var(--inv-status-overdue)]",
             urgency === "soon" && "text-[var(--inv-status-pending)]",
             urgency === "paid" && "text-[var(--inv-text-muted)] line-through",
-            urgency === "normal" && "text-[var(--inv-text-secondary)]",
+            urgency === "normal" && "text-(--inv-text-secondary)",
           )}
         >
           {urgency === "overdue" && <AlertTriangle className="h-3.5 w-3.5" />}
-          {dueDate === "--" ? <span className="text-[var(--inv-text-muted)]">—</span> : dueDate}
+          {dueDate === "--" ? (
+            <span className="text-[var(--inv-text-muted)]">—</span>
+          ) : (
+            dueDate
+          )}
         </span>
       </TableCell>
 
@@ -351,7 +417,12 @@ export function InvoiceRow({
       </TableCell>
 
       <TableCell>
-        <StatusBadge status={status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={status} />
+          <PdfStatusBadge
+            pdfStatus={(invoice.pdfStatus as PdfStatus) ?? null}
+          />
+        </div>
       </TableCell>
 
       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
@@ -361,7 +432,7 @@ export function InvoiceRow({
             variant="outline"
             onClick={runStatusAction}
             disabled={isActionPending}
-            className="h-8 gap-1.5 rounded-full border-[var(--inv-accent-primary)] bg-transparent text-[var(--inv-accent-primary)] transition-colors hover:bg-[var(--inv-accent-primary)] hover:text-white dark:hover:text-white"
+            className="h-8 gap-1.5 rounded-full border-[var(--inv-accent-primary)] bg-transparent text-(--inv-accent-primary) transition-colors hover:bg-[var(--inv-accent-primary)] hover:text-white dark:hover:text-white"
             aria-label={`${primaryAction.label} ${invoiceCode}`}
           >
             {isActionPending ? (
@@ -369,11 +440,7 @@ export function InvoiceRow({
             ) : (
               <primaryAction.icon className="h-3.5 w-3.5 shrink-0" />
             )}
-            <span
-              className={cn(
-                "hidden lg:inline font-medium tracking-wide"
-              )}
-            >
+            <span className={cn("hidden font-medium tracking-wide lg:inline")}>
               {primaryAction.label}
             </span>
           </Button>
@@ -383,40 +450,74 @@ export function InvoiceRow({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="hidden h-8 w-8 text-[var(--inv-text-secondary)] hover:bg-[var(--inv-surface-elevated)] lg:inline-flex"
+                className="hidden h-8 w-8 text-(--inv-text-secondary) hover:bg-[var(--inv-surface-elevated)] lg:inline-flex"
                 aria-label={`Open actions for ${invoiceCode}`}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px] bg-[var(--inv-surface)]/90 backdrop-blur-md border-[var(--inv-border)] shadow-xl">
+            <DropdownMenuContent
+              align="end"
+              className="w-[180px] border-(--inv-border) bg-[var(--inv-surface)]/90 shadow-xl backdrop-blur-md"
+            >
               <DropdownMenuItem
-                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
+                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-(--inv-accent-primary)"
                 onClick={() => gooeyToast.info("Edit coming soon")}
               >
-                <Pencil className="h-4 w-4 mr-2" />
+                <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
+                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-(--inv-accent-primary)"
                 onClick={() => gooeyToast.info("Duplicate coming soon")}
               >
-                <CopyPlus className="h-4 w-4 mr-2" />
+                <CopyPlus className="mr-2 h-4 w-4" />
                 Duplicate
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 asChild
-                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-[var(--inv-accent-primary)]"
+                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-(--inv-accent-primary)"
               >
-                <a
-                  href={`/api/invoices/${invoice.id}/pdf`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <FileDownIcon className="h-4 w-4 mr-2" />
-                  Download PDF
-                </a>
+                {invoice.pdfStatus === "ready" && invoice.pdfUrl ? (
+                  <a
+                    href={invoice.pdfUrl}
+                    download={`INV-${invoice.number}.pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    id={`download-pdf-${invoice.id}`}
+                  >
+                    <FileDownIcon className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </a>
+                ) : invoice.pdfStatus === "failed" ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      regeneratePdfMutation.mutate({ id: invoice.id });
+                    }}
+                    disabled={regeneratePdfMutation.isPending}
+                    id={`retry-pdf-${invoice.id}`}
+                  >
+                    {regeneratePdfMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    Retry PDF
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="cursor-not-allowed opacity-50"
+                    id={`pdf-pending-${invoice.id}`}
+                  >
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Preparing PDF…
+                  </button>
+                )}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-[var(--inv-border)]" />
               <DropdownMenuItem
@@ -436,9 +537,9 @@ export function InvoiceRow({
                 }}
               >
                 {isDeleting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="mr-2 h-4 w-4" />
                 )}
                 Delete
               </DropdownMenuItem>

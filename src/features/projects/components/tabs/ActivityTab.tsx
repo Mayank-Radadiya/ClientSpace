@@ -107,7 +107,7 @@ export function ActivityTab({ projectId }: ActivityTabProps) {
               {/* Dot */}
               <div
                 className={cn(
-                  "relative z-10 mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ring-4",
+                  "relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-4",
                   dot,
                   ring,
                 )}

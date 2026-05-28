@@ -5,7 +5,7 @@ import { and, count, eq, gte } from "drizzle-orm";
 import { invoices, organizations, clients, projects } from "@/db/schema";
 import { withRLS } from "@/db/createDrizzleClient";
 import { getSessionContext } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
+import { inngest } from "@/inngest/client";
 import {
   calculateTotals,
   canTransition,
@@ -167,45 +167,17 @@ export async function updateInvoiceStatus(
   }
   const currentInvoice = validation.invoice;
 
-  let pdfPath: string | undefined = undefined;
-
-  // PDF caching on -> "sent"
-  if (newStatus === "sent" && !currentInvoice.pdfUrl) {
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-      const targetPdfPath = `invoices/${ctx.orgId}/${invoiceId}.pdf`;
-
-      const pdfResponse = await fetch(
-        `${baseUrl}/api/invoices/${invoiceId}/pdf`,
-        {
-          headers: {
-            "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
-          },
-          signal: AbortSignal.timeout(30_000),
-        },
-      );
-
-      if (pdfResponse.ok) {
-        const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
-        const supabase = await createClient();
-        const { error: uploadError } = await supabase.storage
-          .from("project-files")
-          .upload(targetPdfPath, pdfBuffer, {
-            contentType: "application/pdf",
-            upsert: true,
-          });
-
-        if (!uploadError) {
-          pdfPath = targetPdfPath;
-        }
-      }
-    } catch (err) {
-      console.error("[updateInvoiceStatus] PDF caching error:", err);
-    }
-  }
-
   try {
-    await updateInvoiceStatusInDb(ctx.orgId, invoiceId, newStatus, pdfPath);
+    await updateInvoiceStatusInDb(ctx.orgId, invoiceId, newStatus);
+
+    // Trigger async PDF generation when invoice is sent — Inngest handles this
+    // in the background without blocking the request thread.
+    if (newStatus === "sent") {
+      await inngest.send({
+        name: "invoices/generate.pdf.requested",
+        data: { invoiceId, orgId: ctx.orgId },
+      });
+    }
 
     // Revalidate list & detail cache
     revalidateTag(`org-${ctx.orgId}-invoices`, "max");

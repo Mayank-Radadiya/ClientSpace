@@ -8,10 +8,9 @@ import {
   ArrowUpDown,
   FileText,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { gooeyToast } from "goey-toast";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -71,6 +70,8 @@ interface InvoiceData {
   clientContactName: string | null;
   clientEmail: string | null;
   clientId: string;
+  pdfUrl: string | null;
+  pdfStatus: string | null;
 }
 
 function timeValue(dateString?: string | null): number {
@@ -117,20 +118,20 @@ function EmptyTabState({
   const copy = copyMap[status] ?? copyMap.all;
 
   return (
-    <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] px-6 py-12 text-center shadow-sm">
-      <div className="relative mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-[var(--inv-border)] bg-[var(--inv-surface-elevated)]">
+    <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-(--inv-border) bg-[var(--inv-surface)] px-6 py-12 text-center shadow-sm">
+      <div className="relative mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-(--inv-border) bg-[var(--inv-surface-elevated)]">
         {/* Geometric Line Art Abstract */}
         <div className="absolute inset-2 rounded-full border border-[var(--inv-accent-primary)] opacity-20" />
         <div className="absolute inset-4 rounded-full border border-[var(--inv-accent-primary)] opacity-40" />
         <FileText
-          className="h-8 w-8 text-[var(--inv-accent-primary)]"
+          className="h-8 w-8 text-(--inv-accent-primary)"
           strokeWidth={1.5}
         />
       </div>
       <h3 className="font-display text-xl font-bold tracking-tight text-[var(--inv-text-primary)]">
         {copy.title}
       </h3>
-      <p className="font-data mt-3 max-w-sm text-[13px] leading-relaxed text-[var(--inv-text-secondary)]">
+      <p className="font-data mt-3 max-w-sm text-[13px] leading-relaxed text-(--inv-text-secondary)">
         {copy.subtitle}
       </p>
       {status === "draft" && onCreateClick && (
@@ -160,7 +161,20 @@ export function InvoiceList({
     { projectId },
     {
       initialData: initialInvoices,
-    }
+      // Poll every 3 seconds while any PDF is being generated.
+      // Uses a selector-free approach: refetchInterval receives the latest data
+      // directly so we don't need a separate useMemo before the query.
+      refetchInterval: (query) => {
+        const items = query.state.data?.items as
+          | Array<{ pdfStatus?: string }>
+          | undefined;
+        const hasPending = items?.some(
+          (inv) =>
+            inv.pdfStatus === "pending" || inv.pdfStatus === "generating",
+        );
+        return hasPending ? 3000 : false;
+      },
+    },
   );
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -181,6 +195,8 @@ export function InvoiceList({
       clientCompanyName: item.client?.companyName ?? null,
       clientContactName: item.client?.contactName ?? null,
       clientEmail: item.client?.email ?? null,
+      pdfUrl: item.pdfUrl ?? null,
+      pdfStatus: item.pdfStatus ?? null,
     }));
   }, [data?.items]);
 
@@ -188,9 +204,7 @@ export function InvoiceList({
     const baseRows =
       statusFilter === "all"
         ? mappedInvoices
-        : mappedInvoices.filter(
-            (invoice) => invoice.status === statusFilter,
-          );
+        : mappedInvoices.filter((invoice) => invoice.status === statusFilter);
     if (!searchQuery) return baseRows;
 
     const query = searchQuery.toLowerCase();
@@ -331,17 +345,17 @@ export function InvoiceList({
         <span
           className={cn(
             active
-              ? "font-bold text-[var(--inv-accent-primary)]"
-              : "text-[var(--inv-text-secondary)]",
+              ? "font-bold text-(--inv-accent-primary)"
+              : "text-(--inv-text-secondary)",
           )}
         >
           {label}
         </span>
         {active ? (
           sortDir === "asc" ? (
-            <ArrowUp className="h-3 w-3 text-[var(--inv-accent-primary)]" />
+            <ArrowUp className="h-3 w-3 text-(--inv-accent-primary)" />
           ) : (
-            <ArrowDown className="h-3 w-3 text-[var(--inv-accent-primary)]" />
+            <ArrowDown className="h-3 w-3 text-(--inv-accent-primary)" />
           )
         ) : (
           <ArrowUpDown className="h-3 w-3 text-[var(--inv-text-muted)] opacity-0 transition-opacity group-hover:opacity-50" />
@@ -384,7 +398,7 @@ export function InvoiceList({
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] p-4"
+              className="rounded-xl border border-(--inv-border) bg-[var(--inv-surface)] p-4"
             >
               <div className="space-y-3">
                 <div className="flex justify-between">
@@ -439,12 +453,13 @@ export function InvoiceList({
         onDownload={() => {
           const ids = Array.from(selectedIds);
           ids.forEach((id, idx) => {
+            const inv = mappedInvoices.find((i) => i.id === id);
+            const url =
+              inv?.pdfStatus === "ready" && inv.pdfUrl
+                ? inv.pdfUrl
+                : `/api/invoices/${id}/pdf`;
             setTimeout(() => {
-              window.open(
-                `/api/invoices/${id}/pdf`,
-                "_blank",
-                "noopener,noreferrer",
-              );
+              window.open(url, "_blank", "noopener,noreferrer");
             }, idx * 250);
           });
           gooeyToast.success(`Downloading ${ids.length} PDFs...`);
@@ -487,7 +502,7 @@ export function InvoiceList({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
         className={cn(
-          "overflow-hidden rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] shadow-md",
+          "overflow-hidden rounded-xl border border-(--inv-border) bg-[var(--inv-surface)] shadow-md",
           tableLayoutClass("desktop"),
         )}
       >
@@ -495,7 +510,7 @@ export function InvoiceList({
           <EmptyTabState status={statusFilter} onCreateClick={onCreateClick} />
         ) : (
           <Table>
-            <TableHeader className="border-b border-[var(--inv-border)] bg-[var(--inv-surface-elevated)]">
+            <TableHeader className="border-b border-(--inv-border) bg-[var(--inv-surface-elevated)]">
               <TableRow className="border-0 hover:bg-transparent">
                 <TableHead scope="col" className="w-[40px] pl-4">
                   <Checkbox
@@ -503,7 +518,7 @@ export function InvoiceList({
                     indeterminate={indeterminate}
                     onCheckedChange={handleSelectAllChange}
                     aria-label="Select all invoices"
-                    className="border-[var(--inv-border)] text-white data-[state=checked]:border-[var(--inv-accent-primary)] data-[state=checked]:bg-[var(--inv-accent-primary)]"
+                    className="border-(--inv-border) text-white data-[state=checked]:border-[var(--inv-accent-primary)] data-[state=checked]:bg-[var(--inv-accent-primary)]"
                   />
                 </TableHead>
                 <TableHead scope="col" className="w-[140px]">
@@ -511,7 +526,7 @@ export function InvoiceList({
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="font-data min-w-[180px] text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                  className="font-data min-w-[180px] text-[11px] tracking-[0.08em] text-(--inv-text-secondary) uppercase"
                 >
                   Client
                 </TableHead>
@@ -526,13 +541,13 @@ export function InvoiceList({
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="font-data text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                  className="font-data text-[11px] tracking-[0.08em] text-(--inv-text-secondary) uppercase"
                 >
                   Status
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="font-data text-right text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                  className="font-data text-right text-[11px] tracking-[0.08em] text-(--inv-text-secondary) uppercase"
                 >
                   Actions
                 </TableHead>
@@ -542,7 +557,11 @@ export function InvoiceList({
               {sortedData.map((invoice) => (
                 <InvoiceRow
                   key={invoice.id}
-                  invoice={invoice}
+                  invoice={{
+                    ...invoice,
+                    pdfUrl: invoice.pdfUrl,
+                    pdfStatus: invoice.pdfStatus,
+                  }}
                   isSelected={selectedIds.has(invoice.id)}
                   onSelectChange={(checked) =>
                     handleRowSelectChange(invoice.id, checked)
@@ -561,7 +580,7 @@ export function InvoiceList({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
         className={cn(
-          "overflow-hidden rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] shadow-md",
+          "overflow-hidden rounded-xl border border-(--inv-border) bg-[var(--inv-surface)] shadow-md",
           tableLayoutClass("tablet"),
         )}
       >
@@ -569,7 +588,7 @@ export function InvoiceList({
           <EmptyTabState status={statusFilter} onCreateClick={onCreateClick} />
         ) : (
           <Table>
-            <TableHeader className="border-b border-[var(--inv-border)] bg-[var(--inv-surface-elevated)]">
+            <TableHeader className="border-b border-(--inv-border) bg-[var(--inv-surface-elevated)]">
               <TableRow className="border-0 hover:bg-transparent">
                 <TableHead scope="col" className="w-[40px] pl-4">
                   <Checkbox
@@ -577,7 +596,7 @@ export function InvoiceList({
                     indeterminate={indeterminate}
                     onCheckedChange={handleSelectAllChange}
                     aria-label="Select all invoices"
-                    className="border-[var(--inv-border)] text-white data-[state=checked]:border-[var(--inv-accent-primary)] data-[state=checked]:bg-[var(--inv-accent-primary)]"
+                    className="border-(--inv-border) text-white data-[state=checked]:border-[var(--inv-accent-primary)] data-[state=checked]:bg-[var(--inv-accent-primary)]"
                   />
                 </TableHead>
                 <TableHead scope="col" className="w-[140px]">
@@ -585,7 +604,7 @@ export function InvoiceList({
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="font-data min-w-[180px] text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                  className="font-data min-w-[180px] text-[11px] tracking-[0.08em] text-(--inv-text-secondary) uppercase"
                 >
                   Client
                 </TableHead>
@@ -597,13 +616,13 @@ export function InvoiceList({
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="font-data text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                  className="font-data text-[11px] tracking-[0.08em] text-(--inv-text-secondary) uppercase"
                 >
                   Status
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="font-data text-right text-[11px] tracking-[0.08em] text-[var(--inv-text-secondary)] uppercase"
+                  className="font-data text-right text-[11px] tracking-[0.08em] text-(--inv-text-secondary) uppercase"
                 >
                   Action
                 </TableHead>
@@ -613,7 +632,11 @@ export function InvoiceList({
               {sortedData.map((invoice) => (
                 <InvoiceRow
                   key={`tablet-${invoice.id}`}
-                  invoice={invoice}
+                  invoice={{
+                    ...invoice,
+                    pdfUrl: invoice.pdfUrl,
+                    pdfStatus: invoice.pdfStatus,
+                  }}
                   isSelected={selectedIds.has(invoice.id)}
                   onSelectChange={(checked) =>
                     handleRowSelectChange(invoice.id, checked)

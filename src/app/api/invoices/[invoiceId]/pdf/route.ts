@@ -1,27 +1,25 @@
 // src/app/api/invoices/[invoiceId]/pdf/route.ts
-// PDF generation and download route.
+// PDF download route.
+//
+// All PDF generation is now handled asynchronously by the Inngest worker
+// (src/inngest/functions/invoices/generatePdf.ts). This route is a pure
+// redirect proxy:
+//
+//   Fast path: invoice.pdfStatus === 'ready' → 302 redirect to public Supabase URL
+//   Pending:   pdfStatus = 'pending' | 'generating' → 202 Accepted (UI should poll)
+//   Failed:    pdfStatus = 'failed' → 503 with retry guidance
+//   No URL:    404
 //
 // Two auth modes:
-// 1. Internal: x-internal-secret header (called by updateInvoiceStatus action)
-// 2. External: Supabase session cookie (browser download)
-//
-// Fast path: If invoice.pdfUrl is set → redirect to 1-hour signed URL (302)
-// Slow path: Generate PDF on-the-fly from invoice + line items + client + org data
+//   1. External: Supabase session cookie (browser download)
+//   2. Internal: x-internal-secret header (reserved for server-to-server calls)
 
 import { type NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { renderToBuffer } from "@react-pdf/renderer";
-import {
-  clients,
-  invoiceLineItems,
-  invoices,
-  organizations,
-} from "@/db/schema";
+import { invoices } from "@/db/schema";
 import { withRLS } from "@/db/createDrizzleClient";
 import { getSessionContext } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { InvoicePDF } from "@/features/invoices/components/InvoicePDF";
-import { calculateTotals } from "@/features/invoices/schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,7 +62,7 @@ export async function GET(
     }
     orgId = invoice.orgId;
     userId = "INTERNAL";
-    role = "admin"; // Internal calls have full access
+    role = "admin";
   } else {
     // External mode: validate session
     const ctx = await getSessionContext();
@@ -82,13 +80,15 @@ export async function GET(
     const invoice = await withRLS({ userId, orgId }, async (tx) => {
       return tx.query.invoices.findFirst({
         where: and(eq(invoices.id, invoiceId), eq(invoices.orgId, orgId)),
+        columns: {
+          pdfUrl: true,
+          pdfStatus: true,
+          number: true,
+          clientId: true,
+        },
         with: {
           client: {
             columns: {
-              id: true,
-              companyName: true,
-              email: true,
-              contactName: true,
               userId: true,
             },
           },
@@ -111,105 +111,58 @@ export async function GET(
       }
     }
 
-    // ── Fast Path: Redirect to signed URL ─────────────────────────────────
+    // ── Fast Path: Redirect to public Storage URL ─────────────────────────
 
-    if (invoice.pdfUrl) {
-      const supabase = await createClient();
-      const { data } = await supabase.storage
-        .from("project-files")
-        .createSignedUrl(invoice.pdfUrl, 3600);
-
-      if (data?.signedUrl) {
-        return NextResponse.redirect(data.signedUrl, { status: 302 });
-      }
-      // Signed URL creation failed — fall through to on-the-fly generation
+    if (invoice.pdfStatus === "ready" && invoice.pdfUrl) {
+      return NextResponse.redirect(invoice.pdfUrl, { status: 302 });
     }
 
-    // ── Slow Path: Generate PDF on-the-fly ────────────────────────────────
+    // ── Pending: PDF not yet ready ────────────────────────────────────────
 
-    const [items, org] = await Promise.all([
-      withRLS({ userId, orgId }, async (tx) => {
-        return tx.query.invoiceLineItems.findMany({
-          where: eq(invoiceLineItems.invoiceId, invoiceId),
-          columns: {
-            id: true,
-            description: true,
-            quantity: true,
-            unitPriceCents: true,
-          },
-        });
-      }),
-      withRLS({ userId, orgId }, async (tx) => {
-        return tx.query.organizations.findFirst({
-          where: eq(organizations.id, orgId),
-          columns: {
-            name: true,
-            logoUrl: true,
-            accentColor: true,
-          },
-        });
-      }),
-    ]);
-
-    if (!org) {
+    if (
+      invoice.pdfStatus === "pending" ||
+      invoice.pdfStatus === "generating"
+    ) {
       return NextResponse.json(
-        { error: "Organization not found" },
-        { status: 404 },
+        {
+          error: "PDF is being generated",
+          pdfStatus: invoice.pdfStatus,
+          message:
+            "The PDF for this invoice is being prepared. Please try again in a few seconds.",
+        },
+        { status: 202 },
       );
     }
 
-    // Normalize items for calculation (quantity stored as string from numeric column)
-    const normalizedItems = items.map((item) => ({
-      description: item.description,
-      quantity: parseFloat(item.quantity as string),
-      unitPriceCents: item.unitPriceCents,
-    }));
+    // ── Failed: Generation failed ─────────────────────────────────────────
 
-    const totals = calculateTotals(
-      normalizedItems,
-      invoice.taxRateBasisPoints ?? 0,
+    if (invoice.pdfStatus === "failed") {
+      return NextResponse.json(
+        {
+          error: "PDF generation failed",
+          pdfStatus: "failed",
+          message:
+            "PDF generation failed for this invoice. Use the Retry PDF button in the dashboard.",
+        },
+        { status: 503 },
+      );
+    }
+
+    // ── No PDF URL (unexpected state) ─────────────────────────────────────
+
+    return NextResponse.json(
+      {
+        error: "PDF not available",
+        pdfStatus: invoice.pdfStatus,
+        message:
+          "No PDF is available for this invoice. Mark it as Sent to trigger generation.",
+      },
+      { status: 404 },
     );
-
-    const pdfDoc = InvoicePDF({
-      invoice: {
-        id: invoice.id,
-        number: invoice.number,
-        status: invoice.status,
-        currency: invoice.currency as "USD" | "EUR" | "GBP" | "CAD" | "AUD",
-        dueDate: invoice.dueDate,
-        notes: invoice.notes,
-        createdAt: invoice.createdAt,
-      },
-      items: normalizedItems,
-      totals,
-      client: invoice.client
-        ? {
-            companyName: invoice.client.companyName ?? null,
-            email: invoice.client.email,
-            contactName: invoice.client.contactName ?? null,
-          }
-        : { companyName: null, email: "", contactName: null },
-      org: {
-        name: org.name,
-        logoUrl: org.logoUrl ?? null,
-        accentColor: org.accentColor ?? "#3b82f6",
-      },
-    });
-
-    const buffer = await renderToBuffer(pdfDoc);
-
-    return new NextResponse(new Uint8Array(buffer), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="INV-${invoice.number}.pdf"`,
-        "Cache-Control": "private, no-store",
-      },
-    });
   } catch (err) {
     console.error("[PDF Route] Error:", err);
     return NextResponse.json(
-      { error: "Failed to generate PDF" },
+      { error: "Failed to retrieve PDF" },
       { status: 500 },
     );
   }

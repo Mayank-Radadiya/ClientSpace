@@ -294,7 +294,7 @@ export function InvoiceBuilder({
           <div className="flex-1 space-y-12 p-6 pb-[140px]">
             {/* SECTION 1 */}
             <section>
-              <h3 className="font-dm-mono mb-4 text-[11px] tracking-[0.10em] text-[var(--inv-accent-primary)] uppercase">
+              <h3 className="font-dm-mono mb-4 text-[11px] tracking-[0.10em] text-(--inv-accent-primary) uppercase">
                 01 — Details
               </h3>
 
@@ -360,7 +360,7 @@ export function InvoiceBuilder({
                             })
                           )}
                           <div className="mt-1 border-t border-[var(--inv-divider)] p-1">
-                            <button className="font-dm-mono w-full rounded-sm px-2 py-1.5 text-left text-sm text-[var(--inv-accent-primary)] transition-colors hover:bg-[var(--inv-accent-primary)]/10">
+                            <button className="font-dm-mono w-full rounded-sm px-2 py-1.5 text-left text-sm text-(--inv-accent-primary) transition-colors hover:bg-[var(--inv-accent-primary)]/10">
                               Add new client →
                             </button>
                           </div>
@@ -472,7 +472,7 @@ export function InvoiceBuilder({
                           <PopoverTrigger
                             id="dueDate"
                             className={cn(
-                              "inv-input-focus font-dm-mono flex h-12 w-full items-center rounded-[10px] border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] px-3 text-sm text-[var(--inv-text-primary)] transition-all border ",
+                              "inv-input-focus font-dm-mono flex h-12 w-full items-center rounded-[10px] border border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] px-3 text-sm text-[var(--inv-text-primary)] transition-all",
                               !dateValue && "text-[var(--inv-text-muted)]",
                             )}
                           >
@@ -500,7 +500,7 @@ export function InvoiceBuilder({
                                 <button
                                   key={days}
                                   type="button"
-                                  className="font-dm-mono rounded-full border border-[var(--inv-divider)] bg-[var(--inv-input-bg)] px-2 py-1 text-[10px] text-[var(--inv-text-primary)] transition-colors hover:border-[var(--inv-accent-primary)] hover:text-[var(--inv-accent-primary)]"
+                                  className="font-dm-mono rounded-full border border-[var(--inv-divider)] bg-[var(--inv-input-bg)] px-2 py-1 text-[10px] text-[var(--inv-text-primary)] transition-colors hover:border-[var(--inv-accent-primary)] hover:text-(--inv-accent-primary)"
                                   onClick={() => {
                                     const d = new Date();
                                     d.setDate(d.getDate() + days);
@@ -560,7 +560,7 @@ export function InvoiceBuilder({
             {/* SECTION 2 */}
             <section>
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-dm-mono text-[11px] tracking-[0.10em] text-[var(--inv-accent-primary)] uppercase">
+                <h3 className="font-dm-mono text-[11px] tracking-[0.10em] text-(--inv-accent-primary) uppercase">
                   02 — Line Items
                 </h3>
                 <span className="font-dm-mono text-xs text-[var(--inv-text-muted)]">
@@ -599,118 +599,118 @@ export function InvoiceBuilder({
                         <Label className="font-dm-mono mb-1 text-[10px] text-[var(--inv-text-muted)] uppercase sm:hidden">
                           Description
                         </Label>
-                          <Input
-                            placeholder="Service or item description"
-                            {...register(`items.${idx}.description`)}
-                            className="inv-input-focus font-dm-mono h-10 rounded-lg border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] text-sm text-[var(--inv-text-primary)]"
-                            list={`desc-history-${idx}`}
-                            autoComplete="off"
-                          />
-                          <datalist id={`desc-history-${idx}`}>
-                            {history.map((h, i) => (
-                              <option key={i} value={h.desc} />
-                            ))}
-                          </datalist>
-                          <FieldError
-                            message={errors.items?.[idx]?.description?.message}
-                          />
-                        </div>
+                        <Input
+                          placeholder="Service or item description"
+                          {...register(`items.${idx}.description`)}
+                          className="inv-input-focus font-dm-mono h-10 rounded-lg border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] text-sm text-[var(--inv-text-primary)]"
+                          list={`desc-history-${idx}`}
+                          autoComplete="off"
+                        />
+                        <datalist id={`desc-history-${idx}`}>
+                          {history.map((h, i) => (
+                            <option key={i} value={h.desc} />
+                          ))}
+                        </datalist>
+                        <FieldError
+                          message={errors.items?.[idx]?.description?.message}
+                        />
+                      </div>
 
-                        {/* Qty with Custom Stepper */}
-                        <div>
-                          <Label className="font-dm-mono mb-1 text-[10px] text-[var(--inv-text-muted)] uppercase sm:hidden">
-                            Quantity
-                          </Label>
-                          <Controller
-                            control={control}
-                            name={`items.${idx}.quantity`}
-                            render={({ field: f }) => (
-                              <div className="inv-input-focus flex h-10 items-center rounded-lg border border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] p-1 focus-within:border-[var(--inv-input-border-focus)]">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="flex h-full w-5 items-center justify-center rounded-[6px] text-[var(--inv-text-secondary)]"
-                                  onClick={() =>
-                                    f.onChange(Math.max(1, (f.value || 0) - 1))
-                                  }
-                                >
-                                  −
-                                </Button>
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  className="font-dm-mono h-full w-full min-w-0 flex-1 appearance-none border-none bg-transparent p-0 text-center text-sm text-[var(--inv-text-primary)] shadow-none outline-none focus:outline-none focus:ring-0"
-                                  value={f.value === 0 ? "" : f.value}
-                                  onChange={(e) => {
-                                    const val = parseInt(e.target.value, 10);
-                                    f.onChange(isNaN(val) ? 0 : val);
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="flex h-full w-5 items-center justify-center rounded-[6px] text-[var(--inv-text-secondary)]"
-                                  onClick={() => f.onChange((f.value || 0) + 1)}
-                                >
-                                  +
-                                </Button>
-                              </div>
-                            )}
-                          />
-                        </div>
+                      {/* Qty with Custom Stepper */}
+                      <div>
+                        <Label className="font-dm-mono mb-1 text-[10px] text-[var(--inv-text-muted)] uppercase sm:hidden">
+                          Quantity
+                        </Label>
+                        <Controller
+                          control={control}
+                          name={`items.${idx}.quantity`}
+                          render={({ field: f }) => (
+                            <div className="inv-input-focus flex h-10 items-center rounded-lg border border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] p-1 focus-within:border-[var(--inv-input-border-focus)]">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="flex h-full w-5 items-center justify-center rounded-[6px] text-(--inv-text-secondary)"
+                                onClick={() =>
+                                  f.onChange(Math.max(1, (f.value || 0) - 1))
+                                }
+                              >
+                                −
+                              </Button>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                className="font-dm-mono h-full w-full min-w-0 flex-1 appearance-none border-none bg-transparent p-0 text-center text-sm text-[var(--inv-text-primary)] shadow-none outline-none focus:ring-0 focus:outline-none"
+                                value={f.value === 0 ? "" : f.value}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  f.onChange(isNaN(val) ? 0 : val);
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="flex h-full w-5 items-center justify-center rounded-[6px] text-(--inv-text-secondary)"
+                                onClick={() => f.onChange((f.value || 0) + 1)}
+                              >
+                                +
+                              </Button>
+                            </div>
+                          )}
+                        />
+                      </div>
 
-                        {/* Unit Price */}
-                        <div>
-                          <Label className="font-dm-mono mb-1 text-[10px] text-[var(--inv-text-muted)] uppercase sm:hidden">
-                            Unit Price
-                          </Label>
-                          <Controller
-                            control={control}
-                            name={`items.${idx}.unitPriceCents`}
-                            render={({ field: f }) => (
-                              <div className="relative">
-                                <span className="font-dm-mono absolute top-1/2 left-3 -translate-y-1/2 text-sm text-[var(--inv-text-muted)]">
-                                  $
-                                </span>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  placeholder="0.00"
-                                  className="inv-input-focus no-spinners font-dm-mono h-10 rounded-lg border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] pl-7 text-right text-sm text-[var(--inv-text-primary)]"
-                                  value={
-                                    f.value === 0
-                                      ? ""
-                                      : (f.value / 100).toString()
-                                  }
-                                  onChange={(e) => {
-                                    const dollars = parseFloat(e.target.value);
-                                    f.onChange(
-                                      isNaN(dollars)
-                                        ? 0
-                                        : Math.round(dollars * 100),
-                                    );
-                                  }}
-                                />
-                              </div>
-                            )}
-                          />
-                        </div>
+                      {/* Unit Price */}
+                      <div>
+                        <Label className="font-dm-mono mb-1 text-[10px] text-[var(--inv-text-muted)] uppercase sm:hidden">
+                          Unit Price
+                        </Label>
+                        <Controller
+                          control={control}
+                          name={`items.${idx}.unitPriceCents`}
+                          render={({ field: f }) => (
+                            <div className="relative">
+                              <span className="font-dm-mono absolute top-1/2 left-3 -translate-y-1/2 text-sm text-[var(--inv-text-muted)]">
+                                $
+                              </span>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                className="inv-input-focus no-spinners font-dm-mono h-10 rounded-lg border-[var(--inv-input-border)] bg-[var(--inv-input-bg)] pl-7 text-right text-sm text-[var(--inv-text-primary)]"
+                                value={
+                                  f.value === 0
+                                    ? ""
+                                    : (f.value / 100).toString()
+                                }
+                                onChange={(e) => {
+                                  const dollars = parseFloat(e.target.value);
+                                  f.onChange(
+                                    isNaN(dollars)
+                                      ? 0
+                                      : Math.round(dollars * 100),
+                                  );
+                                }}
+                              />
+                            </div>
+                          )}
+                        />
+                      </div>
 
-                        {/* Total */}
-                        <div className="flex h-10 items-center justify-between px-2 sm:justify-end sm:px-0">
-                          <Label className="font-dm-mono mb-1 text-[10px] text-[var(--inv-text-muted)] uppercase sm:hidden">
-                            Total
-                          </Label>
-                          <span
-                            className="font-barlow-condensed animate-inv-scale-bounce text-lg text-[var(--inv-text-primary)]"
-                            key={lineTotal}
-                          >
-                            {formatCents(lineTotal, watchedCurrency)}
-                          </span>
-                        </div>
+                      {/* Total */}
+                      <div className="flex h-10 items-center justify-between px-2 sm:justify-end sm:px-0">
+                        <Label className="font-dm-mono mb-1 text-[10px] text-[var(--inv-text-muted)] uppercase sm:hidden">
+                          Total
+                        </Label>
+                        <span
+                          className="font-barlow-condensed animate-inv-scale-bounce text-lg text-[var(--inv-text-primary)]"
+                          key={lineTotal}
+                        >
+                          {formatCents(lineTotal, watchedCurrency)}
+                        </span>
+                      </div>
 
                       {/* Remove Button */}
                       <div className="mt-2 flex h-10 items-center justify-center sm:mt-0 sm:w-8">
@@ -733,7 +733,7 @@ export function InvoiceBuilder({
                 <button
                   type="button"
                   onClick={() => append({ ...DEFAULT_ITEM })}
-                  className="font-dm-mono mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-dashed border-[var(--inv-accent-primary)]/30 text-sm text-[var(--inv-accent-primary)] transition-all hover:border-[var(--inv-accent-primary)] hover:bg-[var(--inv-accent-subtle)]"
+                  className="font-dm-mono mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-dashed border-[var(--inv-accent-primary)]/30 text-sm text-(--inv-accent-primary) transition-all hover:border-[var(--inv-accent-primary)] hover:bg-[var(--inv-accent-subtle)]"
                 >
                   <PlusIcon className="h-4 w-4 stroke-[1.5px]" />
                   Add Line Item
@@ -747,7 +747,7 @@ export function InvoiceBuilder({
                 className="group flex cursor-pointer items-center justify-between"
                 onClick={() => setNotesExpanded(!notesExpanded)}
               >
-                <h3 className="font-dm-mono text-[11px] tracking-[0.10em] text-[var(--inv-accent-primary)] uppercase transition-opacity group-hover:opacity-80">
+                <h3 className="font-dm-mono text-[11px] tracking-[0.10em] text-(--inv-accent-primary) uppercase transition-opacity group-hover:opacity-80">
                   03 — Notes
                 </h3>
                 <div className="flex items-center gap-2 text-[var(--inv-text-muted)]">

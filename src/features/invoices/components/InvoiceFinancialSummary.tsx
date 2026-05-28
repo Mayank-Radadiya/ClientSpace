@@ -28,7 +28,12 @@ function formatCurrency(cents: number, currency = "USD"): string {
 function Sparkline({ color }: { color: string }) {
   const points = "0,20 10,18 20,22 30,12 40,15 50,5 60,8";
   return (
-    <svg width="60" height="24" viewBox="0 0 60 24" className="overflow-visible">
+    <svg
+      width="60"
+      height="24"
+      viewBox="0 0 60 24"
+      className="overflow-visible"
+    >
       <polyline
         points={points}
         fill="none"
@@ -69,7 +74,13 @@ function useCountUp(endValueCents: number, durationMs = 600) {
   return value;
 }
 
-function CountUpCurrency({ cents, currency }: { cents: number, currency: string }) {
+function CountUpCurrency({
+  cents,
+  currency,
+}: {
+  cents: number;
+  currency: string;
+}) {
   const animatedCents = useCountUp(cents);
   return <>{formatCurrency(animatedCents, currency)}</>;
 }
@@ -132,35 +143,39 @@ export function InvoiceFinancialSummary({
           key={item.label}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
-          className="group relative overflow-hidden rounded-xl bg-[var(--inv-surface)] border border-[var(--inv-border)] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+          transition={{
+            duration: 0.25,
+            delay: index * 0.08,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          className="group relative overflow-hidden rounded-xl border border-(--inv-border) bg-[var(--inv-surface)] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
         >
           {/* Top Line Indicator */}
-          <div 
-            className="absolute top-0 left-0 right-0 h-[2px] opacity-70 transition-opacity group-hover:opacity-100"
+          <div
+            className="absolute top-0 right-0 left-0 h-[2px] opacity-70 transition-opacity group-hover:opacity-100"
             style={{ backgroundColor: item.lineColor }}
           />
-          
+
           {/* Noise Texture */}
           <div className="obsidian-noise absolute inset-0 z-0" />
 
           <div className="relative z-10 p-5">
             <div className="flex items-center justify-between">
-              <p className="font-data text-[11px] uppercase tracking-[0.08em] text-[var(--inv-text-secondary)]">
+              <p className="font-data text-[11px] tracking-[0.08em] text-(--inv-text-secondary) uppercase">
                 {item.label}
               </p>
               <Sparkline color={item.accentHex} />
             </div>
-            
+
             <div
               className={cn(
-                "mt-4 font-metrics text-[44px] leading-none tracking-normal",
-                item.colorClass
+                "font-metrics mt-4 text-[44px] leading-none tracking-normal",
+                item.colorClass,
               )}
             >
               <CountUpCurrency cents={item.cents} currency={currency} />
             </div>
-            
+
             <p className="font-data mt-3 text-[12px] text-[var(--inv-text-muted)]">
               {item.meta}
             </p>
@@ -175,7 +190,10 @@ function InvoiceFinancialSummarySkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="rounded-xl border border-[var(--inv-border)] bg-[var(--inv-surface)] p-5">
+        <div
+          key={i}
+          className="rounded-xl border border-(--inv-border) bg-[var(--inv-surface)] p-5"
+        >
           <Skeleton className="mb-4 h-3 w-24 opacity-20" />
           <Skeleton className="mb-3 h-10 w-32 opacity-20" />
           <Skeleton className="h-3 w-20 opacity-20" />
