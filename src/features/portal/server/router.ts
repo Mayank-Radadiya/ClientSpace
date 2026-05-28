@@ -6,6 +6,7 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { createClient } from "@/lib/supabase/server";
 import { pool } from "@/db/pool";
 import { stripe } from "@/lib/stripe/server";
+import { inngest } from "@/inngest/client";
 import {
   activityLogs,
   assets,
@@ -13,6 +14,7 @@ import {
   fileVersions,
   folders,
   invoices,
+  milestones,
   organizations,
   projects,
 } from "@/db/schema";
@@ -471,5 +473,140 @@ export const portalRouter = createTRPCRouter({
         amount: invoice.amountCents,
         currency: invoice.currency.toLowerCase(),
       };
+    }),
+
+  /**
+   * Bulk-approves all eligible assets for a project (pending_review + changes_requested).
+   * Also marks the first active milestone as completed and fires the
+   * 'project/milestone.completed' Inngest event for downstream invoice triggering.
+   *
+   * Security:
+   *   - Resolves the calling client via resolveClient() — throws FORBIDDEN if not active
+   *   - Verifies projectId belongs to that client within RLS scope
+   *   - idempotent: re-approving already-approved assets is a no-op (filtered out)
+   */
+  bulkApproveForProject: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const client = await resolveClient(ctx.userId, ctx.orgId);
+
+      return withRLS(
+        { userId: ctx.userId, orgId: client.orgId },
+        async (tx) => {
+          // 1. Verify project belongs to this client
+          const project = await tx.query.projects.findFirst({
+            where: and(
+              eq(projects.id, input.projectId),
+              eq(projects.clientId, client.id),
+            ),
+            columns: { id: true, name: true, orgId: true },
+          });
+
+          if (!project) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Access denied.",
+            });
+          }
+
+          // 2. Fetch all non-deleted assets for the project
+          const projectAssets = await tx.query.assets.findMany({
+            where: and(
+              eq(assets.projectId, input.projectId),
+              isNull(assets.deletedAt),
+            ),
+            columns: { id: true, name: true, approvalStatus: true },
+          });
+
+          // Guard: must have at least one approvable asset
+          const approvable = projectAssets.filter(
+            (a) =>
+              a.approvalStatus === "pending_review" ||
+              a.approvalStatus === "changes_requested",
+          );
+
+          if (approvable.length === 0) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "No assets are pending approval.",
+            });
+          }
+
+          // 3. Bulk-update eligible assets → approved
+          await tx.transaction(async (trx) => {
+            await trx
+              .update(assets)
+              .set({ approvalStatus: "approved", updatedAt: new Date() })
+              .where(
+                and(
+                  eq(assets.projectId, input.projectId),
+                  inArray(assets.approvalStatus, [
+                    "pending_review",
+                    "changes_requested",
+                  ]),
+                ),
+              );
+
+            // 4. Write activity log
+            const actor = await trx.query.clients.findFirst({
+              where: eq(clients.id, client.id),
+              columns: { contactName: true, email: true },
+            });
+
+            await trx.insert(activityLogs).values({
+              orgId: client.orgId,
+              projectId: input.projectId,
+              actorId: ctx.userId,
+              eventType: "milestone_completed",
+              metadata: {
+                event: "milestone.completed",
+                title: `All assets approved by client`,
+              },
+            });
+
+            // 5. Find the first incomplete milestone and mark it done
+            const nextMilestone = await trx.query.milestones.findFirst({
+              where: and(
+                eq(milestones.projectId, input.projectId),
+                eq(milestones.completed, false),
+              ),
+              orderBy: [milestones.order],
+              columns: { id: true, title: true },
+            });
+
+            if (nextMilestone) {
+              await trx
+                .update(milestones)
+                .set({
+                  completed: true,
+                  status: "done",
+                  completedAt: new Date(),
+                })
+                .where(eq(milestones.id, nextMilestone.id));
+            }
+          });
+
+          // 6. Fire Inngest event for downstream invoice triggering (outside the DB tx)
+          try {
+            await inngest.send({
+              name: "project/milestone.completed",
+              data: {
+                projectId: input.projectId,
+                orgId: client.orgId,
+                clientId: client.id,
+                approvedAssetCount: approvable.length,
+              },
+            });
+          } catch (err) {
+            // Inngest is best-effort — don't fail the mutation if event send fails
+            console.error(
+              "[bulkApproveForProject] Inngest event send failed:",
+              err,
+            );
+          }
+
+          return { success: true, approvedCount: approvable.length };
+        },
+      );
     }),
 });

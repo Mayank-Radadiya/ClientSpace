@@ -1,15 +1,35 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+/**
+ * PortalAssetList — asset review hub for the client portal
+ *
+ * Behaviours:
+ *   • Individual assets: click "Approve" to flip the card (rotateY 180°)
+ *     – Card-flip is a micro-interaction only; does NOT trigger Inngest
+ *   • "Request Changes" button stays unchanged for assets in any non-approved state
+ *   • Final SlideToApprove appears when ≥1 asset is in pending_review / changes_requested
+ *     and there are no pre-existing fully-approved blocks
+ *   • Successful slide triggers bulkApproveForProject (tRPC) which:
+ *       - Updates all asset statuses → approved
+ *       - Marks next milestone as completed
+ *       - Fires 'project/milestone.completed' Inngest event
+ *   • Full-page success overlay (AnimatePresence) auto-dismisses after 3s
+ *   • Confetti fires inside SlideToApprove on server confirmation
+ */
+
+import { useMemo, useState, useRef, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc/client";
 import { SlideToApprove } from "./SlideToApprove";
 import { updateAssetStatusAction } from "@/features/portal/server/actions";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 type AssetStatus = "pending_review" | "approved" | "changes_requested";
 
-interface PortalAssetListProps {
+export interface PortalAssetListProps {
   assets: Array<{
     id: string;
     name: string;
@@ -19,13 +39,14 @@ interface PortalAssetListProps {
   projectId: string;
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function toStatus(status: string): AssetStatus {
   if (status === "approved") return "approved";
   if (status === "changes_requested") return "changes_requested";
   return "pending_review";
 }
 
-function statusBadge(status: AssetStatus) {
+function StatusBadge({ status }: { status: AssetStatus }) {
   switch (status) {
     case "approved":
       return <Badge variant="success">Approved</Badge>;
@@ -36,12 +57,216 @@ function statusBadge(status: AssetStatus) {
   }
 }
 
-export function PortalAssetList({ assets, projectId }: PortalAssetListProps) {
-  const [isPending, startTransition] = useTransition();
-  const [localStatuses, setLocalStatuses] = useState<
-    Record<string, AssetStatus>
-  >({});
+// ─── Card-flip back face ──────────────────────────────────────────────────────
+function ApprovedBackFace() {
+  return (
+    <div
+      className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-xl"
+      style={{
+        backfaceVisibility: "hidden",
+        transform: "rotateY(180deg)",
+        background: "oklch(0.872 0.107 152.814)",
+        border: "1px solid oklch(0.696 0.17 162.48)",
+      }}
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.15 }}
+      >
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="oklch(0.265 0.09 162.48)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M5 12l5 5L20 7" />
+        </svg>
+      </motion.div>
+      <p className="text-sm font-semibold" style={{ color: "oklch(0.265 0.09 162.48)" }}>
+        Approved
+      </p>
+    </div>
+  );
+}
 
+// ─── Asset card with flip animation ──────────────────────────────────────────
+interface AssetCardProps {
+  asset: {
+    id: string;
+    name: string;
+    status: AssetStatus;
+    currentVersion?: { versionNumber: number | null } | null;
+  };
+  bulkApprovalDone: boolean;
+  onIndividualApprove: (id: string) => void;
+  onRequestChanges: (id: string) => void;
+  isPending: boolean;
+}
+
+function AssetCard({
+  asset,
+  bulkApprovalDone,
+  onIndividualApprove,
+  onRequestChanges,
+  isPending,
+}: AssetCardProps) {
+  const [flipped, setFlipped] = useState(
+    asset.status === "approved" || bulkApprovalDone,
+  );
+
+  const handleApprove = () => {
+    setFlipped(true);
+    onIndividualApprove(asset.id);
+  };
+
+  // When bulk approval completes, flip all cards
+  const isApproved = bulkApprovalDone || flipped || asset.status === "approved";
+
+  return (
+    <div style={{ perspective: "800px", height: 100, position: "relative" }}>
+      <motion.div
+        animate={{ rotateY: isApproved ? 180 : 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25 }}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          transformStyle: "preserve-3d",
+        }}
+      >
+        {/* Front face */}
+        <div
+          className="bg-card absolute inset-0 flex flex-col justify-center gap-3 rounded-xl border p-4"
+          style={{ backfaceVisibility: "hidden" }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">{asset.name}</p>
+              <p className="text-muted-foreground text-xs">
+                Version {asset.currentVersion?.versionNumber ?? 1}
+              </p>
+            </div>
+            <StatusBadge status={asset.status} />
+          </div>
+
+          {asset.status !== "approved" && !bulkApprovalDone ? (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isPending}
+                onClick={handleApprove}
+                className="flex-1 text-xs"
+              >
+                ✓ Approve
+              </Button>
+              {asset.status === "pending_review" ||
+              asset.status === "changes_requested" ? (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={isPending}
+                  onClick={() => onRequestChanges(asset.id)}
+                  className="flex-1 text-xs"
+                >
+                  Request Changes
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        {/* Back face */}
+        <ApprovedBackFace />
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Full-page success overlay ────────────────────────────────────────────────
+function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onDismiss}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 px-6"
+      style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}
+    >
+      <motion.div
+        initial={{ scale: 0.8, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 26 }}
+        className="bg-card flex max-w-sm flex-col items-center gap-4 rounded-2xl border p-8 text-center shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Animated checkmark */}
+        <div
+          className="flex h-16 w-16 items-center justify-center rounded-full"
+          style={{ background: "oklch(0.872 0.107 152.814)" }}
+        >
+          <motion.svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="oklch(0.265 0.09 162.48)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+          >
+            <motion.path
+              d="M5 12l5 5L20 7"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+            />
+          </motion.svg>
+        </div>
+
+        <div>
+          <h2 className="text-foreground text-lg font-semibold">
+            All assets approved!
+          </h2>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Your agency has been notified and your project is moving forward.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+        >
+          Click anywhere to dismiss
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+export function PortalAssetList({ assets, projectId }: PortalAssetListProps) {
+  // Local status overrides (optimistic for individual approvals)
+  const [localStatuses, setLocalStatuses] = useState<Record<string, AssetStatus>>({});
+  const [isPending, setIsPending] = useState(false);
+  const [bulkApprovalDone, setBulkApprovalDone] = useState(false);
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+
+  const bulkMutation = trpc.portal.bulkApproveForProject.useMutation();
+
+  // Merge DB statuses with local optimistic state
   const mergedAssets = useMemo(
     () =>
       assets.map((asset) => ({
@@ -51,35 +276,88 @@ export function PortalAssetList({ assets, projectId }: PortalAssetListProps) {
     [assets, localStatuses],
   );
 
-  const updateStatus = (assetId: string, nextStatus: AssetStatus) => {
-    const previous =
-      localStatuses[assetId] ??
-      toStatus(
-        assets.find((asset) => asset.id === assetId)?.approvalStatus ??
-          "pending_review",
-      );
+  // Determine if the slide-to-approve should be visible
+  const hasPendingAssets = mergedAssets.some(
+    (a) =>
+      a.status === "pending_review" || a.status === "changes_requested",
+  );
 
-    setLocalStatuses((prev) => ({ ...prev, [assetId]: nextStatus }));
+  const shouldShowSlider = hasPendingAssets && !bulkApprovalDone;
 
-    startTransition(async () => {
-      const result = await updateAssetStatusAction({
+  // ── Individual approve (card-flip only, no Inngest) ─────────────────────
+  const handleIndividualApprove = useCallback(
+    (assetId: string) => {
+      const previous =
+        localStatuses[assetId] ??
+        toStatus(
+          assets.find((a) => a.id === assetId)?.approvalStatus ?? "pending_review",
+        );
+
+      setLocalStatuses((prev) => ({ ...prev, [assetId]: "approved" }));
+      setIsPending(true);
+
+      updateAssetStatusAction({ assetId, projectId, status: "approved" })
+        .then((result) => {
+          if ("error" in result) {
+            setLocalStatuses((prev) => ({ ...prev, [assetId]: previous }));
+            toast.error(result.error || "Failed to approve file.");
+          }
+          // Individual approval does NOT trigger Inngest — only final slide does
+        })
+        .catch(() => {
+          setLocalStatuses((prev) => ({ ...prev, [assetId]: previous }));
+          toast.error("Network error. Please try again.");
+        })
+        .finally(() => setIsPending(false));
+    },
+    [assets, localStatuses, projectId],
+  );
+
+  // ── Request changes ─────────────────────────────────────────────────────
+  const handleRequestChanges = useCallback(
+    (assetId: string) => {
+      const previous =
+        localStatuses[assetId] ??
+        toStatus(
+          assets.find((a) => a.id === assetId)?.approvalStatus ?? "pending_review",
+        );
+
+      setLocalStatuses((prev) => ({ ...prev, [assetId]: "changes_requested" }));
+      setIsPending(true);
+
+      updateAssetStatusAction({
         assetId,
         projectId,
-        status: nextStatus === "approved" ? "approved" : "changes_requested",
-      });
+        status: "changes_requested",
+      })
+        .then((result) => {
+          if ("error" in result) {
+            setLocalStatuses((prev) => ({ ...prev, [assetId]: previous }));
+            toast.error(result.error || "Failed to request changes.");
+            return;
+          }
+          toast.success("Changes requested.");
+        })
+        .catch(() => {
+          setLocalStatuses((prev) => ({ ...prev, [assetId]: previous }));
+          toast.error("Network error. Please try again.");
+        })
+        .finally(() => setIsPending(false));
+    },
+    [assets, localStatuses, projectId],
+  );
 
-      if ("error" in result) {
-        setLocalStatuses((prev) => ({ ...prev, [assetId]: previous }));
-        toast.error(result.error || "Failed to update status.");
-        return;
-      }
+  // ── Bulk approval (called by SlideToApprove.onApproved) ────────────────
+  const handleBulkApprove = useCallback(async () => {
+    await bulkMutation.mutateAsync({ projectId });
+    // On success → SlideToApprove enters success state, then we show overlay
+    setBulkApprovalDone(true);
+    setShowSuccessOverlay(true);
+    // Auto-dismiss overlay after 3s
+    setTimeout(() => setShowSuccessOverlay(false), 3000);
+  }, [bulkMutation, projectId]);
 
-      toast.success(
-        nextStatus === "approved" ? "File approved." : "Changes requested.",
-      );
-    });
-  };
-
+  // ── Empty state ─────────────────────────────────────────────────────────
   if (mergedAssets.length === 0) {
     return (
       <div className="text-muted-foreground bg-card rounded-xl border p-6 text-sm">
@@ -89,37 +367,101 @@ export function PortalAssetList({ assets, projectId }: PortalAssetListProps) {
   }
 
   return (
-    <div className="space-y-3">
-      {mergedAssets.map((asset) => (
-        <div key={asset.id} className="bg-card space-y-3 rounded-xl border p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium">{asset.name}</p>
-              <p className="text-muted-foreground text-xs">
-                Version {asset.currentVersion?.versionNumber ?? 1}
-              </p>
-            </div>
-            {statusBadge(asset.status)}
-          </div>
+    <>
+      {/* Success overlay */}
+      <AnimatePresence>
+        {showSuccessOverlay && (
+          <SuccessOverlay onDismiss={() => setShowSuccessOverlay(false)} />
+        )}
+      </AnimatePresence>
 
-          {asset.status === "pending_review" ? (
-            <div className="grid gap-2 md:grid-cols-[1fr_auto]">
+      <div className="space-y-4">
+        {/* Asset cards */}
+        <div className="space-y-3">
+          {mergedAssets.map((asset) => (
+            <AssetCard
+              key={asset.id}
+              asset={asset}
+              bulkApprovalDone={bulkApprovalDone}
+              onIndividualApprove={handleIndividualApprove}
+              onRequestChanges={handleRequestChanges}
+              isPending={isPending}
+            />
+          ))}
+        </div>
+
+        {/* Final bulk approval — only visible when pending assets exist */}
+        <AnimatePresence>
+          {shouldShowSlider && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="bg-card space-y-2 rounded-2xl border p-4"
+            >
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold">Final Approval</p>
+                <p className="text-muted-foreground text-xs">
+                  Approving all assets notifies your agency and advances your
+                  project milestone.
+                </p>
+              </div>
               <SlideToApprove
-                onApprove={() => updateStatus(asset.id, "approved")}
+                label="Slide to approve all"
+                sublabel="This will mark all pending assets as approved"
+                onApproved={handleBulkApprove}
                 disabled={isPending}
               />
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={isPending}
-                onClick={() => updateStatus(asset.id, "changes_requested")}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Permanent approved state banner (shown after bulk approval) */}
+        <AnimatePresence>
+          {bulkApprovalDone && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 25 }}
+              className="flex items-center gap-3 rounded-2xl border p-4"
+              style={{
+                background: "oklch(0.96 0.04 152.814)",
+                borderColor: "oklch(0.696 0.17 162.48)",
+              }}
+            >
+              <div
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full"
+                style={{ background: "oklch(0.527 0.154 162.48)" }}
               >
-                Request Changes
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      ))}
-    </div>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12l5 5L20 7" />
+                </svg>
+              </div>
+              <div>
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "oklch(0.265 0.09 162.48)" }}
+                >
+                  All assets approved
+                </p>
+                <p className="text-xs" style={{ color: "oklch(0.432 0.132 162.48)" }}>
+                  Your agency has been notified. Approval is final.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
   );
 }
