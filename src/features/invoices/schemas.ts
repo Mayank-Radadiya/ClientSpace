@@ -170,10 +170,94 @@ export const createInvoiceSchema = z
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 
 export const updateInvoiceStatusSchema = z.object({
-  invoiceId: z.string().uuid("Invalid invoice ID"),
-  status: z.enum(["sent", "paid"] as const),
+  invoiceId: z
+    .string()
+    .uuid("Invalid invoice ID")
+    .describe("UUID of the invoice to transition"),
+  status: z
+    .enum(["sent", "paid"] as const)
+    .describe("Target status — only forward transitions allowed"),
 });
 
 export type UpdateInvoiceStatusInput = z.infer<
   typeof updateInvoiceStatusSchema
 >;
+
+// ─── Full update input (status + optional PDF URL) ────────────────────────────
+
+/**
+ * Used by invoicesRouter.update — extends status transition with an optional
+ * pdfUrl so the PDF storage path can be persisted atomically on send.
+ */
+export const updateInvoiceInputSchema = z.object({
+  id: z
+    .string()
+    .uuid("Invalid invoice ID")
+    .describe("UUID of the invoice to update"),
+  status: z
+    .enum(["draft", "sent", "paid", "overdue"] as const)
+    .describe("New invoice status"),
+  pdfUrl: z
+    .string()
+    .optional()
+    .nullable()
+    .describe("Storage path for the generated PDF — set when marking as sent"),
+});
+
+export type UpdateInvoiceInput = z.infer<typeof updateInvoiceInputSchema>;
+
+// ─── List / filter input ──────────────────────────────────────────────────────
+
+/** Filter inputs for the invoice list endpoint. */
+export const listInvoicesSchema = z.object({
+  status: z
+    .enum(INVOICE_STATUSES)
+    .optional()
+    .describe("Filter by invoice status"),
+  clientId: z
+    .string()
+    .uuid()
+    .optional()
+    .describe("Filter to a specific client UUID"),
+  projectId: z
+    .string()
+    .uuid()
+    .optional()
+    .describe("Filter to a specific project UUID"),
+});
+
+export type ListInvoicesInput = z.infer<typeof listInvoicesSchema>;
+
+// ─── Bulk delete ──────────────────────────────────────────────────────────────
+
+export const deleteInvoicesSchema = z.object({
+  invoiceIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one invoice ID is required")
+    .max(100, "Cannot delete more than 100 invoices at once")
+    .describe("Array of invoice UUIDs to delete"),
+});
+
+export type DeleteInvoicesInput = z.infer<typeof deleteInvoicesSchema>;
+
+// ─── Single invoice by ID ─────────────────────────────────────────────────────
+
+export const invoiceIdSchema = z.object({
+  id: z
+    .string()
+    .uuid("Invalid invoice ID")
+    .describe("UUID of the target invoice"),
+});
+
+export type InvoiceIdInput = z.infer<typeof invoiceIdSchema>;
+
+// ─── Project financials lookup ────────────────────────────────────────────────
+
+export const projectFinancialsSchema = z.object({
+  projectId: z
+    .string()
+    .uuid()
+    .describe("UUID of the project to fetch financials for"),
+});
+
+export type ProjectFinancialsInput = z.infer<typeof projectFinancialsSchema>;

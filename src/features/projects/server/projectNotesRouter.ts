@@ -2,17 +2,17 @@
 // tRPC router for per-project internal team notes.
 // Notes are internal only — client role cannot read or write.
 
-import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { projectNotes } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
+import { projectIdSchema, upsertProjectNotesSchema } from "../schemas";
 
 export const projectNotesRouter = createTRPCRouter({
   /** Get team notes for a project. Returns empty content if none exist. */
   get: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(projectIdSchema)
     .query(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({
@@ -37,12 +37,7 @@ export const projectNotesRouter = createTRPCRouter({
 
   /** Upsert team notes content (auto-save on debounced keystroke). */
   upsert: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string().uuid(),
-        content: z.string().max(50_000),
-      }),
-    )
+    .input(upsertProjectNotesSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({

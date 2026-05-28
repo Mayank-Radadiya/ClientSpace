@@ -1,22 +1,22 @@
-import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, rateLimitedProcedure } from "@/lib/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { getInvoiceList, getInvoiceDetail, getProjectFinancialsCached } from "./queries";
 import { createInvoiceInDb, updateInvoiceStatusInDb, deleteInvoicesInDb } from "./mutations";
-import { createInvoiceSchema } from "../schemas";
+import {
+  createInvoiceSchema,
+  listInvoicesSchema,
+  invoiceIdSchema,
+  updateInvoiceInputSchema,
+  deleteInvoicesSchema,
+  projectFinancialsSchema,
+} from "../schemas";
 import { createDrizzleClient } from "@/db/createDrizzleClient";
 import { clients } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 
 export const invoicesRouter = createTRPCRouter({
   list: protectedProcedure
-    .input(
-      z.object({
-        status: z.enum(["draft", "sent", "paid", "overdue"]).optional(),
-        clientId: z.string().uuid().optional(),
-        projectId: z.string().uuid().optional(),
-      })
-    )
+    .input(listInvoicesSchema)
     .query(async ({ ctx, input }) => {
       try {
         let clientId = input.clientId;
@@ -48,7 +48,7 @@ export const invoicesRouter = createTRPCRouter({
     }),
 
   byId: protectedProcedure
-    .input(z.object({ id: z.string().uuid("Invalid invoice ID") }))
+    .input(invoiceIdSchema)
     .query(async ({ ctx, input }) => {
       try {
         const invoice = await getInvoiceDetail(ctx.orgId, ctx.userId, input.id);
@@ -109,13 +109,7 @@ export const invoicesRouter = createTRPCRouter({
     }),
 
   update: rateLimitedProcedure
-    .input(
-      z.object({
-        id: z.string().uuid("Invalid invoice ID"),
-        status: z.enum(["draft", "sent", "paid", "overdue"]),
-        pdfUrl: z.string().optional().nullable(),
-      })
-    )
+    .input(updateInvoiceInputSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role !== "owner" && ctx.role !== "admin") {
         throw new TRPCError({
@@ -134,7 +128,7 @@ export const invoicesRouter = createTRPCRouter({
     }),
 
   delete: rateLimitedProcedure
-    .input(z.object({ invoiceIds: z.array(z.string().uuid()) }))
+    .input(deleteInvoicesSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role !== "owner" && ctx.role !== "admin") {
         throw new TRPCError({
@@ -153,7 +147,7 @@ export const invoicesRouter = createTRPCRouter({
     }),
 
   getProjectFinancials: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(projectFinancialsSchema)
     .query(async ({ ctx, input }) => {
       try {
         return await getProjectFinancialsCached(ctx.orgId, ctx.userId, input.projectId);

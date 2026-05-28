@@ -8,7 +8,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
-import { trpc } from "@/lib/trpc/client";
+import { updateAssetStatusAction } from "@/features/portal/server/actions";
+import { createCommentAction } from "@/features/comments/server/actions";
+import { revalidateAssetApproval } from "@/features/projects/server/actions";
 import type { Asset } from "../../types";
 
 /* ── Mime icon helper ─────────────────────────────────────── */
@@ -30,9 +32,11 @@ function getMimeIcon(type: string): string {
 function InlineApproveBtn({
   onApprove,
   approved,
+  disabled,
 }: {
   onApprove: () => void;
   approved: boolean;
+  disabled?: boolean;
 }) {
   if (approved) {
     return (
@@ -54,7 +58,8 @@ function InlineApproveBtn({
   return (
     <button
       onClick={onApprove}
-      className="w-full rounded-full px-4 py-2 transition-all active:scale-[0.98]"
+      disabled={disabled}
+      className="w-full rounded-full px-4 py-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
       style={{
         background: "var(--pd-accent)",
         color: "#fff",
@@ -63,9 +68,11 @@ function InlineApproveBtn({
         fontWeight: 500,
       }}
       onMouseEnter={(e) => {
+        if (disabled) return;
         e.currentTarget.style.background = "var(--pd-accent-hover)";
       }}
       onMouseLeave={(e) => {
+        if (disabled) return;
         e.currentTarget.style.background = "var(--pd-accent)";
       }}
     >
@@ -96,10 +103,62 @@ function AssetApprovalCard({
   const [showComment, setShowComment] = useState(false);
   const [comment, setComment] = useState("");
   const [approved, setApproved] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
   const handleApprove = async () => {
-    setApproved(true);
-    // Future: call approval mutation via tRPC
+    setIsPending(true);
+    try {
+      const result = await updateAssetStatusAction({
+        assetId: asset.id,
+        projectId,
+        status: "approved",
+      });
+
+      if (result && "error" in result) {
+        console.error(result.error);
+      } else {
+        setApproved(true);
+        await revalidateAssetApproval(asset.id, projectId);
+      }
+    } catch (err) {
+      console.error("Failed to approve asset", err);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleRequestChanges = async () => {
+    if (!comment.trim()) return;
+    setIsPending(true);
+    try {
+      const result = await updateAssetStatusAction({
+        assetId: asset.id,
+        projectId,
+        status: "changes_requested",
+      });
+
+      if (result && "error" in result) {
+        console.error(result.error);
+        return;
+      }
+
+      const commentResult = await createCommentAction({
+        body: comment,
+        assetId: asset.id,
+      });
+
+      if (commentResult && "error" in commentResult) {
+        console.error(commentResult.error);
+      }
+
+      await revalidateAssetApproval(asset.id, projectId);
+      setShowComment(false);
+      setComment("");
+    } catch (err) {
+      console.error("Failed to request changes", err);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const latestVersion = asset.versions?.[0];
@@ -159,7 +218,7 @@ function AssetApprovalCard({
       </div>
 
       {/* Approve button */}
-      <InlineApproveBtn onApprove={handleApprove} approved={approved} />
+      <InlineApproveBtn onApprove={handleApprove} approved={approved} disabled={isPending} />
 
       {/* Request changes */}
       {!approved && (
@@ -167,7 +226,8 @@ function AssetApprovalCard({
           {!showComment ? (
             <button
               onClick={() => setShowComment(true)}
-              className="transition-colors"
+              disabled={isPending}
+              className="transition-colors disabled:opacity-50"
               style={{
                 fontFamily: "var(--font-data)",
                 fontSize: 11,
@@ -176,9 +236,11 @@ function AssetApprovalCard({
                 textUnderlineOffset: 2,
               }}
               onMouseEnter={(e) => {
+                if (isPending) return;
                 e.currentTarget.style.color = "var(--pd-text-primary)";
               }}
               onMouseLeave={(e) => {
+                if (isPending) return;
                 e.currentTarget.style.color = "var(--pd-text-muted)";
               }}
             >
@@ -197,12 +259,14 @@ function AssetApprovalCard({
                 }}
                 placeholder="Describe what needs to change…"
                 value={comment}
+                disabled={isPending}
                 onChange={(e) => setComment(e.target.value)}
                 aria-label="Change request comment"
               />
               <div className="flex gap-2">
                 <button
-                  className="rounded-md px-3 py-1 transition-colors"
+                  className="rounded-md px-3 py-1 transition-colors disabled:opacity-50"
+                  disabled={isPending || !comment.trim()}
                   style={{
                     background: "var(--pd-status-overdue-bg)",
                     color: "var(--pd-status-overdue)",
@@ -210,15 +274,13 @@ function AssetApprovalCard({
                     fontSize: 12,
                     fontWeight: 500,
                   }}
-                  onClick={() => {
-                    // TODO: call requestChanges mutation
-                    setShowComment(false);
-                    setComment("");
-                  }}
+                  onClick={handleRequestChanges}
                 >
                   Submit
                 </button>
                 <button
+                  disabled={isPending}
+                  className="disabled:opacity-50"
                   style={{
                     fontFamily: "var(--font-data)",
                     fontSize: 12,

@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
@@ -15,12 +14,11 @@ import type {
   ClientDisplayStatus,
   ClientListItem,
 } from "../client.types";
-
-const updateClientSchema = z.object({
-  clientId: z.string().uuid(),
-  companyName: z.string().trim().min(1).max(120),
-  contactName: z.string().trim().min(1).max(120),
-});
+import {
+  clientIdSchema,
+  updateClientSchema,
+  updateLifecycleSchema,
+} from "../schemas";
 
 export type ClientLifecycleStatus =
   | "prospect"
@@ -28,14 +26,6 @@ export type ClientLifecycleStatus =
   | "on_hold"
   | "churned"
   | "archived";
-
-const lifecycleStatusSchema = z.enum([
-  "prospect",
-  "active",
-  "on_hold",
-  "churned",
-  "archived",
-]);
 
 function deriveDisplayStatus(input: {
   dbStatus: "active" | "revoked";
@@ -269,7 +259,7 @@ export const clientRouter = createTRPCRouter({
   }),
 
   getClientProjects: protectedProcedure
-    .input(z.object({ clientId: z.string().uuid() }))
+    .input(clientIdSchema)
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
         return tx
@@ -292,7 +282,7 @@ export const clientRouter = createTRPCRouter({
     }),
 
   getClientInvoices: protectedProcedure
-    .input(z.object({ clientId: z.string().uuid() }))
+    .input(clientIdSchema)
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
         return tx
@@ -316,7 +306,7 @@ export const clientRouter = createTRPCRouter({
     }),
 
   getClientActivity: protectedProcedure
-    .input(z.object({ clientId: z.string().uuid() }))
+    .input(clientIdSchema)
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
         return tx
@@ -383,7 +373,7 @@ export const clientRouter = createTRPCRouter({
     }),
 
   archiveClient: protectedProcedure
-    .input(z.object({ clientId: z.string().uuid() }))
+    .input(clientIdSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role !== "owner" && ctx.role !== "admin") {
         throw new TRPCError({
@@ -419,7 +409,7 @@ export const clientRouter = createTRPCRouter({
     }),
 
   unarchiveClient: protectedProcedure
-    .input(z.object({ clientId: z.string().uuid() }))
+    .input(clientIdSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role !== "owner" && ctx.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Only owner/admin can unarchive client records." });
@@ -440,7 +430,7 @@ export const clientRouter = createTRPCRouter({
     }),
 
   deleteClient: protectedProcedure
-    .input(z.object({ clientId: z.string().uuid() }))
+    .input(clientIdSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role !== "owner" && ctx.role !== "admin") {
         throw new TRPCError({
@@ -471,7 +461,7 @@ export const clientRouter = createTRPCRouter({
     }),
 
   getClientById: protectedProcedure
-    .input(z.object({ clientId: z.string().uuid() }))
+    .input(clientIdSchema)
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) => {
         const row = await tx.query.clients.findFirst({
@@ -561,12 +551,7 @@ export const clientRouter = createTRPCRouter({
 
   /** Update the lifecycle status (prospect → active → on_hold → churned → archived). */
   updateLifecycle: protectedProcedure
-    .input(
-      z.object({
-        clientId: z.string().uuid(),
-        lifecycleStatus: lifecycleStatusSchema,
-      }),
-    )
+    .input(updateLifecycleSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role !== "owner" && ctx.role !== "admin") {
         throw new TRPCError({

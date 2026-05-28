@@ -1,38 +1,21 @@
-import { z } from "zod";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
 import { clientNotes, clients, users } from "@/db/schema";
-
-// ─── Input schemas ────────────────────────────────────────────────────────────
-
-const listSchema = z.object({
-  clientId: z.string().uuid(),
-  cursor: z.string().uuid().optional(),
-  limit: z.number().int().min(1).max(50).default(20),
-});
-
-const createSchema = z.object({
-  clientId: z.string().uuid(),
-  content: z.string().trim().min(1).max(10_000),
-});
-
-const updateSchema = z.object({
-  noteId: z.string().uuid(),
-  content: z.string().trim().min(1).max(10_000),
-});
-
-const noteIdSchema = z.object({
-  noteId: z.string().uuid(),
-});
+import {
+  listClientNotesSchema,
+  createClientNoteSchema,
+  updateClientNoteSchema,
+  noteIdSchema,
+} from "../schemas";
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 export const clientNotesRouter = createTRPCRouter({
   /** Cursor-paginated list of notes for a client, newest first. */
   list: protectedProcedure
-    .input(listSchema)
+    .input(listClientNotesSchema)
     .query(async ({ ctx, input }) => {
       // client role must never see team notes
       if (ctx.role === "client" || ctx.role === "guest") {
@@ -93,7 +76,7 @@ export const clientNotesRouter = createTRPCRouter({
 
   /** Create a new client note. */
   create: protectedProcedure
-    .input(createSchema)
+    .input(createClientNoteSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client" || ctx.role === "guest") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Access denied." });
@@ -129,7 +112,7 @@ export const clientNotesRouter = createTRPCRouter({
 
   /** Update the content of an existing note. Only the author or an admin/owner can edit. */
   update: protectedProcedure
-    .input(updateSchema)
+    .input(updateClientNoteSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client" || ctx.role === "guest") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Access denied." });

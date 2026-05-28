@@ -1,30 +1,27 @@
 // src/features/projects/server/milestonesRouter.ts
 // tRPC router for all milestone CRUD operations used by the v4 project detail page.
 
-import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { milestones } from "@/db/schema";
 import { and, asc, eq } from "drizzle-orm";
-
-// ── Zod schemas ───────────────────────────────────────────────────────────────
-
-const subTaskSchema = z.object({
-  id: z.string(),
-  label: z.string().min(1).max(500),
-  completed: z.boolean(),
-});
-
-const milestoneStatusSchema = z.enum(["todo", "in_progress", "done"]);
-const milestonePrioritySchema = z.enum(["low", "medium", "high", "urgent"]);
+import {
+  listMilestonesSchema,
+  createMilestoneSchema,
+  updateMilestoneStatusSchema,
+  updateMilestoneSchema,
+  updateSubTasksSchema,
+  reorderMilestonesSchema,
+  milestoneIdSchema,
+} from "../schemas";
 
 // ── Router ────────────────────────────────────────────────────────────────────
 
 export const milestonesRouter = createTRPCRouter({
   /** List all milestones for a project, ordered by `order` asc. */
   list: protectedProcedure
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(listMilestonesSchema)
     .query(async ({ ctx, input }) => {
       return withRLS(ctx, async (tx) =>
         tx
@@ -42,17 +39,7 @@ export const milestonesRouter = createTRPCRouter({
 
   /** Create a new milestone. */
   create: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string().uuid(),
-        title: z.string().min(1).max(300),
-        status: milestoneStatusSchema.default("todo"),
-        priority: milestonePrioritySchema.default("medium"),
-        dueDate: z.string().nullable().optional(),
-        startDate: z.string().nullable().optional(),
-        order: z.number().int().nonnegative(),
-      }),
-    )
+    .input(createMilestoneSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Clients cannot create milestones." });
@@ -79,12 +66,7 @@ export const milestonesRouter = createTRPCRouter({
 
   /** Update a milestone's status (and derived completed/completedAt). */
   updateStatus: protectedProcedure
-    .input(
-      z.object({
-        id: z.string().uuid(),
-        status: milestoneStatusSchema,
-      }),
-    )
+    .input(updateMilestoneStatusSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -107,17 +89,7 @@ export const milestonesRouter = createTRPCRouter({
 
   /** Update milestone fields (title, description, priority, dates, assignee). */
   update: protectedProcedure
-    .input(
-      z.object({
-        id: z.string().uuid(),
-        title: z.string().min(1).max(300).optional(),
-        description: z.string().max(10000).nullable().optional(),
-        priority: milestonePrioritySchema.optional(),
-        dueDate: z.string().nullable().optional(),
-        startDate: z.string().nullable().optional(),
-        assigneeId: z.string().uuid().nullable().optional(),
-      }),
-    )
+    .input(updateMilestoneSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -136,12 +108,7 @@ export const milestonesRouter = createTRPCRouter({
 
   /** Replace the sub-tasks array on a milestone. */
   updateSubTasks: protectedProcedure
-    .input(
-      z.object({
-        id: z.string().uuid(),
-        subTasks: z.array(subTaskSchema).max(50),
-      }),
-    )
+    .input(updateSubTasksSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -159,18 +126,7 @@ export const milestonesRouter = createTRPCRouter({
 
   /** Bulk reorder milestones (updates order + status for each). */
   reorder: protectedProcedure
-    .input(
-      z.object({
-        projectId: z.string().uuid(),
-        items: z.array(
-          z.object({
-            id: z.string().uuid(),
-            order: z.number().int().nonnegative(),
-            status: milestoneStatusSchema,
-          }),
-        ),
-      }),
-    )
+    .input(reorderMilestonesSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -195,7 +151,7 @@ export const milestonesRouter = createTRPCRouter({
 
   /** Delete a milestone. */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(milestoneIdSchema)
     .mutation(async ({ ctx, input }) => {
       if (ctx.role === "client") {
         throw new TRPCError({ code: "FORBIDDEN" });

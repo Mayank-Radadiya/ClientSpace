@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
@@ -12,12 +11,7 @@ import {
   renderAssetStatusEmailHtml,
   resolveNotificationRecipients,
 } from "@/lib/notifications/server";
-
-const updateAssetStatusSchema = z.object({
-  assetId: z.string().uuid(),
-  projectId: z.string().uuid(),
-  status: z.enum(["approved", "changes_requested"]),
-});
+import { updateAssetStatusSchema } from "../schemas";
 
 export async function updateAssetStatusAction(
   rawInput: unknown,
