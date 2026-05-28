@@ -7,6 +7,7 @@ import { Loader2, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import type { ActivityEventMetadata } from "@/db/schema";
 
 const CATEGORY_STYLES = {
   project:   { dot: "bg-primary", ring: "ring-primary/20" },
@@ -25,6 +26,33 @@ function categoryFromEventType(eventType: string): keyof typeof CATEGORY_STYLES 
   return "project";
 }
 
+function getActivityDescription(metadata: ActivityEventMetadata): string {
+  switch (metadata.event) {
+    case "project.created":
+      return `created project "${metadata.projectName}"`;
+    case "project.status_changed":
+      return `changed status from ${metadata.from} to ${metadata.to}`;
+    case "asset.uploaded":
+      return `uploaded file "${metadata.assetName}" (v${metadata.versionNumber})`;
+    case "asset.approved":
+      return `approved "${metadata.assetName}"`;
+    case "asset.changes_requested":
+      return `requested changes on "${metadata.assetName}"`;
+    case "invoice.sent":
+      return `sent invoice #${metadata.invoiceNumber} ($${(metadata.amountCents / 100).toFixed(2)})`;
+    case "invoice.paid":
+      return `marked invoice #${metadata.invoiceNumber} as paid`;
+    case "comment.created":
+      return `added a comment: "${metadata.bodySnippet}"`;
+    case "client.invited":
+      return `invited client ${metadata.email}`;
+    case "milestone.completed":
+      return `completed milestone "${metadata.title}"`;
+    default:
+      return "performed an action";
+  }
+}
+
 interface ActivityTabProps {
   projectId: string;
 }
@@ -35,7 +63,7 @@ export function ActivityTab({ projectId }: ActivityTabProps) {
     { staleTime: Infinity, gcTime: 10 * 60 * 1000 },
   );
 
-  const entries = data ?? [];
+  const entries = data?.items ?? [];
 
   if (isLoading) {
     return (
@@ -91,11 +119,11 @@ export function ActivityTab({ projectId }: ActivityTabProps) {
               {/* Content */}
               <div className="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
                 <p className="text-sm text-foreground">
-                  <span className="font-medium">{entry.actorName ?? "System"}</span>{" "}
-                  {entry.description}
+                  <span className="font-medium">{entry.actor?.name ?? "System"}</span>{" "}
+                  {getActivityDescription(entry.metadata as ActivityEventMetadata)}
                 </p>
                 <time
-                  dateTime={entry.createdAt}
+                  dateTime={entry.createdAt.toISOString()}
                   className="text-xs text-muted-foreground"
                 >
                   {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}

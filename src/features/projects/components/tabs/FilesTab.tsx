@@ -53,7 +53,7 @@ export function FilesTab({ projectId, role }: FilesTabProps) {
     { staleTime: Infinity, gcTime: 10 * 60 * 1000 },
   );
 
-  const assets = data ?? [];
+  const assets = data?.items ?? [];
 
   const stats = useMemo(() => ({
     total: assets.length,

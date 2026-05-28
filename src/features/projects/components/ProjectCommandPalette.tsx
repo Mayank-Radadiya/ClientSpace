@@ -29,7 +29,9 @@ export function ProjectCommandPalette({
       setOpen(false);
       setQuery("");
       setCreating(false);
-      onMilestoneCreated?.(data.id);
+      if (data?.id) {
+        onMilestoneCreated?.(data.id);
+      }
     },
     onError: () => setCreating(false),
   });

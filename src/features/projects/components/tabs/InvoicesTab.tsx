@@ -21,12 +21,12 @@ interface InvoicesTabProps {
 }
 
 export function InvoicesTab({ projectId, currency = "USD" }: InvoicesTabProps) {
-  const { data, isLoading } = trpc.invoices.byProject.useQuery(
+  const { data, isLoading } = trpc.invoices.list.useQuery(
     { projectId },
     { staleTime: Infinity, gcTime: 10 * 60 * 1000 },
   );
 
-  const invoices = data ?? [];
+  const invoices = data?.items ?? [];
 
   const totals = useMemo(() => {
     const total = invoices.reduce((s, i) => s + i.amountCents, 0);

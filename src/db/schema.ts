@@ -156,6 +156,10 @@ export const organizations = pgTable("organizations", {
   customDomain: text("custom_domain"), // Phase 2
   whatsappEnabled: boolean("whatsapp_enabled").default(false), // Phase 2
   aiSummariesOptIn: boolean("ai_summaries_opt_in").default(false), // Phase 2
+  // Stripe Connect
+  stripeAccountId: text("stripe_account_id"), // Connected Express account ID
+  stripeOnboardingComplete: boolean("stripe_onboarding_complete").default(false).notNull(),
+  stripeDefaultCurrency: text("stripe_default_currency").default("usd").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -445,6 +449,10 @@ export const invoices = pgTable(
     notes: text("notes"),
     paidAt: timestamp("paid_at", { withTimezone: true }), // Set when status → "paid"; used for revenue chart grouping
     pdfUrl: text("pdf_url"), // Cached signed URL after "Send"
+    // Stripe payment tracking
+    stripePaymentIntentId: text("stripe_payment_intent_id"), // Nullable: set when client initiates payment
+    stripeCheckoutSessionId: text("stripe_checkout_session_id"), // Nullable: reserved for future Checkout use
+    paymentMethod: text("payment_method"), // 'card' | 'link' | 'us_bank_account' | 'sepa_debit'
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

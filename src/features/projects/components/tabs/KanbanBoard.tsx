@@ -7,6 +7,7 @@
 import { useState, useMemo } from "react";
 import {
   DndContext,
+  DragStartEvent,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
@@ -204,8 +205,9 @@ export function KanbanBoard({ projectId, members }: KanbanBoardProps) {
     [displayedMilestones],
   );
 
-  function handleDragStart(event: { active: { id: string } }) {
-    const m = milestones.find((m) => m.id === event.active.id) ?? null;
+  function handleDragStart(event: DragStartEvent) {
+    const activeId = event.active.id as string;
+    const m = milestones.find((m) => m.id === activeId) ?? null;
     setActiveMilestone(m);
   }
 

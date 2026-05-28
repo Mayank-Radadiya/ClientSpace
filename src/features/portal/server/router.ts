@@ -5,6 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
 import { createClient } from "@/lib/supabase/server";
 import { pool } from "@/db/pool";
+import { stripe } from "@/lib/stripe/server";
 import {
   activityLogs,
   assets,
@@ -255,7 +256,7 @@ export const portalRouter = createTRPCRouter({
       );
     }),
 
-  projectAssets: protectedProcedure
+    projectAssets: protectedProcedure
     .input(z.object({ projectId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const client = await resolveClient(ctx.userId, ctx.orgId);
@@ -321,5 +322,154 @@ export const portalRouter = createTRPCRouter({
             .orderBy(desc(assets.updatedAt));
         },
       );
+    }),
+
+  /**
+   * Creates a Stripe PaymentIntent on behalf of the connected account.
+   * Security: validates invoice ownership (clientId match) before creating.
+   * Amount is always in integer cents — never floats.
+   * Idempotency key scoped to the invoice ID prevents duplicate charges.
+   */
+  createPaymentIntent: protectedProcedure
+    .input(z.object({ invoiceId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // 1. Resolve the calling client — throws FORBIDDEN if not found/active
+      const client = await resolveClient(ctx.userId, ctx.orgId);
+
+      // 2. Fetch invoice + org Stripe details within RLS scope
+      const result = await withRLS(
+        { userId: ctx.userId, orgId: client.orgId },
+        async (tx) => {
+          const invoice = await tx.query.invoices.findFirst({
+            where: eq(invoices.id, input.invoiceId),
+            columns: {
+              id: true,
+              clientId: true,
+              orgId: true,
+              amountCents: true,
+              currency: true,
+              status: true,
+              stripePaymentIntentId: true,
+              number: true,
+            },
+          });
+
+          if (!invoice) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Invoice not found." });
+          }
+
+          const org = await tx.query.organizations.findFirst({
+            where: eq(organizations.id, invoice.orgId),
+            columns: {
+              stripeAccountId: true,
+              stripeOnboardingComplete: true,
+              stripeDefaultCurrency: true,
+            },
+          });
+
+          return { invoice, org };
+        },
+      );
+
+      const { invoice, org } = result;
+
+      // 3. Ownership check — client must own this invoice
+      if (invoice.clientId !== client.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this invoice.",
+        });
+      }
+
+      // 4. Guard: invoice must be unpaid
+      if (invoice.status === "paid") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This invoice has already been paid.",
+        });
+      }
+
+      // 5. Guard: org must have Stripe connected
+      if (!org?.stripeAccountId || !org.stripeOnboardingComplete) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "This organization has not connected a payment account yet.",
+        });
+      }
+
+      const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      if (!publishableKey) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Stripe is not configured on this server.",
+        });
+      }
+
+      // 6. Reuse existing PaymentIntent if already created (idempotency)
+      if (invoice.stripePaymentIntentId) {
+        try {
+          const existing = await stripe.paymentIntents.retrieve(
+            invoice.stripePaymentIntentId,
+            {},
+            { stripeAccount: org.stripeAccountId },
+          );
+          if (existing.client_secret && existing.status !== "succeeded") {
+            return {
+              clientSecret: existing.client_secret,
+              publishableKey,
+              amount: invoice.amountCents,
+              currency: invoice.currency.toLowerCase(),
+            };
+          }
+        } catch {
+          // PaymentIntent not found — fall through to create a new one
+        }
+      }
+
+      // 7. Create a new PaymentIntent via Stripe Connect
+      // Amount in smallest currency unit (cents) — never floats
+      const paymentIntent = await stripe.paymentIntents.create(
+        {
+          amount: invoice.amountCents,
+          currency: invoice.currency.toLowerCase(),
+          // Platform charges on behalf of the connected account
+          on_behalf_of: org.stripeAccountId,
+          transfer_data: {
+            destination: org.stripeAccountId,
+          },
+          metadata: {
+            invoiceId: invoice.id,
+            invoiceNumber: String(invoice.number),
+            orgId: invoice.orgId,
+            clientId: client.id,
+          },
+          // Enable all relevant payment methods via automatic_payment_methods
+          automatic_payment_methods: { enabled: true },
+        },
+        // Idempotency key — prevents duplicate charges on retries
+        { idempotencyKey: `inv_pi_${invoice.id}` },
+      );
+
+      if (!paymentIntent.client_secret) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create payment intent.",
+        });
+      }
+
+      // 8. Persist the PaymentIntent ID to the invoice record
+      await withRLS({ userId: ctx.userId, orgId: client.orgId }, async (tx) => {
+        await tx
+          .update(invoices)
+          .set({ stripePaymentIntentId: paymentIntent.id })
+          .where(eq(invoices.id, invoice.id));
+      });
+
+      return {
+        clientSecret: paymentIntent.client_secret,
+        publishableKey,
+        amount: invoice.amountCents,
+        currency: invoice.currency.toLowerCase(),
+      };
     }),
 });
