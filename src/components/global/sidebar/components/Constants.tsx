@@ -13,6 +13,7 @@ import {
   FolderKanban,
   Users,
   ReceiptText,
+  FileSignature,
   Settings,
 } from "lucide-react";
 
@@ -46,6 +47,11 @@ export const NAV_ITEMS = [
     label: "Invoices",
     href: "/invoices",
     icon: <ReceiptText size={18} strokeWidth={1.7} />,
+  },
+  {
+    label: "Contracts",
+    href: "/contracts",
+    icon: <FileSignature size={18} strokeWidth={1.7} />,
   },
   {
     label: "Settings",

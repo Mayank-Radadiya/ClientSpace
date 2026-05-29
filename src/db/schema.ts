@@ -40,7 +40,8 @@ export type ActivityEventMetadata =
   | { event: "invoice.paid"; invoiceNumber: number }
   | { event: "comment.created"; bodySnippet: string; assetId?: string }
   | { event: "client.invited"; email: string }
-  | { event: "milestone.completed"; title: string };
+  | { event: "milestone.completed"; title: string }
+  | { event: "contract.signed"; contractTitle: string; clientName: string };
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -636,25 +637,70 @@ export const clientNotes = pgTable(
   ],
 ).enableRLS();
 
-// ─── Phase 2 Stub Tables ─────────────────────────────────────────────────────
-// Included now to prevent destructive migrations later.
+// ─── Contracts (E-Signing) ────────────────────────────────────────────────────
+// Full e-signing system — replaces DocuSign/HelloSign for standard agency contracts.
+// Security model: signingToken is a UUID (unguessable). "link = consent" — same
+// as DocuSign email-based signing links. The token is stored in plaintext because
+// it IS the public signing URL — it is not a secret in the traditional sense.
 
-// Contracts (E-Signature — Phase 2)
-export const contracts = pgTable("contracts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").references(() => projects.id),
-  orgId: uuid("org_id")
-    .references(() => organizations.id, { onDelete: "cascade" })
-    .notNull(),
-  signerId: uuid("signer_id").references(() => users.id),
-  status: text("status").default("pending"),
-  ipAddress: text("ip_address"),
-  signedAt: timestamp("signed_at", { withTimezone: true }),
-  documentUrl: text("document_url"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-}).enableRLS();
+export const contractStatusEnum = pgEnum("contract_status", [
+  "draft",
+  "sent",
+  "viewed",
+  "signed",
+  "declined",
+  "expired",
+]);
+
+export const contracts = pgTable(
+  "contracts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    projectId: uuid("project_id").references(() => projects.id), // Nullable — standalone contracts allowed
+    clientId: uuid("client_id")
+      .references(() => clients.id)
+      .notNull(),
+    title: text("title").notNull(),
+    status: contractStatusEnum("status").default("draft").notNull(),
+    // NOTE: Do NOT allow status to go backwards (e.g. signed → sent).
+    // Enforced in tRPC mutation layer. A Postgres CHECK constraint can be added
+    // manually in production: CHECK (status IN ('draft','sent','viewed','signed','declined','expired'))
+    bodyHtml: text("body_html").notNull().default(""),      // Stored with placeholder markup; always sanitize before render
+    bodyPlainText: text("body_plain_text").notNull().default(""), // Plain text for email previews
+    // ── Signing Token ───────────────────────────────────────────────────────────
+    signingToken: text("signing_token").unique(), // UUID generated on send; used in public signing URL
+    signingTokenExpiresAt: timestamp("signing_token_expires_at", { withTimezone: true }), // 30 days from send
+    // ── Signer Data (populated when client signs) ───────────────────────────────
+    signerName: text("signer_name"),   // Typed full name from signing page
+    signerEmail: text("signer_email"),
+    signatureImageUrl: text("signature_image_url"), // Public URL of canvas PNG in Supabase Storage
+    // SHA-256 of (signerName + signerEmail + contractId + signingTimestamp)
+    // This is an INTEGRITY PROOF, not a legal signature.
+    // E-sign legality depends on jurisdiction (ESIGN Act, eIDAS, etc.).
+    signatureHash: text("signature_hash"),
+    // TODO (GDPR production): Hash signerIp with SHA-256 before storing.
+    // Raw IP is stored here for development/audit purposes only.
+    signerIp: text("signer_ip"),        // AGENCY-ONLY — never expose in client-facing UI
+    signerUserAgent: text("signer_user_agent"),
+    // ── Timestamps ──────────────────────────────────────────────────────────────
+    signedAt: timestamp("signed_at", { withTimezone: true }),
+    viewedAt: timestamp("viewed_at", { withTimezone: true }), // First time client opened the signing link
+    declinedAt: timestamp("declined_at", { withTimezone: true }),
+    declineReason: text("decline_reason"),
+    // ── Output ──────────────────────────────────────────────────────────────────
+    pdfUrl: text("pdf_url"), // Public URL of signed PDF in Supabase Storage (set by Inngest)
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("contracts_org_client_idx").on(t.orgId, t.clientId),
+    index("contracts_org_project_idx").on(t.orgId, t.projectId),
+    index("contracts_signing_token_idx").on(t.signingToken), // Hot path: public signing URL lookup (no RLS)
+  ],
+).enableRLS();
 
 // CSAT Responses (Phase 2)
 export const csatResponses = pgTable("csat_responses", {

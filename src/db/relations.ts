@@ -74,6 +74,7 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
   projects: many(projects),
   invoices: many(invoices),
   invitations: many(invitations),
+  contracts: many(contracts),
   csatResponses: many(csatResponses),
 }));
 
@@ -293,17 +294,17 @@ export const shareLinksRelations = relations(shareLinks, ({ one }) => ({
 // ─── Phase 2: Contracts ───────────────────────────────────────────────────────
 
 export const contractsRelations = relations(contracts, ({ one }) => ({
-  project: one(projects, {
-    fields: [contracts.projectId],
-    references: [projects.id],
-  }),
   organization: one(organizations, {
     fields: [contracts.orgId],
     references: [organizations.id],
   }),
-  signer: one(users, {
-    fields: [contracts.signerId],
-    references: [users.id],
+  project: one(projects, {
+    fields: [contracts.projectId],
+    references: [projects.id],
+  }),
+  client: one(clients, {
+    fields: [contracts.clientId],
+    references: [clients.id],
   }),
 }));
 

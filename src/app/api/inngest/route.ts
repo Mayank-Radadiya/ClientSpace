@@ -7,6 +7,8 @@ import { handleAccountUpdated } from "@/inngest/functions/stripe/handleAccountUp
 // Invoice PDF background workers
 import { generateInvoicePdf } from "@/inngest/functions/invoices/generatePdf";
 import { retryFailedPdfs } from "@/inngest/functions/invoices/retryFailedPdfs";
+// Contract background workers
+import { processSignedContract, sendContractEmail } from "@/inngest/functions/contracts/processSignedContract";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -18,6 +20,9 @@ export const { GET, POST, PUT } = serve({
     // Invoice PDF async generation
     generateInvoicePdf,
     retryFailedPdfs,
+    // Contract signing pipeline
+    processSignedContract,
+    sendContractEmail,
   ],
 });
 

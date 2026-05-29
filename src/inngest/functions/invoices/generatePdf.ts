@@ -17,7 +17,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { and, eq } from "drizzle-orm";
 import { inngest } from "@/inngest/client";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createDrizzleClient } from "@/db/createDrizzleClient";
+import { db } from "@/db";
 import {
   invoices,
   invoiceLineItems,
@@ -58,7 +58,6 @@ export const generateInvoicePdf = inngest.createFunction(
     const invoiceData = await step.run("fetch-invoice-data", async () => {
       // Use raw drizzle (no RLS) via service role — Inngest runs outside user session context.
       // We perform our own org isolation check below.
-      const db = await createDrizzleClient();
 
       // Set pdfStatus = 'generating' immediately so the UI shows a spinner
       await db
@@ -180,7 +179,6 @@ export const generateInvoicePdf = inngest.createFunction(
         return { data: Array.from(buffer), invoiceNumber: invoice.number };
       } catch (err) {
         // Mark as failed in DB so the UI shows "Retry PDF" button
-        const db = await createDrizzleClient();
         await db
           .update(invoices)
           .set({ pdfStatus: "failed", updatedAt: new Date() })
@@ -235,8 +233,6 @@ export const generateInvoicePdf = inngest.createFunction(
     // ── Step 4: Update Invoice Record ─────────────────────────────────────
 
     await step.run("update-invoice-record", async () => {
-      const db = await createDrizzleClient();
-
       await db
         .update(invoices)
         .set({
