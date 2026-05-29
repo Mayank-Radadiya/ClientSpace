@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { getServerCaller } from "@/lib/trpc/server";
 import { getSessionContext } from "@/lib/auth/session";
 import { withRLS } from "@/db/createDrizzleClient";
-import { clients, folders, projects } from "@/db/schema";
+import { clients, folders, projects, users } from "@/db/schema";
 import { PortalAssetList } from "@/features/portal/components/PortalAssetList";
 import { ClientFileUploader } from "@/features/portal/components/ClientFileUploader";
 
@@ -29,6 +29,14 @@ export default async function PortalProjectFilesPage({
   if (!project || !assets || !orgBranding) {
     notFound();
   }
+
+  // Load the current user's profile details to show proper avatars and names in comments
+  const userProfile = await withRLS(session, async (tx) => {
+    return tx.query.users.findFirst({
+      where: eq(users.id, session.userId),
+      columns: { name: true, avatarUrl: true },
+    });
+  });
 
   const folder = await withRLS(session, async (tx) => {
     const client = await tx.query.clients.findFirst({
@@ -84,7 +92,14 @@ export default async function PortalProjectFilesPage({
         <p className="text-muted-foreground mt-1 text-sm">{project.name}</p>
       </div>
 
-      <PortalAssetList assets={assets} projectId={projectId} />
+      <PortalAssetList
+        assets={assets}
+        projectId={projectId}
+        currentUserId={session.userId}
+        currentUserName={userProfile?.name ?? "Client User"}
+        currentUserAvatar={userProfile?.avatarUrl ?? undefined}
+        currentUserRole={session.role}
+      />
 
       <ClientFileUploader
         projectId={projectId}

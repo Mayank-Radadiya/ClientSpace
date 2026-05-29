@@ -6,6 +6,7 @@
  * Behaviours:
  *   • Individual assets: click "Approve" to flip the card (rotateY 180°)
  *     – Card-flip is a micro-interaction only; does NOT trigger Inngest
+ *   • "Review & Annotate" opens the collaborative proofing canvas in full-viewport overlay
  *   • "Request Changes" button stays unchanged for assets in any non-approved state
  *   • Final SlideToApprove appears when ≥1 asset is in pending_review / changes_requested
  *     and there are no pre-existing fully-approved blocks
@@ -19,12 +20,14 @@
 
 import { useMemo, useState, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { X, MessageSquare } from "lucide-react";
 import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc/client";
 import { SlideToApprove } from "./SlideToApprove";
 import { updateAssetStatusAction } from "@/features/portal/server/actions";
+import { ProofingCanvas } from "@/features/portal/proofing/ProofingCanvas";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type AssetStatus = "pending_review" | "approved" | "changes_requested";
@@ -33,10 +36,19 @@ export interface PortalAssetListProps {
   assets: Array<{
     id: string;
     name: string;
+    type: string;
     approvalStatus: string;
     currentVersion?: { versionNumber: number | null } | null;
+    signedUrl: string | null;
+    openAnnotationsCount: number;
+    hasAnnotations: boolean;
+    initialAnnotations: any[];
   }>;
   projectId: string;
+  currentUserId: string;
+  currentUserName: string;
+  currentUserAvatar?: string;
+  currentUserRole: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -99,13 +111,19 @@ interface AssetCardProps {
   asset: {
     id: string;
     name: string;
+    type: string;
     status: AssetStatus;
     currentVersion?: { versionNumber: number | null } | null;
+    openAnnotationsCount: number;
+    hasAnnotations: boolean;
+    signedUrl: string | null;
+    initialAnnotations: any[];
   };
   bulkApprovalDone: boolean;
   onIndividualApprove: (id: string) => void;
   onRequestChanges: (id: string) => void;
   isPending: boolean;
+  onReview: () => void;
 }
 
 function AssetCard({
@@ -114,6 +132,7 @@ function AssetCard({
   onIndividualApprove,
   onRequestChanges,
   isPending,
+  onReview,
 }: AssetCardProps) {
   const [flipped, setFlipped] = useState(
     asset.status === "approved" || bulkApprovalDone,
@@ -128,7 +147,7 @@ function AssetCard({
   const isApproved = bulkApprovalDone || flipped || asset.status === "approved";
 
   return (
-    <div style={{ perspective: "800px", height: 100, position: "relative" }}>
+    <div style={{ perspective: "800px", height: 130, position: "relative" }}>
       <motion.div
         animate={{ rotateY: isApproved ? 180 : 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 25 }}
@@ -141,12 +160,23 @@ function AssetCard({
       >
         {/* Front face */}
         <div
-          className="bg-card absolute inset-0 flex flex-col justify-center gap-3 rounded-xl border p-4"
+          className="bg-card absolute inset-0 flex flex-col justify-between rounded-xl border p-4 shadow-sm"
           style={{ backfaceVisibility: "hidden" }}
         >
           <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium">{asset.name}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium truncate">{asset.name}</p>
+                {asset.openAnnotationsCount > 0 ? (
+                  <Badge className="text-[10px] py-0 px-1.5 shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 uppercase font-bold tracking-wider">
+                    {asset.openAnnotationsCount} open feedback
+                  </Badge>
+                ) : asset.hasAnnotations ? (
+                  <Badge className="text-[10px] py-0 px-1.5 shrink-0 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 uppercase font-bold tracking-wider">
+                    All resolved
+                  </Badge>
+                ) : null}
+              </div>
               <p className="text-muted-foreground text-xs">
                 Version {asset.currentVersion?.versionNumber ?? 1}
               </p>
@@ -154,31 +184,42 @@ function AssetCard({
             <StatusBadge status={asset.status} />
           </div>
 
-          {asset.status !== "approved" && !bulkApprovalDone ? (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={isPending}
-                onClick={handleApprove}
-                className="flex-1 text-xs"
-              >
-                ✓ Approve
-              </Button>
-              {asset.status === "pending_review" ||
-              asset.status === "changes_requested" ? (
+          <div className="flex items-center gap-2">
+            <Button
+              size="xs"
+              variant="outline"
+              onClick={onReview}
+              className="flex-1 text-[11px] gap-1 hover:bg-muted"
+            >
+              💬 Review & Annotate
+            </Button>
+
+            {asset.status !== "approved" && !bulkApprovalDone ? (
+              <>
                 <Button
-                  size="sm"
-                  variant="destructive"
+                  size="xs"
+                  variant="outline"
                   disabled={isPending}
-                  onClick={() => onRequestChanges(asset.id)}
-                  className="flex-1 text-xs"
+                  onClick={handleApprove}
+                  className="flex-1 text-[11px] border-emerald-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400"
                 >
-                  Request Changes
+                  ✓ Approve
                 </Button>
-              ) : null}
-            </div>
-          ) : null}
+                {asset.status === "pending_review" ||
+                asset.status === "changes_requested" ? (
+                  <Button
+                    size="xs"
+                    variant="destructive"
+                    disabled={isPending}
+                    onClick={() => onRequestChanges(asset.id)}
+                    className="flex-1 text-[11px]"
+                  >
+                    Request Changes
+                  </Button>
+                ) : null}
+              </>
+            ) : null}
+          </div>
         </div>
 
         {/* Back face */}
@@ -257,12 +298,20 @@ function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function PortalAssetList({ assets, projectId }: PortalAssetListProps) {
+export function PortalAssetList({
+  assets,
+  projectId,
+  currentUserId,
+  currentUserName,
+  currentUserAvatar,
+  currentUserRole,
+}: PortalAssetListProps) {
   // Local status overrides (optimistic for individual approvals)
   const [localStatuses, setLocalStatuses] = useState<Record<string, AssetStatus>>({});
   const [isPending, setIsPending] = useState(false);
   const [bulkApprovalDone, setBulkApprovalDone] = useState(false);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [activeProofingAsset, setActiveProofingAsset] = useState<any | null>(null);
 
   const bulkMutation = trpc.portal.bulkApproveForProject.useMutation();
 
@@ -375,6 +424,62 @@ export function PortalAssetList({ assets, projectId }: PortalAssetListProps) {
         )}
       </AnimatePresence>
 
+      {/* Proofing Canvas Modal Dialog overlay */}
+      <AnimatePresence>
+        {activeProofingAsset && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="relative w-full max-w-6xl h-[90vh] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/10">
+                <div>
+                  <h2 className="text-base font-semibold tracking-tight">
+                    {activeProofingAsset.name}
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Click anywhere on the file to add pins and drop review comments.
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => setActiveProofingAsset(null)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Proofing canvas frame */}
+              <div className="flex-1 overflow-hidden relative">
+                <ProofingCanvas
+                  assetUrl={activeProofingAsset.signedUrl ?? ""}
+                  assetType={activeProofingAsset.type.includes("pdf") ? "pdf" : "image"}
+                  assetId={activeProofingAsset.id}
+                  initialAnnotations={activeProofingAsset.initialAnnotations ?? []}
+                  canAddAnnotations={
+                    activeProofingAsset.status !== "approved" && !bulkApprovalDone
+                  }
+                  currentUserId={currentUserId}
+                  currentUserName={currentUserName}
+                  currentUserAvatar={currentUserAvatar}
+                  currentUserRole={currentUserRole}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="space-y-4">
         {/* Asset cards */}
         <div className="space-y-3">
@@ -386,6 +491,7 @@ export function PortalAssetList({ assets, projectId }: PortalAssetListProps) {
               onIndividualApprove={handleIndividualApprove}
               onRequestChanges={handleRequestChanges}
               isPending={isPending}
+              onReview={() => setActiveProofingAsset(asset)}
             />
           ))}
         </div>

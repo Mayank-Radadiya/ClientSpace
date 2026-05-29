@@ -9,6 +9,9 @@ import { generateInvoicePdf } from "@/inngest/functions/invoices/generatePdf";
 import { retryFailedPdfs } from "@/inngest/functions/invoices/retryFailedPdfs";
 // Contract background workers
 import { processSignedContract, sendContractEmail } from "@/inngest/functions/contracts/processSignedContract";
+// AI Project Health workers
+import { projectHealthNightlyAnalysis } from "@/inngest/functions/ai/projectHealthAnalysis";
+import { singleProjectHealthAnalysis } from "@/inngest/functions/ai/singleProjectHealthAnalysis";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -23,6 +26,8 @@ export const { GET, POST, PUT } = serve({
     // Contract signing pipeline
     processSignedContract,
     sendContractEmail,
+    // AI project health analysis
+    projectHealthNightlyAnalysis,
+    singleProjectHealthAnalysis,
   ],
 });
-

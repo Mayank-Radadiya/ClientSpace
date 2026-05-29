@@ -3,6 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { getServerCaller } from "@/lib/trpc/server";
+import { createTRPCContext } from "@/lib/trpc/init";
+import { withRLS } from "@/db/createDrizzleClient";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { ClientPortalPresenceWidget } from "@/features/projects/presence/ClientPortalPresenceWidget";
 
 type ProjectDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -24,8 +29,51 @@ export default async function PortalProjectDetailPage({
     notFound();
   }
 
+  // Fetch current user identity for presence tracking
+  // SECURITY: Only name + avatarUrl — no email or sensitive data
+  const ctx = await createTRPCContext();
+  let currentUserId = "";
+  let currentUserName = "Client";
+  let currentUserAvatarUrl: string | null = null;
+
+  if (ctx) {
+    currentUserId = ctx.userId;
+    try {
+      const userProfile = await withRLS(
+        { userId: ctx.userId, orgId: ctx.orgId },
+        async (tx) => {
+          return tx.query.users.findFirst({
+            where: eq(users.id, ctx.userId),
+            columns: { name: true, avatarUrl: true },
+          });
+        },
+      );
+      if (userProfile) {
+        currentUserName = userProfile.name;
+        currentUserAvatarUrl = userProfile.avatarUrl ?? null;
+      }
+    } catch (err) {
+      console.error("[PortalProjectDetailPage] Failed to fetch user profile for presence:", err);
+    }
+  }
+
   return (
     <div className="space-y-6">
+      {/* Presence Widget — shows agency members who are online */}
+      {currentUserId && (
+        <ClientPortalPresenceWidget
+          projectId={id}
+          currentUser={{
+            userId: currentUserId,
+            name: currentUserName,
+            avatarUrl: currentUserAvatarUrl,
+            activeTab: "overview",
+            joinedAt: Date.now(),
+            isClient: true,
+          }}
+        />
+      )}
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">

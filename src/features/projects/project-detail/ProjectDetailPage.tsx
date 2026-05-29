@@ -20,6 +20,10 @@ import { gooeyToast } from "goey-toast";
 import type { ActivityEventMetadata } from "@/db/schema";
 import { differenceInDays } from "date-fns";
 import { computeHealthScore } from "./lib/healthScore";
+import { PresenceProvider } from "../presence/PresenceProvider";
+import { PresenceAvatars } from "../presence/PresenceAvatars";
+import type { PresenceUser } from "../presence/presenceTypes";
+import { usePresenceContext } from "../presence/PresenceContext";
 
 // Zone 0 — Preview bar
 import { GuestPreviewBar } from "./components/v3/GuestPreviewBar";
@@ -78,6 +82,8 @@ interface ProjectDetailPageProps {
     actorRole: string | null;
     project: { id: string; name: string } | null;
   }>;
+  /** Current user info for presence tracking. Optional — presence is disabled if omitted. */
+  currentUser?: PresenceUser;
 }
 
 export function ProjectDetailPage({
@@ -92,6 +98,7 @@ export function ProjectDetailPage({
   initialComments,
   initialInvoices,
   initialActivity,
+  currentUser,
 }: ProjectDetailPageProps) {
   const permissions = useProjectPermissions(role);
   const reduced = useReducedMotion();
@@ -332,7 +339,14 @@ export function ProjectDetailPage({
     }
   };
 
-  return (
+  // ── Presence ───────────────────────────────────────────────
+  // If currentUser is provided, wrap the whole page in PresenceProvider
+  // so all children can access onlineUsers via usePresenceContext().
+  const presenceUser = currentUser
+    ? { ...currentUser, activeTab: activeSection }
+    : null;
+
+  const pageContent = (
     <div
       className="flex min-h-screen flex-col"
       style={{
@@ -357,8 +371,10 @@ export function ProjectDetailPage({
             onGenerateReport={
               !isClient ? () => setReportPanelOpen(true) : undefined
             }
+            presenceSlot={presenceUser ? <PresenceAvatarsConnected /> : undefined}
           />
         </div>
+
         {/* Health ring — pinned top-right of Zone 1 */}
         <div
           className="pd-animate-fade-up shrink-0 pt-2"
@@ -462,5 +478,36 @@ export function ProjectDetailPage({
         />
       </div>
     </div>
+  );
+
+  // Wrap with PresenceProvider if we have a current user
+  if (presenceUser) {
+    return (
+      <PresenceProvider
+        projectId={projectId}
+        currentUser={presenceUser}
+        activeTab={activeSection}
+      >
+        {pageContent}
+      </PresenceProvider>
+    );
+  }
+
+  return pageContent;
+}
+
+/* ── Inner component that reads from PresenceContext ─────────── */
+// Defined inside the module to keep co-location clean.
+
+function PresenceAvatarsConnected() {
+  const ctx = usePresenceContext();
+  if (!ctx || ctx.onlineUsers.length === 0) return null;
+
+  return (
+    <PresenceAvatars
+      onlineUsers={ctx.onlineUsers}
+      maxVisible={4}
+      size="md"
+    />
   );
 }

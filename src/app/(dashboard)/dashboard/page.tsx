@@ -5,6 +5,7 @@ import { RevenueChart } from "@/features/analytics/components/RevenueChart";
 import { RecentActivityFeed } from "@/features/analytics/components/RecentActivityFeed";
 import { getDashboardStatsCached, getRevenueChartCached } from "@/features/analytics/server/queries";
 import { getActivityLogsCached } from "@/features/activity/server/queries";
+import { ProjectHealthSection } from "@/features/dashboard/components/ProjectHealthSection";
 
 export const metadata = { title: "Dashboard" };
 
@@ -29,6 +30,9 @@ export default async function DashboardPage() {
           Your business at a glance.
         </p>
       </div>
+
+      {/* AI Project Health — above the fold */}
+      <ProjectHealthSection />
 
       <StatsCards initialData={stats} />
 

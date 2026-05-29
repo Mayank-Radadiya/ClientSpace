@@ -12,6 +12,7 @@ import {
   boolean,
   integer,
   numeric,
+  real,
   date,
   jsonb,
   index,
@@ -416,7 +417,14 @@ export const comments = pgTable(
       onDelete: "set null",
     }), // Threaded replies (max 2 levels)
     hidden: boolean("hidden").default(false).notNull(),
-    metadata: jsonb("metadata"), // Annotations: { x, y, width, height }
+    resolved: boolean("resolved").default(false).notNull(),
+    metadata: jsonb("metadata").$type<{
+      x: number;
+      y: number;
+      page: number | null;
+      resolved: boolean;
+      pinNumber: number;
+    }>(), // Annotations: { x, y, page, resolved, pinNumber }
     editedAt: timestamp("edited_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -426,6 +434,8 @@ export const comments = pgTable(
   (t) => [
     index("comments_org_project_idx").on(t.orgId, t.projectId), // Composite per PRD §11
     index("comments_asset_idx").on(t.assetId),
+    index("comments_asset_resolved_idx").on(t.assetId, t.resolved),
+    index("comments_parent_idx").on(t.parentId),
   ],
 ).enableRLS();
 
@@ -717,3 +727,35 @@ export const csatResponses = pgTable("csat_responses", {
     .defaultNow()
     .notNull(),
 }).enableRLS();
+
+// ─── AI Project Health (Nightly Gemini Analysis) ──────────────────────────────
+// One row per project per nightly analysis run — dashboard reads the latest.
+
+export const projectHealth = pgTable(
+  "project_health",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    riskScore: text("risk_score").notNull(), // 'low' | 'medium' | 'high' | 'critical'
+    summary: text("summary").notNull(), // 2-sentence AI executive summary (≤300 chars)
+    velocityTrend: text("velocity_trend").notNull(), // 'improving' | 'stable' | 'declining'
+    overdueCount: integer("overdue_count").notNull(),
+    unresolvedAnnotations: integer("unresolved_annotations").notNull(),
+    openChangeRequests: integer("open_change_requests").notNull(),
+    milestoneCompletionRate: real("milestone_completion_rate").notNull(), // 0.0 – 1.0
+    rawMetrics: jsonb("raw_metrics"), // full metrics + Gemini token usage
+    generatedAt: timestamp("generated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    modelUsed: text("model_used").notNull(), // e.g. 'gemini-2.5-flash'
+  },
+  (t) => [
+    index("ph_project_generated_idx").on(t.projectId, t.generatedAt.desc()),
+    index("ph_org_risk_idx").on(t.orgId, t.riskScore),
+  ],
+).enableRLS();

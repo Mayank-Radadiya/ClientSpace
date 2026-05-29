@@ -22,6 +22,7 @@ import {
   shareLinks,
   contracts,
   csatResponses,
+  projectHealth,
 } from "./schema";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -318,5 +319,18 @@ export const csatResponsesRelations = relations(csatResponses, ({ one }) => ({
   client: one(clients, {
     fields: [csatResponses.clientId],
     references: [clients.id],
+  }),
+}));
+
+// ─── AI Project Health ────────────────────────────────────────────────────────
+
+export const projectHealthRelations = relations(projectHealth, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [projectHealth.orgId],
+    references: [organizations.id],
+  }),
+  project: one(projects, {
+    fields: [projectHealth.projectId],
+    references: [projects.id],
   }),
 }));

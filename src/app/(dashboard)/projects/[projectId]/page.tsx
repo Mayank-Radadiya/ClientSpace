@@ -11,6 +11,9 @@ import {
   getProjectFolders,
   getProjectInvoices,
 } from "@/features/projects/server/cache";
+import { withRLS } from "@/db/createDrizzleClient";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 interface ProjectPageProps {
   params: Promise<{ projectId: string }>;
 }
@@ -59,6 +62,30 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
     if (!project) return notFound();
 
+    // Fetch current user's display info for presence tracking
+    // SECURITY: Only fetch name + avatarUrl — no email, role, or plan data
+    let currentUserName = "Team Member";
+    let currentUserAvatarUrl: string | null = null;
+
+    try {
+      const userProfile = await withRLS(
+        { userId: ctx.userId, orgId },
+        async (tx) => {
+          return tx.query.users.findFirst({
+            where: eq(users.id, ctx.userId),
+            columns: { name: true, avatarUrl: true },
+          });
+        },
+      );
+      if (userProfile) {
+        currentUserName = userProfile.name;
+        currentUserAvatarUrl = userProfile.avatarUrl ?? null;
+      }
+    } catch (err) {
+      // Non-fatal: presence will use fallback name/avatar
+      console.error("[ProjectPage] Failed to fetch user profile for presence:", err);
+    }
+
     return (
       <ProjectDetailPage
         orgId={orgId}
@@ -72,6 +99,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         initialComments={comments}
         initialInvoices={invoices}
         initialActivity={activity}
+        currentUser={{
+          userId: ctx.userId,
+          name: currentUserName,
+          avatarUrl: currentUserAvatarUrl,
+          activeTab: "milestones",
+          joinedAt: Date.now(),
+          isClient: role === "client",
+        }}
       />
     );
   } catch (error: unknown) {

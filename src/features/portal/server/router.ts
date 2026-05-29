@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, exists, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, isNull, ne, sql } from "drizzle-orm";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { withRLS } from "@/db/createDrizzleClient";
 import { createClient } from "@/lib/supabase/server";
@@ -281,7 +281,7 @@ export const portalRouter = createTRPCRouter({
             });
           }
 
-          return tx
+          const rows = await tx
             .select({
               id: assets.id,
               orgId: assets.orgId,
@@ -319,9 +319,124 @@ export const portalRouter = createTRPCRouter({
               and(
                 eq(assets.projectId, input.projectId),
                 isNull(assets.deletedAt),
-              ),
+              )
             )
             .orderBy(desc(assets.updatedAt));
+
+          // Fetch annotations counts and signed urls in parallel
+          return Promise.all(
+            rows.map(async (row) => {
+              const signedUrl = row.currentVersion?.storagePath
+                ? await getSignedPdfUrl(row.currentVersion.storagePath)
+                : null;
+
+              const commentsModule = await import("@/db/schema");
+
+              const openCountRes = await tx
+                .select({ count: sql<number>`count(*)::int` })
+                .from(commentsModule.comments)
+                .where(
+                  and(
+                    eq(commentsModule.comments.assetId, row.id),
+                    isNull(commentsModule.comments.parentId),
+                    eq(commentsModule.comments.resolved, false)
+                  )
+                );
+
+              const totalCountRes = await tx
+                .select({ count: sql<number>`count(*)::int` })
+                .from(commentsModule.comments)
+                .where(
+                  and(
+                    eq(commentsModule.comments.assetId, row.id),
+                    isNull(commentsModule.comments.parentId)
+                  )
+                );
+
+              const annotationsList = await tx.query.comments.findMany({
+                where: and(
+                  eq(commentsModule.comments.assetId, row.id),
+                  isNull(commentsModule.comments.parentId),
+                  eq(commentsModule.comments.resolved, false)
+                ),
+                with: {
+                  author: {
+                    columns: {
+                      id: true,
+                      name: true,
+                      avatarUrl: true,
+                      email: true,
+                    },
+                  },
+                  replies: {
+                    with: {
+                      author: {
+                        columns: {
+                          id: true,
+                          name: true,
+                          avatarUrl: true,
+                          email: true,
+                        },
+                      },
+                    },
+                    orderBy: [asc(commentsModule.comments.createdAt)],
+                  },
+                },
+              });
+
+              // Resolve roles
+              const authorIds = new Set<string>();
+              for (const c of annotationsList) {
+                authorIds.add(c.authorId);
+                if (c.replies) {
+                  for (const r of c.replies) {
+                    authorIds.add(r.authorId);
+                  }
+                }
+              }
+
+              const authorIdsArr = Array.from(authorIds);
+              const memberships =
+                authorIdsArr.length > 0
+                  ? await tx.query.orgMemberships.findMany({
+                      where: and(
+                        eq(commentsModule.orgMemberships.orgId, row.orgId),
+                        inArray(commentsModule.orgMemberships.userId, authorIdsArr),
+                      ),
+                      columns: { userId: true, role: true },
+                    })
+                  : [];
+              const roleByUserId = new Map(memberships.map((m) => [m.userId, m.role]));
+
+              const formatUser = (u: any, id: string) => ({
+                ...u,
+                role: roleByUserId.get(id) ?? null,
+              });
+
+              const sortedAnnotations = annotationsList.map((c) => ({
+                ...c,
+                author: formatUser(c.author, c.authorId),
+                replies: c.replies.map((r) => ({
+                  ...r,
+                  author: formatUser(r.author, r.authorId),
+                })),
+              }));
+
+              sortedAnnotations.sort((a, b) => {
+                const pinA = (a.metadata as any)?.pinNumber ?? 0;
+                const pinB = (b.metadata as any)?.pinNumber ?? 0;
+                return pinA - pinB;
+              });
+
+              return {
+                ...row,
+                signedUrl,
+                openAnnotationsCount: openCountRes[0]?.count ?? 0,
+                hasAnnotations: (totalCountRes[0]?.count ?? 0) > 0,
+                initialAnnotations: sortedAnnotations,
+              };
+            })
+          );
         },
       );
     }),

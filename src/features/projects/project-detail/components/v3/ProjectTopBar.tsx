@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, type ReactNode } from "react";
 import {
   ChevronRight,
   Pencil,
@@ -166,6 +166,8 @@ interface ProjectTopBarProps {
   onArchive: () => void;
   onDelete: () => void;
   onGenerateReport?: () => void;
+  /** Optional slot rendered between the title area and the action buttons (e.g. presence avatars) */
+  presenceSlot?: ReactNode;
 }
 
 export function ProjectTopBar({
@@ -175,6 +177,7 @@ export function ProjectTopBar({
   onArchive,
   onDelete,
   onGenerateReport,
+  presenceSlot,
 }: ProjectTopBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -309,6 +312,13 @@ export function ProjectTopBar({
             )}
           </div>
         </div>
+
+        {/* Center: Presence avatars slot — rendered only when provided */}
+        {presenceSlot && (
+          <div className="flex shrink-0 items-center">
+            {presenceSlot}
+          </div>
+        )}
 
         {/* Right: Actions */}
         <div
