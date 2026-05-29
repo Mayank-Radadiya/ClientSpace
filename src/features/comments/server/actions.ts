@@ -1,9 +1,7 @@
 "use server";
 
-import { render } from "@react-email/render";
 import { revalidatePath } from "next/cache";
 import { and, eq, inArray, isNull } from "drizzle-orm";
-import { createElement } from "react";
 import { withRLS } from "@/db/createDrizzleClient";
 import {
   activityLogs,
@@ -13,12 +11,12 @@ import {
   projects,
   users,
 } from "@/db/schema";
-import { NewCommentEmail } from "@/emails/NewCommentEmail";
 import { getSessionContext } from "@/lib/auth/session";
 import {
   dispatchNotification,
   resolveProjectOwner,
 } from "@/lib/notifications/server";
+import { NOTIFICATION_EVENTS } from "@/features/notifications/events";
 import {
   createCommentSchema,
   deleteCommentSchema,
@@ -80,13 +78,13 @@ async function dispatchMentionNotifications(args: {
     if (mentioned.id === args.actorId) continue;
     try {
       await dispatchNotification({
-        idempotencyKey: `${args.orgId}:${args.asset.id}:comment_mention:${mentioned.id}:${Date.now()}`,
         recipientUserId: mentioned.id,
         orgId: args.orgId,
-        type: "comment_added",
+        type: NOTIFICATION_EVENTS.COMMENT_ADDED,
         title: `${args.actorName} mentioned you`,
         body: `In a comment on ${args.asset.name}`,
-        link: commentUrl,
+        actionUrl: commentUrl,
+        actionLabel: "View comment",
       });
     } catch (err) {
       console.error("[dispatchMentionNotifications] Non-fatal:", err);
@@ -124,27 +122,15 @@ async function dispatchCommentNotification(args: {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const commentUrl = `${appUrl}/projects/${args.project.id}/files/${args.asset.id}`;
 
-    const emailHtml = await render(
-      createElement(NewCommentEmail, {
-        authorName: args.actorName,
-        commentBody: args.commentBody,
-        assetName: args.asset.name,
-        projectName: args.project.name,
-        orgName: "ClientSpace",
-        commentUrl,
-      }),
-    );
-
     await dispatchNotification({
-      idempotencyKey: `${args.project.orgId}:${args.asset.id}:comment_added:${recipientUserId}:${Date.now()}`,
       recipientUserId,
       orgId: args.project.orgId,
-      type: "comment_added",
+      type: NOTIFICATION_EVENTS.COMMENT_ADDED,
       title: `${args.actorName} commented on ${args.asset.name}`,
       body: `In project: ${args.project.name}`,
-      link: commentUrl,
-      emailSubject: `New comment on ${args.asset.name} - ${args.project.name}`,
-      emailHtml,
+      actionUrl: commentUrl,
+      actionLabel: "View comment",
+      metadata: { assetName: args.asset.name, projectName: args.project.name },
     });
   } catch (err) {
     console.error("[dispatchCommentNotification] Non-fatal:", err);

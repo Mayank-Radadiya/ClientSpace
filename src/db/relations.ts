@@ -18,6 +18,7 @@ import {
   invoiceLineItems,
   activityLogs,
   notifications,
+  notificationPreferences,
   invitations,
   shareLinks,
   contracts,
@@ -269,6 +270,22 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
     references: [organizations.id],
   }),
 }));
+
+// ─── Notification Preferences ─────────────────────────────────────────────────
+
+export const notificationPreferencesRelations = relations(
+  notificationPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [notificationPreferences.userId],
+      references: [users.id],
+    }),
+    organization: one(organizations, {
+      fields: [notificationPreferences.orgId],
+      references: [organizations.id],
+    }),
+  }),
+);
 
 // ─── Invitations ──────────────────────────────────────────────────────────────
 

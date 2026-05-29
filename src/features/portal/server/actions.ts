@@ -8,9 +8,9 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { activityLogs, assets, clients, projects, users } from "@/db/schema";
 import {
   dispatchNotification,
-  renderAssetStatusEmailHtml,
   resolveNotificationRecipients,
 } from "@/lib/notifications/server";
+import { NOTIFICATION_EVENTS } from "@/features/notifications/events";
 import { updateAssetStatusSchema } from "../schemas";
 
 export async function updateAssetStatusAction(
@@ -103,36 +103,23 @@ export async function updateAssetStatusAction(
 
       if (recipients.length > 0) {
         const actionUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/projects/${projectId}`;
-        const subjectPrefix =
-          status === "approved" ? "File approved" : "Changes requested";
-
-        const emailHtml = await renderAssetStatusEmailHtml({
-          status,
-          actorName,
-          assetName: asset.name,
-          projectName: project.name,
-          actionUrl,
-          bodyHtml:
-            status === "approved"
-              ? `The client approved <strong>${asset.name}</strong>.`
-              : `The client requested changes for <strong>${asset.name}</strong>.`,
-        });
 
         await Promise.all(
           recipients.map((recipientUserId) =>
             dispatchNotification({
-              idempotencyKey: `${client.orgId}:${projectId}:${eventType}:${recipientUserId}`,
               recipientUserId,
               orgId: client.orgId,
-              type: eventType,
+              type: status === "approved"
+                ? NOTIFICATION_EVENTS.ASSET_APPROVED
+                : NOTIFICATION_EVENTS.ASSET_CHANGES_REQUESTED,
               title:
                 status === "approved"
                   ? `File approved: ${asset.name}`
                   : `Changes requested: ${asset.name}`,
               body: `${actorName} ${status === "approved" ? "approved" : "requested changes for"} ${asset.name} in ${project.name}.`,
-              link: `/projects/${projectId}`,
-              emailSubject: `${subjectPrefix}: ${asset.name} - ${project.name}`,
-              emailHtml,
+              actionUrl: actionUrl,
+              actionLabel: "View project",
+              metadata: { assetName: asset.name, projectName: project.name, actorName },
             }),
           ),
         );

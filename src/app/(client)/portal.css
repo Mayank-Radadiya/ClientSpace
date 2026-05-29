@@ -1,0 +1,76 @@
+/*
+ * portal.css — White-label CSS custom property utilities for the client portal.
+ *
+ * These classes consume --portal-accent and variants injected by PortalThemeProvider.
+ * Fallbacks reference the Tailwind v4 design tokens so the portal degrades gracefully
+ * when no accent color is configured.
+ *
+ * SCOPE: Applied only within src/app/(client)/ routes.
+ * NEVER apply to (dashboard) routes — portal theming is client-facing only.
+ */
+
+@import "tailwindcss";
+
+/* ─── Accent background (CTA buttons, active states) ──────────────────────── */
+.portal-accent-bg {
+  background-color: var(--portal-accent, var(--color-blue-600));
+  color: var(--portal-accent-text, #ffffff);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.portal-accent-bg:hover {
+  background-color: var(--portal-accent-dark, var(--color-blue-700));
+}
+
+.portal-accent-bg:active {
+  background-color: var(--portal-accent-dark, var(--color-blue-700));
+  opacity: 0.9;
+}
+
+.portal-accent-bg:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Accent border ────────────────────────────────────────────────────────── */
+.portal-accent-border {
+  border-color: var(--portal-accent, var(--color-blue-600));
+}
+
+/* ─── Accent text (links, active nav items) ───────────────────────────────── */
+.portal-accent-text {
+  color: var(--portal-accent, var(--color-blue-600));
+  transition: color 150ms ease;
+}
+
+.portal-accent-text:hover {
+  color: var(--portal-accent-dark, var(--color-blue-700));
+}
+
+/* ─── Accent focus ring (form inputs, interactive elements) ───────────────── */
+.portal-accent-ring:focus {
+  outline: 2px solid var(--portal-accent, var(--color-blue-600));
+  outline-offset: 2px;
+}
+
+.portal-accent-ring:focus-visible {
+  outline: 2px solid var(--portal-accent, var(--color-blue-600));
+  outline-offset: 2px;
+}
+
+/* ─── Accent progress bar fill ─────────────────────────────────────────────── */
+.portal-accent-fill {
+  background-color: var(--portal-accent, var(--color-blue-600));
+}
+
+/* ─── Accent light background (subtle highlights, selected states) ──────────── */
+.portal-accent-bg-light {
+  background-color: var(--portal-accent-light, var(--color-blue-50));
+}
+
+/* ─── Nav active item ──────────────────────────────────────────────────────── */
+.portal-nav-active {
+  color: var(--portal-accent, var(--color-blue-600));
+  border-left-color: var(--portal-accent, var(--color-blue-600));
+  background-color: var(--portal-accent-light, var(--color-blue-50));
+}

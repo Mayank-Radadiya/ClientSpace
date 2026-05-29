@@ -1,14 +1,13 @@
 // src/inngest/functions/stripe/handlePaymentSucceeded.ts
 // Handles stripe/payment.succeeded events dispatched by the webhook handler.
-// Updates invoice to 'paid', writes an activity log, sends Resend email to the agency owner.
+// Updates invoice to 'paid', writes an activity log, dispatches a notification.
 
 import { eq } from "drizzle-orm";
-import { Resend } from "resend";
 import { db } from "@/db";
 import { activityLogs, invoices, organizations, users } from "@/db/schema";
 import { inngest } from "@/inngest/client";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { dispatchNotification } from "@/lib/notifications/server";
+import { NOTIFICATION_EVENTS } from "@/features/notifications/events";
 
 export const handlePaymentSucceeded = inngest.createFunction(
   {
@@ -84,59 +83,29 @@ export const handlePaymentSucceeded = inngest.createFunction(
     });
 
 
-    // 5. Send email to agency owner via Resend
-    await step.run("send-email", async () => {
-      if (!process.env.RESEND_API_KEY || !org) {
-        return { ok: true, skipped: "resend_not_configured_or_org_missing" };
-      }
+    // 5. Dispatch in-app + email + Slack + SMS notification to agency owner
+    await step.run("dispatch-notification", async () => {
+      if (!org) return { ok: true, skipped: "org_missing" };
 
       const owner = await db.query.users.findFirst({
         where: eq(users.id, org.ownerId),
-        columns: { email: true, name: true },
+        columns: { id: true },
       });
 
       if (!owner) return { ok: true, skipped: "owner_not_found" };
 
-      const formattedAmount = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: currency.toUpperCase(),
-        minimumFractionDigits: 2,
-      }).format(amount / 100);
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-      const fromEmail =
-        process.env.ONBOARDING_FROM_EMAIL ??
-        process.env.INVITE_FROM_EMAIL ??
-        "onboarding@resend.dev";
-
-      const result = await resend.emails.send({
-        from: fromEmail,
-        to: owner.email,
-        subject: `Payment received — Invoice #${invoice.number}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; color: #111827;">
-            <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600;">Payment received 🎉</h2>
-            <p style="color: #6b7280; font-size: 14px; margin: 0 0 24px;">
-              Your client has paid Invoice #${invoice.number} via ${paymentMethod}.
-            </p>
-            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;">
-              <p style="margin: 0; font-size: 28px; font-weight: 700; color: #111827; letter-spacing: -0.5px;">
-                ${formattedAmount}
-              </p>
-              <p style="margin: 4px 0 0; font-size: 13px; color: #9ca3af;">
-                Invoice #${invoice.number} · ${paymentMethod}
-              </p>
-            </div>
-            <p style="font-size: 13px; color: #9ca3af;">
-              Funds will be transferred to your bank account within 2 business days.
-            </p>
-          </div>
-        `,
+      await dispatchNotification({
+        orgId: invoice.orgId,
+        recipientUserId: owner.id,
+        type: NOTIFICATION_EVENTS.INVOICE_PAID,
+        title: `Payment received — Invoice #${invoice.number}`,
+        body: `Your client paid Invoice #${invoice.number} via ${paymentMethod}.`,
+        actionUrl: `${appUrl}/invoices`,
+        actionLabel: "View invoices",
+        metadata: { invoiceNumber: invoice.number, paymentMethod, currency },
       });
-
-      if (result.error) {
-        // Don't throw — email failure should not retry the whole function
-        console.error(`[handlePaymentSucceeded] Resend error: ${result.error.message}`);
-      }
 
       return { ok: true };
     });

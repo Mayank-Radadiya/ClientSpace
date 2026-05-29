@@ -137,38 +137,77 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(), // Synced from auth.users via trigger
   name: text("name").notNull(),
   avatarUrl: text("avatar_url"),
+  phone: text("phone"),             // E.164 format e.g. +14155552671
+  smsOptedIn: boolean("sms_opted_in").default(false).notNull(), // Explicit SMS consent
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
 }).enableRLS();
 
 // Organizations
-export const organizations = pgTable("organizations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  logoUrl: text("logo_url"),
-  accentColor: text("accent_color").default("#3b82f6"),
-  plan: planEnum("plan").default("starter").notNull(),
-  ownerId: uuid("owner_id")
-    .references(() => users.id)
-    .notNull(),
-  nextInvoiceNumber: integer("next_invoice_number").default(1001).notNull(),
-  stripeCustomerId: text("stripe_customer_id"), // Phase 2
-  customDomain: text("custom_domain"), // Phase 2
-  whatsappEnabled: boolean("whatsapp_enabled").default(false), // Phase 2
-  aiSummariesOptIn: boolean("ai_summaries_opt_in").default(false), // Phase 2
-  // Stripe Connect
-  stripeAccountId: text("stripe_account_id"), // Connected Express account ID
-  stripeOnboardingComplete: boolean("stripe_onboarding_complete").default(false).notNull(),
-  stripeDefaultCurrency: text("stripe_default_currency").default("usd").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-}).enableRLS();
+export const organizations = pgTable(
+  "organizations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    logoUrl: text("logo_url"),
+    // ── White-label branding ───────────────────────────────────────────────────
+    logoMarkUrl: text("logo_mark_url"), // Square icon/mark version for favicon and small placements
+    accentColor: text("accent_color").default("#3b82f6"), // hex or oklch string
+    accentColorDark: text("accent_color_dark"), // Darker hover variant; auto-computed if null
+    brandName: text("brand_name"), // Portal display name — falls back to org.name
+    faviconUrl: text("favicon_url"), // Custom favicon URL
+    poweredByHidden: boolean("powered_by_hidden").default(false).notNull(), // true = enterprise: hides "Powered by ClientSpace"
+    // ── Custom email sending domain (Resend) ──────────────────────────────────
+    customEmailDomain: text("custom_email_domain"), // e.g. "acmecreative.com"
+    customEmailFromName: text("custom_email_from_name"), // e.g. "Acme Creative"
+    customEmailVerified: boolean("custom_email_verified").default(false).notNull(), // true once Resend verifies the domain
+    customEmailDomainId: text("custom_email_domain_id"), // Resend's domain ID for verify/delete calls
+    // ─────────────────────────────────────────────────────────────────────────
+    plan: planEnum("plan").default("starter").notNull(),
+    ownerId: uuid("owner_id")
+      .references(() => users.id)
+      .notNull(),
+    nextInvoiceNumber: integer("next_invoice_number").default(1001).notNull(),
+    stripeCustomerId: text("stripe_customer_id"), // Phase 2
+    // ── Custom Domain (White-label portal) ────────────────────────────────────
+    // Stored without protocol, lowercase. e.g. "portal.acmecreative.com"
+    customDomain: text("custom_domain"),
+    // true once Vercel confirms DNS has propagated
+    customDomainVerified: boolean("custom_domain_verified").default(false).notNull(),
+    // 'none' | 'pending' | 'verifying' | 'active' | 'error'
+    customDomainStatus: text("custom_domain_status").default("none").notNull(),
+    // Last error message from Vercel API — shown to user in settings
+    customDomainError: text("custom_domain_error"),
+    // When the domain was first submitted
+    customDomainAddedAt: timestamp("custom_domain_added_at", { withTimezone: true }),
+    // When DNS was confirmed active
+    customDomainVerifiedAt: timestamp("custom_domain_verified_at", { withTimezone: true }),
+    // ─────────────────────────────────────────────────────────────────────────
+    whatsappEnabled: boolean("whatsapp_enabled").default(false), // Phase 2
+    aiSummariesOptIn: boolean("ai_summaries_opt_in").default(false), // Phase 2
+    // Notification channels
+    // Security: slackWebhookUrl is NEVER returned in client-facing tRPC responses.
+    // Filter it out at the router layer before sending to the browser.
+    slackWebhookUrl: text("slack_webhook_url"), // Slack Incoming Webhook URL
+    // Stripe Connect
+    stripeAccountId: text("stripe_account_id"), // Connected Express account ID
+    stripeOnboardingComplete: boolean("stripe_onboarding_complete").default(false).notNull(),
+    stripeDefaultCurrency: text("stripe_default_currency").default("usd").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    // Two orgs cannot share the same custom domain. Index on lower(custom_domain)
+    // is enforced at DB level; we also validate in the tRPC layer.
+    index("organizations_custom_domain_idx").on(t.customDomain),
+  ],
+).enableRLS();
 
 // Org Memberships
 export const orgMemberships = pgTable(
@@ -536,16 +575,57 @@ export const notifications = pgTable(
     orgId: uuid("org_id")
       .references(() => organizations.id, { onDelete: "cascade" })
       .notNull(),
-    type: text("type").notNull(),
+    type: text("type").notNull(), // NotificationEventType e.g. 'invoice.paid'
     title: text("title").notNull(),
     body: text("body"),
+    actionUrl: text("action_url"),   // Deep link to the relevant resource
+    actionLabel: text("action_label"), // CTA label e.g. "View invoice"
     read: boolean("read").default(false).notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    // Which channel delivered this notification
+    channel: text("channel").notNull().default("in_app"), // 'in_app' | 'email' | 'slack' | 'sms'
+    // Delivery tracking — updated by the Inngest worker after dispatch
+    deliveryStatus: text("delivery_status").notNull().default("pending"), // 'pending' | 'delivered' | 'failed'
+    deliveryError: text("delivery_error"), // Populated on failure
+    // Channel-specific metadata e.g. { messageId: 'msg_123' } for Resend
+    metadata: jsonb("metadata"),
+    // Backwards-compat alias — kept for existing queries that reference 'link'
     link: text("link"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
   },
-  (t) => [index("notifications_user_idx").on(t.userId, t.read)],
+  (t) => [
+    // Primary in-app bell query: unread first, then recent
+    index("notifications_user_read_created_idx").on(t.userId, t.read, t.createdAt),
+    // Org-wide notification history (admin view)
+    index("notifications_org_type_created_idx").on(t.orgId, t.type, t.createdAt),
+    // Per-channel delivery audit
+    index("notifications_user_channel_created_idx").on(t.userId, t.channel, t.createdAt),
+  ],
+).enableRLS();
+
+// Notification Preferences — per-user, per-org channel opt-in/out matrix
+// preferences JSONB shape: Record<NotificationEventType, { in_app: boolean; email: boolean; slack: boolean; sms: boolean }>
+export const notificationPreferences = pgTable(
+  "notification_preferences",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull()
+      .unique(), // One row per user (across all orgs they belong to)
+    orgId: uuid("org_id")
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .notNull(),
+    preferences: jsonb("preferences").notNull().default({}),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("notif_prefs_user_org_idx").on(t.userId, t.orgId),
+  ],
 ).enableRLS();
 
 // Invitations
