@@ -20,7 +20,6 @@ const channelPreferenceSchema = z.object({
   in_app: z.boolean(),
   email:  z.boolean(),
   slack:  z.boolean(),
-  sms:    z.boolean(),
 });
 
 const preferencesMapSchema = z.record(z.string(), channelPreferenceSchema);
@@ -43,7 +42,7 @@ export const notificationsRouter = createTRPCRouter({
         columns: { preferences: true },
       });
 
-      const saved = (row?.preferences ?? {}) as Record<string, Partial<{ in_app: boolean; email: boolean; slack: boolean; sms: boolean }>>;
+      const saved = (row?.preferences ?? {}) as Record<string, Partial<{ in_app: boolean; email: boolean; slack: boolean }>>;
 
       // Merge saved overrides onto defaults for every known event type
       const merged = Object.fromEntries(
@@ -55,7 +54,6 @@ export const notificationsRouter = createTRPCRouter({
               in_app: override.in_app ?? defaults.in_app,
               email:  override.email  ?? defaults.email,
               slack:  override.slack  ?? defaults.slack,
-              sms:    override.sms    ?? defaults.sms,
             },
           ];
         }),

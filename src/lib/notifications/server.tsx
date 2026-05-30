@@ -6,7 +6,7 @@
 //   await dispatchNotification({ orgId, recipientUserId, type, title, body, ... });
 //
 // This function is intentionally thin — it fires a single Inngest event and
-// returns immediately. All channel fan-out (in-app, email, Slack, SMS) happens
+// returns immediately. All channel fan-out (in-app, email, Slack) happens
 // inside the processNotification Inngest worker, never on the originating request.
 
 import { render } from "@react-email/render";

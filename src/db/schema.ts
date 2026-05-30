@@ -138,7 +138,6 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   avatarUrl: text("avatar_url"),
   phone: text("phone"),             // E.164 format e.g. +14155552671
-  smsOptedIn: boolean("sms_opted_in").default(false).notNull(), // Explicit SMS consent
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -583,7 +582,7 @@ export const notifications = pgTable(
     read: boolean("read").default(false).notNull(),
     readAt: timestamp("read_at", { withTimezone: true }),
     // Which channel delivered this notification
-    channel: text("channel").notNull().default("in_app"), // 'in_app' | 'email' | 'slack' | 'sms'
+    channel: text("channel").notNull().default("in_app"), // 'in_app' | 'email' | 'slack'
     // Delivery tracking — updated by the Inngest worker after dispatch
     deliveryStatus: text("delivery_status").notNull().default("pending"), // 'pending' | 'delivered' | 'failed'
     deliveryError: text("delivery_error"), // Populated on failure
@@ -606,7 +605,7 @@ export const notifications = pgTable(
 ).enableRLS();
 
 // Notification Preferences — per-user, per-org channel opt-in/out matrix
-// preferences JSONB shape: Record<NotificationEventType, { in_app: boolean; email: boolean; slack: boolean; sms: boolean }>
+// preferences JSONB shape: Record<NotificationEventType, { in_app: boolean; email: boolean; slack: boolean }>
 export const notificationPreferences = pgTable(
   "notification_preferences",
   {

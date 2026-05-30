@@ -9,11 +9,10 @@
 //   - Grouped event matrix with channel toggle switches
 //   - Autosave on toggle (debounced 800ms) — no submit button needed
 //   - Slack integration: connect / test / disconnect webhook
-//   - SMS section: requires user phone + opt-in (shown greyed if no phone on file)
 //   - Accessible: aria-labels on all toggles, focus-visible ring
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, CheckCircle2, Loader2, Mail, MessageSquare, Slack, Smartphone } from "lucide-react";
+import { Bell, CheckCircle2, Loader2, Mail, MessageSquare, Slack } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,6 @@ import { cn } from "@/lib/utils";
 import {
   EVENT_LABELS,
   DEFAULT_PREFERENCES,
-  SMS_ELIGIBLE_EVENTS,
   type NotificationEventType,
   type ChannelPreference,
 } from "@/features/notifications/events";
@@ -45,7 +43,6 @@ const CHANNELS: { key: keyof ChannelPreference; label: string; Icon: React.Compo
   { key: "in_app", label: "In-app",  Icon: Bell },
   { key: "email",  label: "Email",   Icon: Mail },
   { key: "slack",  label: "Slack",   Icon: Slack },
-  { key: "sms",    label: "SMS",     Icon: Smartphone },
 ];
 
 // Group events by category for the matrix UI
@@ -149,7 +146,7 @@ export function NotificationPreferenceCentre({ initialPreferences, slackConnecte
             </div>
 
             {/* Channel header row */}
-            <div className="bg-muted/30 grid grid-cols-[1fr_repeat(4,_64px)] border-b px-5 py-2">
+            <div className="bg-muted/30 grid grid-cols-[1fr_repeat(3,_64px)] border-b px-5 py-2">
               <span className="text-muted-foreground text-xs font-medium">Event</span>
               {CHANNELS.map(({ key, label, Icon }) => (
                 <div key={key} className="flex flex-col items-center gap-0.5">
@@ -169,7 +166,7 @@ export function NotificationPreferenceCentre({ initialPreferences, slackConnecte
                 <div
                   key={type}
                   className={cn(
-                    "grid grid-cols-[1fr_repeat(4,_64px)] items-center px-5 py-3",
+                    "grid grid-cols-[1fr_repeat(3,_64px)] items-center px-5 py-3",
                     !isLast && "border-b",
                   )}
                 >
@@ -179,19 +176,13 @@ export function NotificationPreferenceCentre({ initialPreferences, slackConnecte
                   </div>
 
                   {CHANNELS.map(({ key }) => {
-                    const isSmsChannel = key === "sms";
-                    const isSmsEligible = SMS_ELIGIBLE_EVENTS.has(type);
-                    const isDisabled = isSmsChannel && !isSmsEligible;
-
                     return (
                       <div key={key} className="flex items-center justify-center">
                         <Switch
                           id={`pref-${type}-${key}`}
                           checked={current[key]}
-                          disabled={isDisabled}
                           onCheckedChange={(val) => handleToggle(type, key, val)}
                           aria-label={`${meta.label} via ${key}`}
-                          className={isDisabled ? "opacity-30 cursor-not-allowed" : ""}
                         />
                       </div>
                     );
@@ -283,30 +274,6 @@ export function NotificationPreferenceCentre({ initialPreferences, slackConnecte
         </div>
       </div>
 
-      {/* ─── SMS Section ───────────────────────────────────────────────────── */}
-      <div className="rounded-xl border">
-        <div className="border-b px-5 py-4">
-          <div className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4" />
-            <h2 className="text-sm font-semibold">SMS notifications</h2>
-            <Badge variant="outline" className="ml-auto text-[10px]">High-priority only</Badge>
-          </div>
-          <p className="text-muted-foreground mt-1 text-xs">
-            SMS is only sent for high-priority events (overdue invoices, missed milestones, critical project health).
-            Maximum 5 SMS per hour. Messages contain the event title only — no financial amounts or contract details.
-          </p>
-        </div>
-
-        <div className="px-5 py-4">
-          <p className="text-muted-foreground text-sm">
-            To enable SMS, add your phone number in{" "}
-            <a href="/settings" className="text-primary underline underline-offset-2">
-              Account settings
-            </a>{" "}
-            and opt in to SMS communications.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

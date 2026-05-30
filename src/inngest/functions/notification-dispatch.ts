@@ -1,6 +1,6 @@
 // src/inngest/functions/notification-dispatch.ts
 // Unified notification worker — fans out every notifications/dispatch event
-// to in-app, email, Slack, and SMS channels in parallel.
+// to in-app, email, and Slack channels in parallel.
 //
 // Architecture:
 //   1. resolve-preferences   → load user prefs, merge with DEFAULT_PREFERENCES
@@ -8,20 +8,14 @@
 //   3. fan-out               → Promise.allSettled over enabled channels
 //      a. email              → Resend (React Email template)
 //      b. slack              → Slack Incoming Webhook (Block Kit)
-//      c. sms                → Twilio REST (E.164, Redis rate-limit, 5/hr)
 //   4. mark-delivered        → update deliveryStatus in notifications row
 //
 // Security rules (enforced inside worker, not at dispatch site):
 //   - Slack payloads: title + actionUrl ONLY — no PII, no financial amounts
-//   - SMS: only SMS_ELIGIBLE_EVENTS, requires user.phone + smsOptedIn = true
-//   - SMS rate limit: 5/hr per userId via Upstash Redis
 //   - slackWebhookUrl read from organizations.slackWebhookUrl (server-only)
 
 import { eq, and } from "drizzle-orm";
 import { Resend } from "resend";
-import { Redis } from "@upstash/redis";
-import { render } from "@react-email/render";
-import { createElement } from "react";
 import { db } from "@/db";
 import {
   notifications,
@@ -32,7 +26,6 @@ import {
 import { inngest } from "@/inngest/client";
 import {
   DEFAULT_PREFERENCES,
-  SMS_ELIGIBLE_EVENTS,
   type NotificationEventType,
   type ChannelPreference,
 } from "@/features/notifications/events";
@@ -113,25 +106,9 @@ function buildSlackBlocks(payload: NotificationPayload) {
   return { blocks };
 }
 
-// ─── SMS rate limiter via Upstash Redis ──────────────────────────────────────
-// Returns true if within limit (and increments), false if rate limited.
-async function checkAndIncrementSmsLimit(redis: Redis, userId: string): Promise<boolean> {
-  const key = `sms:ratelimit:${userId}`;
-  const current = await redis.incr(key);
-  if (current === 1) {
-    // First SMS this window — set TTL to 1 hour
-    await redis.expire(key, 3600);
-  }
-  return current <= 5; // Max 5 SMS per hour
-}
-
 // ─── Inngest worker ───────────────────────────────────────────────────────────
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
 
 export const processNotification = inngest.createFunction(
   {
@@ -152,7 +129,7 @@ export const processNotification = inngest.createFunction(
       const [userRow, orgRow, prefRow] = await Promise.all([
         db.query.users.findFirst({
           where: eq(users.id, recipientUserId),
-          columns: { id: true, email: true, name: true, phone: true, smsOptedIn: true },
+          columns: { id: true, email: true, name: true, phone: true },
         }),
         db.query.organizations.findFirst({
           where: eq(organizations.id, orgId),
@@ -175,13 +152,11 @@ export const processNotification = inngest.createFunction(
         in_app: true,
         email: true,
         slack: false,
-        sms: false,
       };
       const effectivePrefs: ChannelPreference = {
         in_app: savedPrefs[type]?.in_app ?? defaults.in_app,
         email:  savedPrefs[type]?.email  ?? defaults.email,
         slack:  savedPrefs[type]?.slack  ?? defaults.slack,
-        sms:    savedPrefs[type]?.sms    ?? defaults.sms,
       };
 
       return {
@@ -305,68 +280,7 @@ export const processNotification = inngest.createFunction(
         );
       }
 
-      // ─ SMS ─────────────────────────────────────────────────────────────────
-      // Security: Only fires for SMS_ELIGIBLE_EVENTS, requires explicit opt-in.
-      // Rate limit: 5 SMS per user per hour via Upstash Redis.
-      // Content: title only (≤160 chars), no financial amounts or PII.
-      const smsEventType = type as NotificationEventType;
-      if (
-        prefs.sms &&
-        user.phone &&
-        user.smsOptedIn &&
-        SMS_ELIGIBLE_EVENTS.has(smsEventType) &&
-        process.env.TWILIO_ACCOUNT_SID &&
-        process.env.TWILIO_AUTH_TOKEN &&
-        process.env.TWILIO_PHONE_NUMBER
-      ) {
-        tasks.push(
-          (async () => {
-            try {
-              const allowed = await checkAndIncrementSmsLimit(redis, recipientUserId);
-              if (!allowed) {
-                return { channel: "sms", ok: true }; // Silently skip — rate limited
-              }
 
-              // Content: title only, truncated to 160 chars, no financial data
-              const smsBody = payload.title.slice(0, 160);
-
-              const params = new URLSearchParams({
-                To:   user.phone!,
-                From: process.env.TWILIO_PHONE_NUMBER!,
-                Body: smsBody,
-              });
-
-              const res = await fetch(
-                `https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: `Basic ${Buffer.from(
-                      `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`,
-                    ).toString("base64")}`,
-                  },
-                  body: params.toString(),
-                },
-              );
-
-              if (!res.ok) {
-                const errData = await res.json().catch(() => ({})) as { message?: string };
-                return {
-                  channel: "sms",
-                  ok: false,
-                  error: errData.message ?? `Twilio HTTP ${res.status}`,
-                };
-              }
-
-              return { channel: "sms", ok: true };
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
-              return { channel: "sms", ok: false, error: msg };
-            }
-          })(),
-        );
-      }
 
       // Collect results — don't let one channel failure block others
       const results = await Promise.allSettled(tasks);

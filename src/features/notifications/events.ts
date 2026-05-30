@@ -35,44 +35,31 @@ export const NOTIFICATION_EVENTS = {
 export type NotificationEventType =
   (typeof NOTIFICATION_EVENTS)[keyof typeof NOTIFICATION_EVENTS];
 
-// ─── Channel preferences per event type ──────────────────────────────────────
 // Defines which channels are ON by default when a user has no saved preference.
-// SMS is opt-in only and restricted to high-priority events.
 
 export interface ChannelPreference {
   in_app: boolean;
   email:  boolean;
   slack:  boolean;
-  sms:    boolean;
 }
 
 export const DEFAULT_PREFERENCES: Record<NotificationEventType, ChannelPreference> = {
-  "invoice.paid":            { in_app: true,  email: true,  slack: true,  sms: false },
-  "invoice.overdue":         { in_app: true,  email: true,  slack: true,  sms: true  },
-  "invoice.sent":            { in_app: true,  email: true,  slack: false, sms: false },
-  "asset.approved":          { in_app: true,  email: true,  slack: false, sms: false },
-  "asset.changes_requested": { in_app: true,  email: true,  slack: true,  sms: false },
-  "asset.uploaded":          { in_app: true,  email: false, slack: true,  sms: false },
-  "comment.added":           { in_app: true,  email: false, slack: true,  sms: false },
-  "annotation.resolved":     { in_app: true,  email: false, slack: false, sms: false },
-  "milestone.completed":     { in_app: true,  email: false, slack: true,  sms: false },
-  "milestone.overdue":       { in_app: true,  email: true,  slack: true,  sms: true  },
-  "contract.signed":         { in_app: true,  email: true,  slack: true,  sms: false },
-  "contract.sent":           { in_app: true,  email: true,  slack: false, sms: false },
-  "project.health_critical": { in_app: true,  email: true,  slack: true,  sms: true  },
-  "member.invited":          { in_app: true,  email: true,  slack: false, sms: false },
-  "client.portal_viewed":    { in_app: true,  email: false, slack: false, sms: false },
+  "invoice.paid":            { in_app: true,  email: true,  slack: true },
+  "invoice.overdue":         { in_app: true,  email: true,  slack: true },
+  "invoice.sent":            { in_app: true,  email: true,  slack: false },
+  "asset.approved":          { in_app: true,  email: true,  slack: false },
+  "asset.changes_requested": { in_app: true,  email: true,  slack: true },
+  "asset.uploaded":          { in_app: true,  email: false, slack: true },
+  "comment.added":           { in_app: true,  email: false, slack: true },
+  "annotation.resolved":     { in_app: true,  email: false, slack: false },
+  "milestone.completed":     { in_app: true,  email: false, slack: true },
+  "milestone.overdue":       { in_app: true,  email: true,  slack: true },
+  "contract.signed":         { in_app: true,  email: true,  slack: true },
+  "contract.sent":           { in_app: true,  email: true,  slack: false },
+  "project.health_critical": { in_app: true,  email: true,  slack: true },
+  "member.invited":          { in_app: true,  email: true,  slack: false },
+  "client.portal_viewed":    { in_app: true,  email: false, slack: false },
 };
-
-// ─── Events eligible for SMS (high-priority only) ─────────────────────────────
-// Only these event types will ever trigger an SMS, regardless of preferences.
-// Enforced in the Inngest worker before calling Twilio.
-export const SMS_ELIGIBLE_EVENTS = new Set<NotificationEventType>([
-  NOTIFICATION_EVENTS.INVOICE_PAID,
-  NOTIFICATION_EVENTS.INVOICE_OVERDUE,
-  NOTIFICATION_EVENTS.MILESTONE_OVERDUE,
-  NOTIFICATION_EVENTS.PROJECT_HEALTH_CRITICAL,
-]);
 
 // ─── Human-readable labels for the preference centre UI ──────────────────────
 

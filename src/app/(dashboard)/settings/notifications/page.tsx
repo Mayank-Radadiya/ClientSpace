@@ -1,6 +1,6 @@
 // src/app/(dashboard)/settings/notifications/page.tsx
 // Notification preference centre — lets users control which channels receive
-// which notification types. Supports in-app, email, Slack, and SMS.
+// which notification types. Supports in-app, email, and Slack.
 
 import { redirect } from "next/navigation";
 import { getServerCaller } from "@/lib/trpc/server";

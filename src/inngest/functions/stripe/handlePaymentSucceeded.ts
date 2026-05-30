@@ -83,7 +83,7 @@ export const handlePaymentSucceeded = inngest.createFunction(
     });
 
 
-    // 5. Dispatch in-app + email + Slack + SMS notification to agency owner
+    // 5. Dispatch in-app + email + Slack notification to agency owner
     await step.run("dispatch-notification", async () => {
       if (!org) return { ok: true, skipped: "org_missing" };
 

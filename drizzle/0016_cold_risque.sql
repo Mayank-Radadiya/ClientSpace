@@ -1,0 +1,1 @@
+ALTER TABLE "users" DROP COLUMN "sms_opted_in";
