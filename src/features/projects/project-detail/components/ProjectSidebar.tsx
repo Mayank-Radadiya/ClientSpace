@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { Project, ProjectMember } from "../types";
+import { trpc } from "@/lib/trpc/client";
 import { ProjectPermissions } from "../hooks/useProjectPermissions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -53,37 +54,12 @@ export function ProjectSidebar({
     : "No client assigned";
   const clientEmail = project.client?.email;
 
-  // Mock activity feed for the UI redesign
-  const mockActivities = [
-    {
-      id: 1,
-      user: "You",
-      action: "changed status to In Progress",
-      time: "2h ago",
-      initials: "Y",
-    },
-    {
-      id: 2,
-      user: "Alex R.",
-      action: "uploaded Phase 1 Assets.zip",
-      time: "5h ago",
-      initials: "AR",
-    },
-    {
-      id: 3,
-      user: "Sam T.",
-      action: "completed milestone 'Design Approvals'",
-      time: "1d ago",
-      initials: "ST",
-    },
-    {
-      id: 4,
-      user: "You",
-      action: "created the project",
-      time: "3d ago",
-      initials: "Y",
-    },
-  ];
+  // Real activity feed via tRPC
+  const { data: activityData } = trpc.activity.byProject.useQuery(
+    { projectId: project.id, limit: 4 },
+    { staleTime: 30_000 },
+  );
+  const recentActivity = activityData?.items ?? [];
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -232,32 +208,56 @@ export function ProjectSidebar({
           </h3>
         </div>
         <div className="flex flex-col gap-4 p-4">
-          <div className="before:via-border/50 relative before:absolute before:inset-0 before:ml-3.5 before:h-full before:w-0.5 before:-translate-x-px before:bg-linear-to-b before:from-transparent before:to-transparent md:before:mx-auto md:before:translate-x-0">
-            {mockActivities.map((act, i) => (
-              <div
-                key={act.id}
-                className={`group is-active relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse ${i !== 0 ? "mt-4" : ""}`}
-              >
-                <div className="border-background bg-muted text-muted-foreground z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold shadow-sm md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                  {act.initials}
-                </div>
-                <div className="border-border/50 bg-card flex w-[calc(100%-2.5rem)] flex-col rounded border p-3 pt-2 pb-2.5 shadow-sm md:w-[calc(50%-1.5rem)]">
-                  <span className="text-foreground text-[13px] leading-tight">
-                    <span className="text-card-foreground font-semibold">
-                      {act.user}
-                    </span>{" "}
-                    {act.action}
-                  </span>
-                  <span className="text-muted-foreground mt-1 text-[11px]">
-                    {act.time}
-                  </span>
-                </div>
+          {recentActivity.length > 0 ? (
+            <>
+              <div className="before:via-border/50 relative before:absolute before:inset-0 before:ml-3.5 before:h-full before:w-0.5 before:-translate-x-px before:bg-linear-to-b before:from-transparent before:to-transparent md:before:mx-auto md:before:translate-x-0">
+                {recentActivity.map((act, i) => {
+                  const actorName = act.actor?.name ?? "System";
+                  const initials = actorName
+                    .split(" ")
+                    .map((w: string) => w[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2);
+                  const description =
+                    (act.metadata as Record<string, string>)?.description ||
+                    act.eventType.replace(/\./g, " ");
+                  const timeAgo = formatDistanceToNow(new Date(act.createdAt), {
+                    addSuffix: true,
+                  });
+
+                  return (
+                    <div
+                      key={act.id}
+                      className={`group is-active relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse ${i !== 0 ? "mt-4" : ""}`}
+                    >
+                      <div className="border-background bg-muted text-muted-foreground z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold shadow-sm md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                        {initials}
+                      </div>
+                      <div className="border-border/50 bg-card flex w-[calc(100%-2.5rem)] flex-col rounded border p-3 pt-2 pb-2.5 shadow-sm md:w-[calc(50%-1.5rem)]">
+                        <span className="text-foreground text-[13px] leading-tight">
+                          <span className="text-card-foreground font-semibold">
+                            {actorName}
+                          </span>{" "}
+                          {description}
+                        </span>
+                        <span className="text-muted-foreground mt-1 text-[11px]">
+                          {timeAgo}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-          <button className="mt-2 w-full rounded-lg bg-indigo-500/10 py-2 text-center text-[13px] font-medium text-indigo-500 transition-colors hover:bg-indigo-500/20 hover:text-indigo-400">
-            View all activity
-          </button>
+              <button className="mt-2 w-full rounded-lg bg-indigo-500/10 py-2 text-center text-[13px] font-medium text-indigo-500 transition-colors hover:bg-indigo-500/20 hover:text-indigo-400">
+                View all activity
+              </button>
+            </>
+          ) : (
+            <p className="text-muted-foreground py-4 text-center text-[13px]">
+              No recent activity
+            </p>
+          )}
         </div>
       </div>
 

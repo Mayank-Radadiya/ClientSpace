@@ -9,7 +9,6 @@
 //   - signerIp read from x-forwarded-for header (set by Vercel/reverse proxy)
 //   - signatureHash is SHA-256 integrity proof ONLY — not a legal signature
 //     (see ESIGN Act / eIDAS for jurisdiction-specific requirements)
-//   - TODO (GDPR production): Hash signerIp before storing
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -77,10 +76,8 @@ export async function signContractAction(input: SignContractInput): Promise<void
 
   // ── Step 2: Read request metadata ───────────────────────────────────────
   const headersList = await headers();
-  // TODO (GDPR production): Hash signerIp with SHA-256 before storing:
-  //   const rawIp = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
-  //   const signerIp = rawIp ? createHash("sha256").update(rawIp).digest("hex") : null;
-  const signerIp = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const rawIp = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const signerIp = rawIp ? createHash("sha256").update(rawIp).digest("hex") : null;
   const signerUserAgent = headersList.get("user-agent") ?? null;
 
   // ── Step 3: Upload signature image (draw mode only) ────────────────────

@@ -11,11 +11,18 @@ import { motion } from "framer-motion";
 import { KeyRound, Loader, Lock, ArrowLeft } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 
+type PasswordActionState = {
+  error?: string;
+  fieldErrors?: {
+    password?: string[];
+    confirmPassword?: string[];
+  };
+};
+
 export function UpdatePasswordForm() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [state, formAction] = useActionState<any, FormData>(
-    updatePasswordAction,
-    {},
+  const [state, formAction] = useActionState(
+    updatePasswordAction as (...args: unknown[]) => Promise<PasswordActionState>,
+    {} as PasswordActionState,
   );
   const { pending } = useFormStatus();
   return (
@@ -86,8 +93,6 @@ export function UpdatePasswordForm() {
           }}
           className="mt-8 w-full"
         >
-          {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-          {/* @ts-ignore */}
           <form action={formAction} className="space-y-5">
             <div className="space-y-1.5">
               <Label

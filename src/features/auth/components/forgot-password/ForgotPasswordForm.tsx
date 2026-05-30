@@ -11,6 +11,14 @@ import { motion } from "framer-motion";
 import { ArrowLeft, KeyRound, Loader, Mail } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 
+type ResetPasswordActionState = {
+  error?: string;
+  success?: boolean;
+  fieldErrors?: {
+    email?: string[];
+  };
+};
+
 function SubmitButton() {
   const { pending } = useFormStatus();
 
@@ -33,10 +41,9 @@ function SubmitButton() {
 }
 
 export function ForgotPasswordForm() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [state, formAction] = useActionState<any, FormData>(
-    resetPasswordAction,
-    {},
+  const [state, formAction] = useActionState(
+    resetPasswordAction as (...args: unknown[]) => Promise<ResetPasswordActionState>,
+    {} as ResetPasswordActionState,
   );
 
   return (
@@ -107,8 +114,6 @@ export function ForgotPasswordForm() {
           }}
           className="mt-8 w-full"
         >
-          {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-          {/* @ts-ignore */}
           <form action={formAction} className="space-y-5">
             <div className="space-y-1.5">
               <Label

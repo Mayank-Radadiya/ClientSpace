@@ -14,11 +14,25 @@ import { TRPCProvider } from "@/lib/trpc/provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export async function generateMetadata(): Promise<Metadata> {
-  // TODO Phase 2: Replace with actual plan check from org session context.
-  // const { orgId } = await getSessionContext();
-  // const org = await db.query.organizations.findFirst(...);
-  // const isStarter = org?.planTier === "starter";
-  const isStarter = true;
+  // Determine plan tier from session context (defaults to starter for unauthenticated pages)
+  let isStarter = true;
+  try {
+    const { getSessionContext } = await import("@/lib/auth/session");
+    const session = await getSessionContext();
+    if (session?.orgId) {
+      const { createDrizzleClient } = await import("@/db/createDrizzleClient");
+      const { organizations } = await import("@/db/schema");
+      const { eq } = await import("drizzle-orm");
+      const db = await createDrizzleClient();
+      const org = await db.query.organizations.findFirst({
+        where: eq(organizations.id, session.orgId),
+        columns: { plan: true },
+      });
+      isStarter = !org?.plan || org.plan === "starter";
+    }
+  } catch {
+    // Unauthenticated pages — default to starter behavior
+  }
 
   const base =
     "Manage your client projects, invoices, and file approvals - all in one place.";

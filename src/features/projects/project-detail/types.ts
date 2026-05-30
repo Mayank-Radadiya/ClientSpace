@@ -115,3 +115,13 @@ export interface SubTask {
 }
 
 export type ActiveSection = "milestones" | "files" | "invoices" | "activity";
+
+export interface ActivityEntry {
+  id: string;
+  eventType: string;
+  description: string;
+  actor: string;
+  timestamp: string;
+  category: "project" | "milestone" | "invoice" | "file" | "status";
+  color: "blue" | "green" | "amber" | "red" | "gray";
+}

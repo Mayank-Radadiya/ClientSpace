@@ -47,7 +47,7 @@ import { MilestonesKanban } from "./components/v3/MilestonesKanban";
 import { FilesAssetsTab } from "./components/v3/FilesAssetsTab";
 import { InvoicesDetailTab } from "./components/v3/InvoicesDetailTab";
 import { ActivityLogTab } from "./components/v3/ActivityLogTab";
-import { SAMPLE_ACTIVITY, type ActivityEntry } from "./components/v3/sampleData";
+import type { ActivityEntry } from "./types";
 
 // Zone 6 — Right panel + overlays
 import { ProjectRightPanel } from "./components/v3/ProjectRightPanel";
@@ -189,26 +189,23 @@ export function ProjectDetailPage({
   const isClient = renderRole === "client";
 
   // ── Transform activity data to v3 format ──────────────────
-  const activityEntries: ActivityEntry[] =
-    initialActivity.length > 0
-      ? initialActivity.map((a) => ({
-          id: a.id,
-          eventType: a.eventType,
-          description:
-            (a.metadata as Record<string, string>)?.description ||
-            a.eventType.replace(/\./g, " "),
-          actor: a.actor?.name || "System",
-          timestamp: a.createdAt,
-          category: (a.eventType.split(".")[0] || "project") as ActivityEntry["category"],
-          color: (a.eventType.includes("complete")
-            ? "green"
-            : a.eventType.includes("overdue")
-              ? "red"
-              : a.eventType.includes("warning")
-                ? "amber"
-                : "blue") as ActivityEntry["color"],
-        }))
-      : SAMPLE_ACTIVITY;
+  const activityEntries: ActivityEntry[] = initialActivity.map((a) => ({
+    id: a.id,
+    eventType: a.eventType,
+    description:
+      (a.metadata as Record<string, string>)?.description ||
+      a.eventType.replace(/\./g, " "),
+    actor: a.actor?.name || "System",
+    timestamp: a.createdAt,
+    category: (a.eventType.split(".")[0] || "project") as ActivityEntry["category"],
+    color: (a.eventType.includes("complete")
+      ? "green"
+      : a.eventType.includes("overdue")
+        ? "red"
+        : a.eventType.includes("warning")
+          ? "amber"
+          : "blue") as ActivityEntry["color"],
+  }));
 
   // ── Handlers ──────────────────────────────────────────────
   const handleEdit = () => gooeyToast.success("Edit mode");

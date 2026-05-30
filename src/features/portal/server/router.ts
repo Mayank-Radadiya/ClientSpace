@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { pool } from "@/db/pool";
 import { stripe } from "@/lib/stripe/server";
 import { inngest } from "@/inngest/client";
+import type { CommentMetadata } from "@/features/comments/types";
 import {
   activityLogs,
   assets,
@@ -408,7 +409,7 @@ export const portalRouter = createTRPCRouter({
                   : [];
               const roleByUserId = new Map(memberships.map((m) => [m.userId, m.role]));
 
-              const formatUser = (u: any, id: string) => ({
+              const formatUser = (u: { id: string; name: string | null; avatarUrl: string | null; email: string | null }, id: string) => ({
                 ...u,
                 role: roleByUserId.get(id) ?? null,
               });
@@ -423,8 +424,8 @@ export const portalRouter = createTRPCRouter({
               }));
 
               sortedAnnotations.sort((a, b) => {
-                const pinA = (a.metadata as any)?.pinNumber ?? 0;
-                const pinB = (b.metadata as any)?.pinNumber ?? 0;
+                const pinA = (a.metadata as CommentMetadata)?.pinNumber ?? 0;
+                const pinB = (b.metadata as CommentMetadata)?.pinNumber ?? 0;
                 return pinA - pinB;
               });
 

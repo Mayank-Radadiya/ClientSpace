@@ -30,6 +30,7 @@ import { projectSchema, type ProjectInput } from "../../schemas";
 import { ACTIVE_STATUS_OPTIONS, PRIORITY_OPTIONS } from "./project.constants";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import type { Resolver } from "react-hook-form";
 
 type Client = { id: string; companyName: string | null; email: string };
 
@@ -76,7 +77,7 @@ export function CreateProjectForm({
     clearErrors,
     setFocus,
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       name: "",
       description: "",
@@ -84,7 +85,7 @@ export function CreateProjectForm({
       status: "not_started",
       priority: "medium",
       startDate: null,
-      deadline: undefined as any,
+      deadline: undefined as unknown as Date,
       budget: null,
       tags: [],
       tagsInput: "",
@@ -207,7 +208,7 @@ export function CreateProjectForm({
       // Skip root errors (they don't have fields)
       if (firstErrorField !== "root") {
         // Focus the field
-        setFocus(firstErrorField as any);
+        setFocus(firstErrorField as keyof FormValues);
       }
     }
   }, [errors, isSubmitting, setFocus]);
@@ -397,7 +398,7 @@ export function CreateProjectForm({
             <Select
               value={status || "not_started"}
               onValueChange={(value) => {
-                setValue("status", value as any, { shouldValidate: true });
+                setValue("status", value as FormValues["status"], { shouldValidate: true });
                 handleFieldChange("status");
               }}
               disabled={isSubmitting}
@@ -433,7 +434,7 @@ export function CreateProjectForm({
             <Select
               value={priority || "medium"}
               onValueChange={(value) => {
-                setValue("priority", value as any, { shouldValidate: true });
+                setValue("priority", value as FormValues["priority"], { shouldValidate: true });
                 handleFieldChange("priority");
               }}
               disabled={isSubmitting}

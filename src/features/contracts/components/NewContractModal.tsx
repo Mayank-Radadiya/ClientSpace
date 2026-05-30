@@ -37,8 +37,8 @@ export function NewContractModal({ open, onOpenChange }: NewContractModalProps) 
   );
 
   // Filter projects by selected client
-  const filteredProjects = (projectsData as any)?.projects?.filter(
-    (p: any) => p.clientId === clientId,
+  const filteredProjects = projectsData?.items?.filter(
+    (p) => p.clientId === clientId,
   ) ?? [];
 
   const createMutation = trpc.contracts.create.useMutation({
@@ -99,7 +99,7 @@ export function NewContractModal({ open, onOpenChange }: NewContractModalProps) 
               <option value="">Select a client…</option>
               {clientsData?.clients?.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {(c as any).companyName ?? (c as any).contactName ?? (c as any).email}
+                  {c.companyName ?? c.contactName ?? c.email}
                 </option>
               ))}
             </select>
@@ -120,7 +120,7 @@ export function NewContractModal({ open, onOpenChange }: NewContractModalProps) 
                 )}
               >
                 <option value="">No project (standalone)</option>
-                {filteredProjects.map((p: any) => (
+                {filteredProjects.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>

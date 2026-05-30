@@ -771,8 +771,7 @@ export const contracts = pgTable(
     // This is an INTEGRITY PROOF, not a legal signature.
     // E-sign legality depends on jurisdiction (ESIGN Act, eIDAS, etc.).
     signatureHash: text("signature_hash"),
-    // TODO (GDPR production): Hash signerIp with SHA-256 before storing.
-    // Raw IP is stored here for development/audit purposes only.
+    // Stores SHA-256 hash of signer IP (GDPR compliant — raw IP is never persisted).
     signerIp: text("signer_ip"),        // AGENCY-ONLY — never expose in client-facing UI
     signerUserAgent: text("signer_user_agent"),
     // ── Timestamps ──────────────────────────────────────────────────────────────

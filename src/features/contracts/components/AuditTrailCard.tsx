@@ -4,8 +4,8 @@
 // Agency-only audit trail card shown on the contract detail page after signing.
 //
 // Security: signerIp is only shown to agency users (this component is in the
-// dashboard, never on the public signing page). signerIp should be hashed
-// with SHA-256 in production for GDPR compliance — see TODO in schema.ts.
+// dashboard, never on the public signing page). signerIp is stored as a
+// SHA-256 hash for GDPR compliance (see signContract.ts).
 //
 // LEGAL DISCLAIMER: The signatureHash is an integrity proof only.
 // It demonstrates that the signed data has not been tampered with after signing.

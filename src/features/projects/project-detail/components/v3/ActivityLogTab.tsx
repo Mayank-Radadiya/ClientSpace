@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { ActivityEntry } from "./sampleData";
+import type { ActivityEntry } from "../../types";
 
 type Category = "all" | "milestone" | "invoice" | "file" | "status" | "project";
 

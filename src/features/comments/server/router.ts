@@ -5,6 +5,7 @@ import { withRLS } from "@/db/createDrizzleClient";
 import { comments, orgMemberships, assets, users } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
 import { createClient } from "@/lib/supabase/server";
+import type { CommentMetadata } from "@/features/comments/types";
 
 export const commentsRouter = createTRPCRouter({
   byAssetId: protectedProcedure
@@ -264,7 +265,7 @@ export const commentsRouter = createTRPCRouter({
         }
 
         const updatedMetadata = comment.metadata
-          ? { ...(comment.metadata as any), resolved: true }
+          ? { ...(comment.metadata as CommentMetadata), resolved: true }
           : null;
 
         await tx
@@ -351,7 +352,7 @@ export const commentsRouter = createTRPCRouter({
             : [];
         const roleByUserId = new Map(memberships.map((m) => [m.userId, m.role]));
 
-        const formatUser = (u: any, id: string) => ({
+        const formatUser = (u: { id: string; name: string | null; avatarUrl: string | null; email: string | null }, id: string) => ({
           ...u,
           role: roleByUserId.get(id) ?? null,
         });
@@ -367,8 +368,8 @@ export const commentsRouter = createTRPCRouter({
 
         // Sort by pinNumber inside metadata
         sortedRows.sort((a, b) => {
-          const pinA = (a.metadata as any)?.pinNumber ?? 0;
-          const pinB = (b.metadata as any)?.pinNumber ?? 0;
+          const pinA = (a.metadata as CommentMetadata)?.pinNumber ?? 0;
+          const pinB = (b.metadata as CommentMetadata)?.pinNumber ?? 0;
           return pinA - pinB;
         });
 
