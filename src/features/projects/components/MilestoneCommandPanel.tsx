@@ -79,7 +79,7 @@ export function MilestoneCommandPanel({
     if (!milestone || !newSubTask.trim()) return;
     const next: SubTask[] = [
       ...milestone.subTasks,
-      { id: crypto.randomUUID(), label: newSubTask.trim(), completed: false },
+      { id: crypto.randomUUID(), title: newSubTask.trim(), completed: false },
     ];
     updateSubTasks(milestone.id, next);
     setNewSubTask("");
@@ -265,7 +265,7 @@ export function MilestoneCommandPanel({
                       checked={st.completed}
                       onChange={() => handleToggleSubTask(st.id)}
                       className="h-3.5 w-3.5 accent-primary"
-                      aria-label={`Sub-task: ${st.label}`}
+                      aria-label={`Sub-task: ${st.title}`}
                     />
                     <span
                       className={cn(
@@ -273,12 +273,12 @@ export function MilestoneCommandPanel({
                         st.completed && "line-through text-muted-foreground",
                       )}
                     >
-                      {st.label}
+                      {st.title}
                     </span>
                     <button
                       onClick={() => handleDeleteSubTask(st.id)}
                       className="hidden text-muted-foreground hover:text-red-500 group-hover:block focus-visible:block focus-visible:outline-none"
-                      aria-label={`Delete sub-task ${st.label}`}
+                      aria-label={`Delete sub-task ${st.title}`}
                     >
                       <X size={12} />
                     </button>

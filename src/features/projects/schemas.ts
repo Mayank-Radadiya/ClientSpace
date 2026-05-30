@@ -99,10 +99,10 @@ export const subTaskSchema = z.object({
   id: z
     .string()
     .describe("Client-generated ID for the sub-task"),
-  label: z
+  title: z
     .string()
-    .min(1, "Sub-task label cannot be empty")
-    .max(500, "Sub-task label must be 500 characters or less")
+    .min(1, "Sub-task title cannot be empty")
+    .max(500, "Sub-task title must be 500 characters or less")
     .describe("Short description of the sub-task"),
   completed: z
     .boolean()

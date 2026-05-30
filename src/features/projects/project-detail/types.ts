@@ -40,6 +40,8 @@ export interface Milestone {
   priority?: "low" | "medium" | "high";
   status?: "todo" | "in_progress" | "done";
   assignee?: { id: string; name: string; avatar_url: string | null };
+  // FIX: sub_tasks field was missing from type — persisted via updateSubTasks mutation
+  sub_tasks?: SubTask[];
 }
 
 export interface ProjectMember {

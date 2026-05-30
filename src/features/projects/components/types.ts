@@ -13,7 +13,7 @@ export type SaveStatus = "idle" | "saving" | "saved";
 /** Sub-task stored in milestones.sub_tasks JSONB column. */
 export interface SubTask {
   id: string;
-  label: string;
+  title: string;
   completed: boolean;
 }
 

@@ -15,6 +15,7 @@ import {
   User,
 } from "lucide-react";
 import type { Milestone, SubTask } from "../../types";
+import { trpc } from "@/lib/trpc/client";
 
 /* ── Status Segmented Control ─────────────────────────────── */
 const STATUSES = [
@@ -68,7 +69,11 @@ export function MilestoneCommandPanel({
   const [priority, setPriority] = useState("medium");
   const [subTasks, setSubTasks] = useState<SubTask[]>([]);
   const [newSubTask, setNewSubTask] = useState("");
+  const [subTasksDirty, setSubTasksDirty] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
+
+  // FIX: subtask mutation for persistence
+  const updateSubTasksMut = trpc.milestones.updateSubTasks.useMutation();
 
   // Populate from milestone data
   useEffect(() => {
@@ -83,6 +88,7 @@ export function MilestoneCommandPanel({
       setSubTasks(
         (milestone as Milestone & { sub_tasks?: SubTask[] }).sub_tasks ?? [],
       );
+      setSubTasksDirty(false);
     }
   }, [milestone]);
 
@@ -112,8 +118,12 @@ export function MilestoneCommandPanel({
       completed: status === "done",
       completed_at: status === "done" ? new Date().toISOString() : null,
     });
+    // FIX: Persist subtask changes to the DB via updateSubTasks mutation
+    if (subTasksDirty && milestone.id) {
+      updateSubTasksMut.mutate({ id: milestone.id, subTasks });
+    }
     onClose();
-  }, [milestone, title, description, status, priority, onUpdate, onClose]);
+  }, [milestone, title, description, status, priority, subTasks, subTasksDirty, onUpdate, onClose, updateSubTasksMut]);
 
   const handleDelete = useCallback(() => {
     if (!milestone) return;
@@ -131,6 +141,7 @@ export function MilestoneCommandPanel({
         completed: false,
       },
     ]);
+    setSubTasksDirty(true);
     setNewSubTask("");
   }, [newSubTask]);
 
@@ -140,10 +151,12 @@ export function MilestoneCommandPanel({
         st.id === id ? { ...st, completed: !st.completed } : st,
       ),
     );
+    setSubTasksDirty(true);
   }, []);
 
   const removeSubTask = useCallback((id: string) => {
     setSubTasks((prev) => prev.filter((st) => st.id !== id));
+    setSubTasksDirty(true);
   }, []);
 
   return (

@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FileCommentsSheet } from "@/features/comments/components/FileCommentsSheet";
+import { FileVersionHistory } from "./FileVersionHistory";
 
 type Role = "owner" | "admin" | "member" | "client";
 
@@ -36,6 +37,10 @@ export function AssetDetailView({
         <p className="text-muted-foreground text-sm">
           Updated {formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}
         </p>
+      </div>
+
+      <div className="mx-auto mt-8 w-full max-w-4xl">
+        <FileVersionHistory assetId={assetId} />
       </div>
 
       <Button
