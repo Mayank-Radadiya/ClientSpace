@@ -54,6 +54,7 @@ import { ProjectRightPanel } from "./components/v3/ProjectRightPanel";
 import { MilestoneCommandPanel } from "./components/v3/MilestoneCommandPanel";
 import { ReportBuilderPanel } from "./components/v3/ReportBuilderPanel";
 import { ProjectCommandPalette } from "./components/v3/ProjectCommandPalette";
+import { mapEventTypeToCategory } from "../utils/mapEventTypeToCategory";
 
 /* ────────────────────────────────────────────────────────────── */
 
@@ -152,12 +153,21 @@ export function ProjectDetailPage({
         budgetUsed: invoicesTotal,
         budgetTotal: initialProject.budget,
       }),
-    [completionPct, daysRemaining, totalDays, invoicesTotal, initialProject.budget],
+    [
+      completionPct,
+      daysRemaining,
+      totalDays,
+      invoicesTotal,
+      initialProject.budget,
+    ],
   );
 
   // ── UI State ───────────────────────────────────────────────
-  const [activeSection, setActiveSection] = useState<ActiveSection>("milestones");
-  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [activeSection, setActiveSection] =
+    useState<ActiveSection>("milestones");
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
+    null,
+  );
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [reportPanelOpen, setReportPanelOpen] = useState(false);
 
@@ -197,7 +207,7 @@ export function ProjectDetailPage({
       a.eventType.replace(/\./g, " "),
     actor: a.actor?.name || "System",
     timestamp: a.createdAt,
-    category: (a.eventType.split(".")[0] || "project") as ActivityEntry["category"],
+    category: mapEventTypeToCategory(a.eventType),
     color: (a.eventType.includes("complete")
       ? "green"
       : a.eventType.includes("overdue")
@@ -215,16 +225,16 @@ export function ProjectDetailPage({
   const handleAddMember = () => gooeyToast.success("Invite sent");
 
   const handleAddMilestone = useCallback(
-    (presetStatus?: string) => {
+    (presetStatus?: string, title?: string) => {
+      const resolvedTitle = (title ?? "").trim() || "New Milestone";
       const newMilestone: Milestone = {
         id: crypto.randomUUID(),
         org_id: orgId,
         project_id: projectId,
-        title: "New Milestone",
+        title: resolvedTitle,
         due_date: null,
         completed: presetStatus === "done",
-        completed_at:
-          presetStatus === "done" ? new Date().toISOString() : null,
+        completed_at: presetStatus === "done" ? new Date().toISOString() : null,
         order: milestones.length,
         status: (presetStatus || "todo") as Milestone["status"],
       };
@@ -261,12 +271,9 @@ export function ProjectDetailPage({
     [updateMilestoneOptimistic],
   );
 
-  const handleMilestoneCreated = useCallback(
-    (id: string) => {
-      gooeyToast.success("Milestone created");
-    },
-    [],
-  );
+  const handleMilestoneCreated = useCallback((id: string) => {
+    gooeyToast.success("Milestone created");
+  }, []);
 
   // ── Keyboard shortcuts ────────────────────────────────────
   useEffect(() => {
@@ -294,13 +301,17 @@ export function ProjectDetailPage({
 
   // ── Pending assets for client approval ────────────────────
   const pendingAssets = useMemo(
-    () => files.filter((f) => (f as Asset & { approval_status?: string }).approval_status === "pending"),
+    () =>
+      files.filter(
+        (f) =>
+          (f as Asset & { approval_status?: string }).approval_status ===
+          "pending",
+      ),
     [files],
   );
 
   // ── Client email for report builder ───────────────────────
-  const clientEmail =
-    initialProject.client?.email ?? "client@example.com";
+  const clientEmail = initialProject.client?.email ?? "client@example.com";
 
   // ── Render active section ─────────────────────────────────
   const renderSection = () => {
@@ -317,6 +328,7 @@ export function ProjectDetailPage({
       case "files":
         return (
           <FilesAssetsTab
+            projectId={projectId}
             files={files}
             onUpload={() => gooeyToast.success("Upload started...")}
             onDelete={() => gooeyToast.success("Asset deleted")}
@@ -355,7 +367,8 @@ export function ProjectDetailPage({
       {isPreviewMode && <GuestPreviewBar onExitPreview={exitPreview} />}
 
       {/* ═══ Zone 1 — Top Bar + Health Ring ═══════════════════ */}
-      <div className="flex items-start gap-4 px-8 pt-6 pb-4"
+      <div
+        className="flex items-start gap-4"
         style={{ background: "var(--pd-body)" }}
       >
         <div className="min-w-0 flex-1">
@@ -368,7 +381,9 @@ export function ProjectDetailPage({
             onGenerateReport={
               !isClient ? () => setReportPanelOpen(true) : undefined
             }
-            presenceSlot={presenceUser ? <PresenceAvatarsConnected /> : undefined}
+            presenceSlot={
+              presenceUser ? <PresenceAvatarsConnected /> : undefined
+            }
           />
         </div>
 
@@ -471,7 +486,34 @@ export function ProjectDetailPage({
           onClose={() => setReportPanelOpen(false)}
           projectId={projectId}
           projectName={initialProject.name}
+          clientName={
+            initialProject.client?.company_name ??
+            initialProject.client?.contact_name ??
+            "Client"
+          }
           clientEmail={clientEmail}
+          milestonesSummary={{
+            total: milestones.length,
+            done: milestones.filter((m) => m.completed).length,
+            inProgress: milestones.filter((m) => m.status === "in_progress")
+              .length,
+            overdue: milestones.filter(
+              (m) =>
+                !m.completed &&
+                m.due_date != null &&
+                new Date(m.due_date) < new Date(),
+            ).length,
+          }}
+          invoicesSummary={{
+            totalCents: invoicesTotal,
+            paidCents: initialInvoices
+              .filter((i) => i.status === "paid")
+              .reduce((s, i) => s + i.amount_cents, 0),
+            pendingCents: initialInvoices
+              .filter((i) => i.status === "sent" || i.status === "draft")
+              .reduce((s, i) => s + i.amount_cents, 0),
+          }}
+          filesCount={files.length}
         />
       </div>
     </div>
@@ -501,10 +543,6 @@ function PresenceAvatarsConnected() {
   if (!ctx || ctx.onlineUsers.length === 0) return null;
 
   return (
-    <PresenceAvatars
-      onlineUsers={ctx.onlineUsers}
-      maxVisible={4}
-      size="md"
-    />
+    <PresenceAvatars onlineUsers={ctx.onlineUsers} maxVisible={4} size="md" />
   );
 }

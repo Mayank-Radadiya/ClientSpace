@@ -159,16 +159,30 @@ export async function generateProjectPdf(data: ReportData): Promise<{
 }
 
 /**
- * Sends a report email to the client via Resend.
+ * Generates a project report PDF and sends it to the client as an email
+ * attachment via Resend.
+ *
+ * This combines PDF generation and email delivery in a single server action
+ * so the caller only needs to provide report data once.
  */
 export async function sendReportToClient(
   projectId: string,
   clientEmail: string,
   projectName: string,
+  reportData: ReportData,
 ): Promise<{ success: boolean; error?: string }> {
   const ctx = await getSessionContext();
   if (!ctx) return { success: false, error: "Not authenticated." };
   if (ctx.role === "client") return { success: false, error: "Forbidden." };
+
+  // Step 1: Generate the PDF buffer
+  const pdfResult = await generateProjectPdf(reportData);
+  if (!pdfResult.success || !pdfResult.buffer) {
+    return { success: false, error: pdfResult.error ?? "PDF generation failed." };
+  }
+
+  const pdfBase64 = Buffer.from(new Uint8Array(pdfResult.buffer)).toString("base64");
+  const filename = pdfResult.filename ?? `${projectName.replace(/\s+/g, "-").toLowerCase()}-report.pdf`;
 
   try {
     const { Resend } = await import("resend");
@@ -179,6 +193,13 @@ export async function sendReportToClient(
       to: clientEmail,
       subject: `Project Report: ${projectName}`,
       html: `<p>Hello,</p><p>Please find your project report for <strong>${projectName}</strong> attached.</p><p>— ClientSpace</p>`,
+      attachments: [
+        {
+          filename,
+          content: pdfBase64,
+          contentType: "application/pdf",
+        },
+      ],
     });
 
     return { success: true };

@@ -120,7 +120,7 @@ export function ReportBuilderPanel({
     setSending(true);
     setError(null);
     try {
-      const result = await sendReportToClient(project.id, clientEmail, project.name);
+      const result = await sendReportToClient(project.id, clientEmail, project.name, buildReportData());
       if (!result.success) {
         setError(result.error ?? "Send failed.");
         return;

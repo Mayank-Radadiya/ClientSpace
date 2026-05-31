@@ -8,6 +8,8 @@ import {
   Download,
   Plus,
   ArrowRight,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -290,7 +292,7 @@ export function ProjectsHeader({
           </div>
         </div>
 
-        {/* Filters button */}
+        {/* Filters button + view mode toggle */}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -317,6 +319,46 @@ export function ProjectsHeader({
               </span>
             )}
           </button>
+
+          {/* View mode toggle */}
+          <div
+            className={cn(
+              "flex overflow-hidden rounded-[10px] border",
+              "border-[#EBEBF0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
+              "dark:border-white/5 dark:bg-transparent dark:shadow-none",
+            )}
+          >
+            <button
+              type="button"
+              id="view-mode-grid"
+              onClick={() => onViewModeChange("grid")}
+              aria-label="Grid view"
+              aria-pressed={viewMode === "grid"}
+              className={cn(
+                "flex h-[42px] w-[42px] items-center justify-center transition-colors duration-200",
+                viewMode === "grid"
+                  ? "bg-[#F0F0F5] text-[#0090FF] dark:bg-white/10 dark:text-[#00C8FF]"
+                  : "text-[#9B9BA8] hover:text-[#0D0D14] dark:text-gray-500 dark:hover:text-gray-50",
+              )}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              id="view-mode-list"
+              onClick={() => onViewModeChange("list")}
+              aria-label="List view"
+              aria-pressed={viewMode === "list"}
+              className={cn(
+                "flex h-[42px] w-[42px] items-center justify-center transition-colors duration-200",
+                viewMode === "list"
+                  ? "bg-[#F0F0F5] text-[#0090FF] dark:bg-white/10 dark:text-[#00C8FF]"
+                  : "text-[#9B9BA8] hover:text-[#0D0D14] dark:text-gray-500 dark:hover:text-gray-50",
+              )}
+            >
+              <List className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </motion.div>
 

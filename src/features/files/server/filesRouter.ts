@@ -98,7 +98,7 @@ export const filesRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const db = await createDrizzleClient();
+        const db = await createDrizzleClient(ctx);
         const parentCondition = input.parentId
           ? eq(folders.parentId, input.parentId)
           : isNull(folders.parentId);

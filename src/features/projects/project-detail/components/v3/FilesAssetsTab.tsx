@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { Upload, Download, Trash2, FileText, Image, FileSpreadsheet, File, Archive } from "lucide-react";
 import type { Asset } from "../../types";
 
@@ -26,12 +27,13 @@ function formatDate(iso: string): string {
 }
 
 interface FilesAssetsTabProps {
+  projectId: string;
   files: Asset[];
   onUpload: (file: File) => void;
   onDelete: (id: string) => void;
 }
 
-export function FilesAssetsTab({ files, onUpload, onDelete }: FilesAssetsTabProps) {
+export function FilesAssetsTab({ projectId, files, onUpload, onDelete }: FilesAssetsTabProps) {
   const [dragOver, setDragOver] = useState(false);
 
   const handleDrop = (e: React.DragEvent) => {
@@ -73,27 +75,38 @@ export function FilesAssetsTab({ files, onUpload, onDelete }: FilesAssetsTabProp
           {files.map((file) => {
             const { Icon, color } = fileIcon(file.name);
             return (
-              <div key={file.id} className="group flex items-center gap-3 rounded-xl p-3 transition-colors"
+            <div key={file.id} className="group relative flex items-center gap-3 rounded-xl transition-colors"
                 style={{ background: "var(--pd-surface)", border: "1px solid var(--pd-border)" }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--pd-accent)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--pd-border)"; }}>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style={{ background: `${color}15` }}>
-                  <Icon size={18} style={{ color }} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate" style={{ fontFamily: "var(--font-data)", fontSize: 13, color: "var(--pd-text-primary)" }}>{file.name}</p>
-                  <p style={{ fontFamily: "var(--font-data)", fontSize: 11, color: "var(--pd-text-muted)" }}>
-                    {formatFileSize(file.size)} · {formatDate(file.created_at)}
-                  </p>
-                </div>
-                <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <Link
+                  href={`/projects/${projectId}/files/${file.id}`}
+                  prefetch={false}
+                  className="flex flex-1 items-center gap-3 p-3"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style={{ background: `${color}15` }}>
+                    <Icon size={18} style={{ color }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate" style={{ fontFamily: "var(--font-data)", fontSize: 13, color: "var(--pd-text-primary)" }}>{file.name}</p>
+                    <p style={{ fontFamily: "var(--font-data)", fontSize: 11, color: "var(--pd-text-muted)" }}>
+                      {formatFileSize(file.size)} · {formatDate(file.created_at)}
+                    </p>
+                  </div>
+                </Link>
+                <div className="flex gap-1 pr-3 opacity-0 transition-opacity group-hover:opacity-100">
                   <button className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
                     style={{ color: "var(--pd-text-muted)" }}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Download file"
                     onMouseEnter={(e) => { e.currentTarget.style.background = "var(--pd-accent-subtle)"; e.currentTarget.style.color = "var(--pd-accent)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--pd-text-muted)"; }}>
                     <Download size={14} />
                   </button>
-                  <button onClick={() => onDelete(file.id)} className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDelete(file.id); }}
+                    aria-label="Delete file"
+                    className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
                     style={{ color: "var(--pd-text-muted)" }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.08)"; e.currentTarget.style.color = "var(--pd-status-overdue)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--pd-text-muted)"; }}>

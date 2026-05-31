@@ -29,6 +29,12 @@ export const updateAssetStatusSchema = z.object({
   status: z
     .enum(["approved", "changes_requested"])
     .describe("Client's decision on the asset"),
+  /**
+   * When true, the caller is an authenticated org member previewing the
+   * portal as a guest. The `clients` table check is bypassed and identity
+   * is resolved from the org_memberships table instead.
+   */
+  previewMode: z.boolean().optional().default(false),
 });
 
 export type UpdateAssetStatusInput = z.infer<typeof updateAssetStatusSchema>;

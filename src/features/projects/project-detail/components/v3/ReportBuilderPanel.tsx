@@ -30,7 +30,11 @@ interface ReportBuilderPanelProps {
   onClose: () => void;
   projectId: string;
   projectName: string;
+  clientName: string;
   clientEmail: string;
+  milestonesSummary?: { total: number; done: number; inProgress: number; overdue: number };
+  invoicesSummary?: { totalCents: number; paidCents: number; pendingCents: number };
+  filesCount?: number;
 }
 
 export function ReportBuilderPanel({
@@ -38,7 +42,11 @@ export function ReportBuilderPanel({
   onClose,
   projectId,
   projectName,
+  clientName,
   clientEmail,
+  milestonesSummary,
+  invoicesSummary,
+  filesCount,
 }: ReportBuilderPanelProps) {
   const [selectedSections, setSelectedSections] = useState<
     Set<ReportSectionKey>
@@ -65,7 +73,7 @@ export function ReportBuilderPanel({
     try {
       const result = await generateProjectPdf({
         projectName,
-        clientName: "Client",
+        clientName: clientName || "Client",
         dateRange: {
           from: new Date(Date.now() - 30 * 86400000)
             .toISOString()
@@ -73,6 +81,9 @@ export function ReportBuilderPanel({
           to: new Date().toISOString().slice(0, 10),
         },
         sections: Array.from(selectedSections),
+        milestonesSummary: selectedSections.has("milestones") ? milestonesSummary : undefined,
+        invoicesSummary: selectedSections.has("invoices") ? invoicesSummary : undefined,
+        filesCount: selectedSections.has("files") ? filesCount : undefined,
       });
       if (!result.success || !result.buffer) {
         setError(result.error ?? "Generation failed.");
@@ -103,6 +114,20 @@ export function ReportBuilderPanel({
         projectId,
         clientEmail,
         projectName,
+        {
+          projectName,
+          clientName: clientName || "Client",
+          dateRange: {
+            from: new Date(Date.now() - 30 * 86400000)
+              .toISOString()
+              .slice(0, 10),
+            to: new Date().toISOString().slice(0, 10),
+          },
+          sections: Array.from(selectedSections),
+          milestonesSummary: selectedSections.has("milestones") ? milestonesSummary : undefined,
+          invoicesSummary: selectedSections.has("invoices") ? invoicesSummary : undefined,
+          filesCount: selectedSections.has("files") ? filesCount : undefined,
+        },
       );
       if (!result.success) {
         setError(result.error ?? "Send failed.");

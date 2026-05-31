@@ -122,7 +122,7 @@ export const notificationsRouter = createTRPCRouter({
         throw new Error("Only org owner or admin can configure Slack integration.");
       }
 
-      const db = await createDrizzleClient();
+      const db = await createDrizzleClient(ctx);
       await db
         .update(organizations)
         .set({
@@ -143,7 +143,7 @@ export const notificationsRouter = createTRPCRouter({
       throw new Error("Only org owner or admin can test Slack integration.");
     }
 
-    const db = await createDrizzleClient();
+    const db = await createDrizzleClient(ctx);
     const org = await db.query.organizations.findFirst({
       where: eq(organizations.id, ctx.orgId),
       columns: { slackWebhookUrl: true, name: true },
@@ -194,7 +194,7 @@ export const notificationsRouter = createTRPCRouter({
    * SECURITY: Returns boolean only — never exposes the actual webhook URL.
    */
   getSlackStatus: protectedProcedure.query(async ({ ctx }) => {
-    const db = await createDrizzleClient();
+    const db = await createDrizzleClient(ctx);
     const org = await db.query.organizations.findFirst({
       where: eq(organizations.id, ctx.orgId),
       columns: { slackWebhookUrl: true },

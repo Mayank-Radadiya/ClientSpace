@@ -108,7 +108,7 @@ function MilestoneCard({ milestone, onClick, onDragStart }: {
 interface MilestonesKanbanProps {
   milestones: Milestone[];
   onMilestoneClick: (milestone: Milestone) => void;
-  onAddMilestone: (status: string) => void;
+  onAddMilestone: (status: string, title: string) => void;
   onMoveMilestone: (id: string, newStatus: string) => void;
 }
 
@@ -181,7 +181,7 @@ export function MilestonesKanban({ milestones, onMilestoneClick, onAddMilestone,
                   border: `1px dashed ${isDragOver ? "var(--pd-accent)" : "var(--pd-divider)"}` }}>
                 {items.length === 0 && addingTo !== col.id && <EmptyColumnCard onClick={() => setAddingTo(col.id)} />}
                 {items.map((ms) => (<MilestoneCard key={ms.id} milestone={ms} onClick={() => onMilestoneClick(ms)} onDragStart={handleDragStart} />))}
-                {addingTo === col.id && <InlineAddForm onSubmit={() => { onAddMilestone(col.id); setAddingTo(null); }} onCancel={() => setAddingTo(null)} />}
+                {addingTo === col.id && <InlineAddForm onSubmit={(title) => { onAddMilestone(col.id, title); setAddingTo(null); }} onCancel={() => setAddingTo(null)} />}
               </div>
             </div>
           );

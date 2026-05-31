@@ -50,21 +50,20 @@ export function DeleteProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground h-8 w-8 rounded-lg ring-1 ring-transparent transition-all hover:bg-red-500/10 hover:text-red-500 hover:ring-red-500/20"
-            title="Delete project"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        }
-      />
+      <DialogTrigger>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground h-8 w-8 rounded-lg ring-1 ring-transparent transition-all hover:bg-red-500/10 hover:text-red-500 hover:ring-red-500/20"
+          title="Delete project"
+          aria-label="Delete project"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
 
       <DialogContent className="bg-popover/80 overflow-hidden rounded-3xl border-white/10 p-0 shadow-2xl backdrop-blur-2xl sm:max-w-md">
         <div className="bg-linear-to-b from-red-500/10 to-transparent p-6 pb-2">

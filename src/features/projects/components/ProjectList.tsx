@@ -61,7 +61,20 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
     status: [],
     priority: [],
   });
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
+    if (typeof window === "undefined") return "grid";
+    const saved = localStorage.getItem("projects-view-mode");
+    return saved === "list" ? "list" : "grid";
+  });
+
+  const handleViewModeChange = (mode: "grid" | "list") => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem("projects-view-mode", mode);
+    } catch {
+      // ignore storage errors
+    }
+  };
   const [createOpen, setCreateOpen] = useState(false);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -118,7 +131,7 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
         filters={filters}
         onFiltersChange={setFilters}
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleViewModeChange}
         totalCount={projects.length}
         filteredCount={projects.length}
         activeCount={activeCount}

@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { getSessionContext } from "@/lib/auth/session";
 import { withRLS } from "@/db/createDrizzleClient";
-import { activityLogs, assets, clients, projects, users } from "@/db/schema";
+import { activityLogs, assets, clients, orgMemberships, projects, users } from "@/db/schema";
 import {
   dispatchNotification,
   resolveNotificationRecipients,
@@ -22,20 +22,43 @@ export async function updateAssetStatusAction(
   const parsed = updateAssetStatusSchema.safeParse(rawInput);
   if (!parsed.success) return { error: "Invalid input." };
 
-  const { assetId, projectId, status } = parsed.data;
+  const { assetId, projectId, status, previewMode } = parsed.data;
 
   return withRLS(ctx, async (tx) => {
-    const client = await tx.query.clients.findFirst({
-      where: and(eq(clients.userId, ctx.userId), eq(clients.orgId, ctx.orgId)),
-      columns: { id: true, orgId: true, contactName: true, email: true },
-    });
-    if (!client) return { error: "Access denied." };
+    // ── Identity resolution ───────────────────────────────────────────────────
+    // Normal path:  caller is a genuine client user → look up the clients table.
+    // Preview path: caller is an org member previewing the portal → verify via
+    //               org_memberships and proceed as an org actor (no client row needed).
+
+    let orgId: string;
+    let contactName: string | null = null;
+
+    if (previewMode) {
+      // Verify the caller is an active org member
+      const membership = await tx.query.orgMemberships.findFirst({
+        where: and(
+          eq(orgMemberships.userId, ctx.userId),
+          eq(orgMemberships.orgId, ctx.orgId),
+        ),
+        columns: { orgId: true, role: true },
+      });
+      if (!membership) return { error: "Access denied." };
+      orgId = membership.orgId;
+    } else {
+      // Normal client path
+      const client = await tx.query.clients.findFirst({
+        where: and(eq(clients.userId, ctx.userId), eq(clients.orgId, ctx.orgId)),
+        columns: { id: true, orgId: true, contactName: true, email: true },
+      });
+      if (!client) return { error: "Access denied." };
+      orgId = client.orgId;
+      contactName = client.contactName;
+    }
 
     const project = await tx.query.projects.findFirst({
       where: and(
         eq(projects.id, projectId),
-        eq(projects.clientId, client.id),
-        eq(projects.orgId, client.orgId),
+        eq(projects.orgId, orgId),
       ),
       columns: { id: true, name: true },
     });
@@ -58,9 +81,9 @@ export async function updateAssetStatusAction(
 
     const actorName =
       actor?.name ??
-      client.contactName ??
+      contactName ??
       actor?.email?.split("@")[0] ??
-      "Client User";
+      (previewMode ? "Preview User" : "Client User");
 
     const headersList = await headers();
     const ipAddress =
@@ -80,7 +103,7 @@ export async function updateAssetStatusAction(
         .where(eq(assets.id, assetId));
 
       await trx.insert(activityLogs).values({
-        orgId: client.orgId,
+        orgId,
         projectId,
         actorId: ctx.userId,
         eventType,
@@ -95,7 +118,7 @@ export async function updateAssetStatusAction(
 
     try {
       const recipients = await resolveNotificationRecipients(
-        client.orgId,
+        orgId,
         projectId,
         assetId,
         ctx.userId,
@@ -108,7 +131,7 @@ export async function updateAssetStatusAction(
           recipients.map((recipientUserId) =>
             dispatchNotification({
               recipientUserId,
-              orgId: client.orgId,
+              orgId,
               type: status === "approved"
                 ? NOTIFICATION_EVENTS.ASSET_APPROVED
                 : NOTIFICATION_EVENTS.ASSET_CHANGES_REQUESTED,

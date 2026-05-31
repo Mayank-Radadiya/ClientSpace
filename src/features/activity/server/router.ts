@@ -10,7 +10,7 @@ export const activityRouter = createTRPCRouter({
     .input(z.object({ limit: z.number().int().min(1).max(50).default(10) }))
     .query(async ({ ctx, input }) => {
       const result = await getActivityLogsCached(ctx.orgId, ctx.userId, null, input.limit);
-      const db = await createDrizzleClient();
+      const db = await createDrizzleClient(ctx);
       const [totalRow] = await db
         .select({ value: count() })
         .from(activityLogs)

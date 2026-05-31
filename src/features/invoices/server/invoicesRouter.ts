@@ -22,7 +22,7 @@ export const invoicesRouter = createTRPCRouter({
       try {
         let clientId = input.clientId;
         if (ctx.role === "client") {
-          const db = await createDrizzleClient();
+          const db = await createDrizzleClient(ctx);
           const clientRecord = await db.query.clients.findFirst({
             where: and(
               eq(clients.userId, ctx.userId),
@@ -61,7 +61,7 @@ export const invoicesRouter = createTRPCRouter({
         }
 
         if (ctx.role === "client") {
-          const db = await createDrizzleClient();
+          const db = await createDrizzleClient(ctx);
           const clientRecord = await db.query.clients.findFirst({
             where: and(
               eq(clients.userId, ctx.userId),
@@ -176,7 +176,7 @@ export const invoicesRouter = createTRPCRouter({
         });
       }
 
-      const db = await createDrizzleClient();
+      const db = await createDrizzleClient(ctx);
 
       // Fetch current invoice to check pdfGeneratedAt for rate-limiting
       const invoice = await db.query.invoices.findFirst({
