@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { TrendingUp, Clock, CheckCircle2, AlertCircle, BarChart3 } from "lucide-react";
 
 type ProjectStats = {
   total: number;
@@ -24,12 +25,12 @@ function useCountUp(target: number, delay: number = 0) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       const start = performance.now();
-      const duration = 700;
+      const duration = 900;
 
       function tick(now: number) {
         const elapsed = now - start;
         const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
+        const eased = 1 - Math.pow(1 - progress, 4);
         setValue(Math.round(eased * target));
 
         if (progress < 1) {
@@ -49,57 +50,85 @@ function useCountUp(target: number, delay: number = 0) {
   return value;
 }
 
-/* ─── Stat Card Definitions ─────────────────────────────────────────── */
+/* ─── Mini Sparkline ────────────────────────────────────────────────── */
 
-type SubLabelDef = {
-  getText: (stats: ProjectStats) => string;
-  dotColor?: string;
-  textColor?: string;
-};
+function MiniSparkline({ color, value, max }: { color: string; value: number; max: number }) {
+  const pct = max > 0 ? (value / max) * 100 : 0;
+  const points = [20, 35, 15, 50, 30, 65, 40, pct].map((v, i) => `${i * 14},${80 - v}`).join(" ");
+
+  return (
+    <svg width="98" height="28" viewBox="0 0 98 80" fill="none" className="opacity-60">
+      <defs>
+        <linearGradient id={`sg-${color}`} x1="0" y1="0" x2="98" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor={color} stopOpacity="0.3" />
+          <stop offset="1" stopColor={color} stopOpacity="1" />
+        </linearGradient>
+      </defs>
+      <polyline
+        points={points}
+        fill="none"
+        stroke={`url(#sg-${color})`}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/* ─── Stat Card Definitions ─────────────────────────────────────────── */
 
 type StatCardDef = {
   key: "total" | "inProgress" | "completed" | "overdue" | "completion";
   label: string;
-  /** Top-border accent color (only for overdue card) */
-  topBorderColor?: string;
-  sub: SubLabelDef;
+  icon: typeof TrendingUp;
+  accentColor: string;
+  glowColor: string;
+  subText: (stats: ProjectStats) => string;
+  isCompletion?: boolean;
 };
 
 const STAT_CARDS: StatCardDef[] = [
   {
     key: "total",
-    label: "TOTAL PROJECTS",
-    sub: { getText: (s) => `${s.total} added this month` },
+    label: "Total Projects",
+    icon: BarChart3,
+    accentColor: "#6C63FF",
+    glowColor: "rgba(108,99,255,0.25)",
+    subText: (s) => `${s.total} in portfolio`,
   },
   {
     key: "inProgress",
-    label: "IN PROGRESS",
-    sub: {
-      getText: (s) =>
-        `${Math.min(s.inProgress, 2)} approaching deadline`,
-      dotColor: "#F59E0B",
-      textColor: "#F59E0B",
-    },
+    label: "In Progress",
+    icon: TrendingUp,
+    accentColor: "#00F5D4",
+    glowColor: "rgba(0,245,212,0.2)",
+    subText: (s) => `${s.inProgress} active now`,
   },
   {
     key: "completed",
-    label: "COMPLETED",
-    sub: { getText: (s) => `${s.completed} this month` },
+    label: "Completed",
+    icon: CheckCircle2,
+    accentColor: "#34D399",
+    glowColor: "rgba(52,211,153,0.2)",
+    subText: (s) => `${s.completed} delivered`,
   },
   {
     key: "overdue",
-    label: "OVERDUE",
-    topBorderColor: "#EF4444",
-    sub: {
-      getText: (s) => `${s.overdue} need attention`,
-      dotColor: "#EF4444",
-      textColor: "#EF4444",
-    },
+    label: "Overdue",
+    icon: AlertCircle,
+    accentColor: "#FF4D6D",
+    glowColor: "rgba(255,77,109,0.25)",
+    subText: (s) => `${s.overdue} need attention`,
   },
   {
     key: "completion",
-    label: "COMPLETION",
-    sub: { getText: () => "" },
+    label: "Completion Rate",
+    icon: Clock,
+    accentColor: "#F59E0B",
+    glowColor: "rgba(245,158,11,0.2)",
+    subText: () => "",
+    isCompletion: true,
   },
 ];
 
@@ -118,13 +147,12 @@ export function ProjectsStats({ stats }: ProjectsStatsProps) {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       {STAT_CARDS.map((card, idx) => (
         <StatCard
           key={card.key}
           card={card}
           rawValue={getValue(card.key)}
-          isCompletion={card.key === "completion"}
           stats={stats}
           completionRate={completionRate}
           index={idx}
@@ -139,96 +167,150 @@ export function ProjectsStats({ stats }: ProjectsStatsProps) {
 function StatCard({
   card,
   rawValue,
-  isCompletion,
   stats,
   completionRate,
   index,
 }: {
   card: StatCardDef;
   rawValue: number;
-  isCompletion: boolean;
   stats: ProjectStats;
   completionRate: number;
   index: number;
 }) {
   const animatedValue = useCountUp(rawValue, index * 80);
   const [barWidth, setBarWidth] = useState(0);
+  const [hovered, setHovered] = useState(false);
+  const Icon = card.icon;
 
   useEffect(() => {
-    if (isCompletion) {
-      const timeout = setTimeout(() => setBarWidth(completionRate), 400);
+    if (card.isCompletion) {
+      const timeout = setTimeout(() => setBarWidth(completionRate), 500);
       return () => clearTimeout(timeout);
     }
-  }, [isCompletion, completionRate]);
+  }, [card.isCompletion, completionRate]);
+
+  const displayValue = card.isCompletion ? `${animatedValue}%` : animatedValue.toString();
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{
         type: "spring",
-        stiffness: 100,
-        damping: 20,
-        delay: 0.05 * index,
+        stiffness: 260,
+        damping: 22,
+        delay: 0.06 * index,
       }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className={cn(
-        "group relative overflow-hidden rounded-xl border",
-        "px-[22px] py-[20px]",
+        "group relative overflow-hidden rounded-2xl border cursor-default",
         "transition-all duration-300 ease-out",
-        // Light
-        "bg-white border-[#EBEBF0] shadow-[0_1px_4px_rgba(0,0,0,0.05)]",
-        "hover:-translate-y-[2px] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]",
-        // Dark
-        "dark:bg-white/[0.02] dark:backdrop-blur-md dark:border-white/5 dark:shadow-none",
-        "dark:hover:border-white/10",
-        isCompletion && "col-span-2 lg:col-span-1",
+        "bg-white border-black/5 shadow-sm dark:bg-white/[0.03] dark:border-white/[0.07] dark:shadow-none",
+        hovered && "dark:bg-white/[0.055] bg-black/[0.02]",
+        card.isCompletion && "col-span-2 lg:col-span-1",
       )}
+      style={{
+        borderColor: hovered ? card.accentColor + "40" : undefined,
+        boxShadow: hovered
+          ? `0 0 0 1px ${card.accentColor}20, 0 8px 32px ${card.glowColor}, 0 2px 8px rgba(0,0,0,0.4)`
+          : undefined,
+        transform: hovered ? "translateY(-4px)" : "translateY(0)",
+      }}
     >
-      {/* Muted top-border line for overdue card */}
-      {card.topBorderColor && (
-        <div
-          className="absolute top-0 left-0 h-[1px] w-full"
-          style={{ backgroundColor: card.topBorderColor, opacity: 0.6 }}
-        />
-      )}
+      {/* Top accent line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[1.5px] transition-opacity duration-300"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${card.accentColor}, transparent)`,
+          opacity: hovered ? 1 : 0.5,
+        }}
+      />
+
+      {/* Glow orb background */}
+      <div
+        className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full blur-3xl transition-opacity duration-500"
+        style={{
+          background: card.accentColor,
+          opacity: hovered ? 0.12 : 0.05,
+        }}
+      />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col">
-        {/* Label — DM Mono */}
-        <p className="font-(--font-data) mb-3 text-[11px] tracking-widest text-[#6B6B7E] dark:text-gray-400 uppercase">
-          {card.label}
-        </p>
+      <div className="relative z-10 p-5">
+        {/* Header row */}
+        <div className="mb-4 flex items-center justify-between">
+          <p
+            className="text-[10px] tracking-[0.1em] uppercase text-gray-500 dark:text-[#F4F4FF]/45"
+            style={{ fontFamily: "var(--font-data, monospace)" }}
+          >
+            {card.label}
+          </p>
+          <div
+            className={cn(
+              "flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-300",
+              hovered ? "" : "bg-black/5 dark:bg-white/5"
+            )}
+            style={{
+              background: hovered ? card.accentColor + "20" : undefined,
+            }}
+          >
+            <Icon
+              className={cn("h-3.5 w-3.5 transition-colors duration-300", !hovered && "text-gray-400 dark:text-[#F4F4FF]/35")}
+              style={{ color: hovered ? card.accentColor : undefined }}
+            />
+          </div>
+        </div>
 
-        {/* Value — Barlow Condensed, huge */}
+        {/* Value */}
         <span
-          className="font-(--font-metrics) text-[48px] leading-[1] tracking-tight text-[#0D0D14] dark:text-gray-50"
+          className={cn(
+            "block font-bold leading-none tabular-nums transition-colors duration-300",
+            !hovered && "text-gray-900 dark:text-[#F4F4FF]"
+          )}
+          style={{
+            fontSize: 44,
+            letterSpacing: "-0.03em",
+            color: hovered ? card.accentColor : undefined,
+            fontFamily: "var(--font-metrics, 'Barlow Condensed', sans-serif)",
+          }}
         >
-          {isCompletion ? `${animatedValue}%` : animatedValue}
+          {displayValue}
         </span>
 
-        {/* Sub-label / Progress */}
-        {isCompletion ? (
-          <div className="mt-4 space-y-2">
-            {/* Monospace progress string */}
-            <p className="font-(--font-data) text-[11px] tracking-widest text-[#9B9BA8] dark:text-gray-500">
-              [{generateProgressBar(completionRate)}] {stats.completed} done / {stats.total - stats.completed} left
-            </p>
-          </div>
-        ) : (
-          /* Sub-label with optional colored dot */
-          <div className="mt-3 flex items-center gap-1.5">
-            {card.sub.dotColor && (
-              <span
-                className="inline-block h-[6px] w-[6px] shrink-0 rounded-full"
-                style={{ backgroundColor: card.sub.dotColor }}
-              />
-            )}
-            <span
-              className="font-(--font-data) text-[11px] tracking-widest uppercase"
-              style={{ color: card.sub.textColor || "#6B7280" }}
+        {/* Sub text */}
+        <p
+          className="mt-1.5 text-[11px] text-gray-500 dark:text-[#F4F4FF]/35"
+          style={{
+            fontFamily: "var(--font-data, monospace)",
+          }}
+        >
+          {card.isCompletion
+            ? `${stats.completed} done / ${stats.total - stats.completed} left`
+            : card.subText(stats)}
+        </p>
+
+        {/* Completion progress bar */}
+        {card.isCompletion && (
+          <div className="mt-4">
+            <div
+              className="h-[3px] w-full overflow-hidden rounded-full bg-black/5 dark:bg-white/[0.06]"
             >
-              {card.sub.getText(stats)}
-            </span>
+              <div
+                className="h-full rounded-full transition-all duration-1000 ease-out"
+                style={{
+                  width: `${barWidth}%`,
+                  background: `linear-gradient(90deg, ${card.accentColor}80, ${card.accentColor})`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Sparkline for non-completion cards */}
+        {!card.isCompletion && (
+          <div className="mt-3 -mx-1">
+            <MiniSparkline color={card.accentColor} value={rawValue} max={stats.total || 1} />
           </div>
         )}
       </div>
@@ -236,34 +318,27 @@ function StatCard({
   );
 }
 
-/* ─── Progress Bar String Generator ─────────────────────────────────── */
-
-function generateProgressBar(percent: number): string {
-  const totalBlocks = 10;
-  const filled = Math.round((percent / 100) * totalBlocks);
-  const empty = totalBlocks - filled;
-  return "█".repeat(filled) + "·".repeat(empty);
-}
-
 /* ─── Skeleton ──────────────────────────────────────────────────────── */
 
 export function ProjectsStatsSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
           className={cn(
-            "relative overflow-hidden rounded-xl border px-[22px] py-[20px]",
-            "bg-white border-[#EBEBF0] shadow-[0_1px_4px_rgba(0,0,0,0.05)]",
-            "dark:bg-white/[0.02] dark:backdrop-blur-md dark:border-white/5 dark:shadow-none",
+            "relative overflow-hidden rounded-2xl border p-5",
+            "bg-white border-black/5 dark:bg-white/[0.03] dark:border-white/[0.07]",
             i === 4 && "col-span-2 lg:col-span-1",
           )}
         >
-          <div className="space-y-3">
-            <div className="h-3 w-2/3 animate-pulse rounded bg-[#EBEBF0] dark:bg-white/5" />
-            <div className="h-11 w-1/3 animate-pulse rounded-lg bg-[#EBEBF0] dark:bg-white/5" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-[#EBEBF0] dark:bg-white/5" />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="h-2.5 w-20 animate-pulse rounded-full bg-black/5 dark:bg-white/[0.08]" />
+              <div className="h-7 w-7 animate-pulse rounded-lg bg-black/5 dark:bg-white/[0.06]" />
+            </div>
+            <div className="h-11 w-16 animate-pulse rounded-lg bg-black/10 dark:bg-white/[0.08]" />
+            <div className="h-2 w-24 animate-pulse rounded-full bg-black/5 dark:bg-white/[0.05]" />
           </div>
         </div>
       ))}

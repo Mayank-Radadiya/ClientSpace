@@ -46,15 +46,28 @@ export default async function ProjectsPage() {
   };
 
   return (
-    <div className="-m-4 min-h-screen bg-[#F0F0F5] p-6 dark:bg-[#0D0F16] md:-m-6 md:p-8 relative overflow-hidden">
-      {/* 1% SVG noise/grain overlay so background isn't flat */}
+    <div
+      className="-m-4 min-h-screen md:-m-6 bg-[#F0F0F5] dark:bg-[#08090D]"
+      style={{
+        padding: "clamp(24px, 4vw, 40px)",
+      }}
+    >
+      {/* Radial spotlight — top-left glow */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.012] mix-blend-soft-light"
+        className="pointer-events-none absolute inset-0 z-0 hidden dark:block"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at -10% -10%, rgba(108,99,255,0.12) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 110% 10%, rgba(0,245,212,0.06) 0%, transparent 60%)",
+        }}
+      />
+      {/* Grain overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 opacity-[0.025] mix-blend-overlay hidden dark:block"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
         }}
       />
-      <div className="relative z-10 mx-auto max-w-[1400px] space-y-6">
+      <div className="mx-auto max-w-[1400px] space-y-6">
         <ProjectList
           clients={orgClients}
           userRole={ctx.role as "admin" | "owner" | "member" | "client"}

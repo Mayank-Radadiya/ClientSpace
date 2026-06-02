@@ -1,15 +1,14 @@
 "use client";
 
-// src/features/projects/project-detail/components/v3/HealthScoreRing.tsx
-// Animated SVG ring showing composite project health score 0–100.
-// Includes a hover tooltip with 3-row breakdown.
-
 import { motion } from "framer-motion";
+import { useState } from "react";
 import type { HealthScoreResult } from "../../lib/healthScore";
 
-const RADIUS = 36;
-const STROKE_WIDTH = 7;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const OUTER_R = 34;
+const INNER_R = 26;
+const STROKE = 6;
+const C_OUTER = 2 * Math.PI * OUTER_R;
+const C_INNER = 2 * Math.PI * INNER_R;
 
 function scoreLabel(score: number): string {
   if (score >= 70) return "Healthy";
@@ -17,25 +16,49 @@ function scoreLabel(score: number): string {
   return "Critical";
 }
 
+function scoreGradientId(score: number): string {
+  if (score >= 70) return "health-green";
+  if (score >= 40) return "health-amber";
+  return "health-red";
+}
+
+const GRADIENT_STOPS: Record<string, [string, string]> = {
+  "health-green": ["#34D399", "#059669"],
+  "health-amber": ["#F59E0B", "#D97706"],
+  "health-red": ["#FF4D6D", "#C0392B"],
+};
+
 interface HealthScoreRingProps {
   health: HealthScoreResult;
   size?: number;
 }
 
-export function HealthScoreRing({
-  health,
-  size = 80,
-}: HealthScoreRingProps) {
-  const strokeDashoffset =
-    CIRCUMFERENCE * (1 - health.score / 100);
+export function HealthScoreRing({ health, size = 80 }: HealthScoreRingProps) {
+  const [hovered, setHovered] = useState(false);
+  const outerOffset = C_OUTER * (1 - health.score / 100);
+  const innerOffset = C_INNER * (1 - (health.score * 0.7) / 100);
+  const gradId = scoreGradientId(health.score);
+  const [startColor, endColor] = GRADIENT_STOPS[gradId]!;
 
   return (
     <div
-      className="group relative flex flex-col items-center gap-0.5"
-      aria-label={`Project health score: ${health.score} out of 100. Status: ${health.status}`}
+      className="relative flex flex-col items-center gap-1.5"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       role="img"
+      aria-label={`Project health: ${health.score}/100 — ${scoreLabel(health.score)}`}
       tabIndex={0}
     >
+      {/* Glow halo */}
+      <div
+        className="absolute inset-0 rounded-full blur-2xl transition-opacity duration-500 pointer-events-none"
+        style={{
+          background: health.color,
+          opacity: hovered ? 0.2 : 0.08,
+          transform: "scale(1.4)",
+        }}
+      />
+
       <div className="relative" style={{ width: size, height: size }}>
         <svg
           width={size}
@@ -44,59 +67,79 @@ export function HealthScoreRing({
           fill="none"
           className="-rotate-90"
         >
-          {/* Track */}
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+              <stop stopColor={startColor} stopOpacity="0.7" />
+              <stop offset="1" stopColor={endColor} />
+            </linearGradient>
+          </defs>
+
+          {/* Outer track */}
           <circle
-            cx="40"
-            cy="40"
-            r={RADIUS}
-            stroke="var(--pd-divider)"
-            strokeWidth={STROKE_WIDTH}
+            cx="40" cy="40" r={OUTER_R}
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth={STROKE}
             fill="none"
-            opacity={0.5}
           />
-          {/* Animated score arc */}
+
+          {/* Outer arc */}
           <motion.circle
-            cx="40"
-            cy="40"
-            r={RADIUS}
-            stroke={health.color}
-            strokeWidth={STROKE_WIDTH}
+            cx="40" cy="40" r={OUTER_R}
+            stroke={`url(#${gradId})`}
+            strokeWidth={STROKE}
             fill="none"
             strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
-            initial={{ strokeDashoffset: CIRCUMFERENCE }}
-            animate={{ strokeDashoffset }}
-            transition={{
-              duration: 0.8,
-              ease: [0.65, 0, 0.35, 1],
-            }}
+            strokeDasharray={C_OUTER}
+            initial={{ strokeDashoffset: C_OUTER }}
+            animate={{ strokeDashoffset: outerOffset }}
+            transition={{ duration: 1.0, ease: [0.65, 0, 0.35, 1] }}
+          />
+
+          {/* Inner track */}
+          <circle
+            cx="40" cy="40" r={INNER_R}
+            stroke="rgba(255,255,255,0.04)"
+            strokeWidth={3}
+            fill="none"
+          />
+
+          {/* Inner arc (secondary ring, 70% fill) */}
+          <motion.circle
+            cx="40" cy="40" r={INNER_R}
+            stroke={health.color}
+            strokeWidth={2.5}
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={C_INNER}
+            initial={{ strokeDashoffset: C_INNER }}
+            animate={{ strokeDashoffset: innerOffset }}
+            transition={{ duration: 1.2, delay: 0.2, ease: [0.65, 0, 0.35, 1] }}
+            opacity={0.4}
           />
         </svg>
 
-        {/* Score number — centered over ring */}
+        {/* Score number */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.span
-            className="tabular-nums leading-none"
+            className="leading-none tabular-nums"
             style={{
               color: health.color,
-              fontFamily: "var(--font-metrics)",
-              fontSize: 22,
+              fontFamily: "var(--font-metrics, 'Barlow Condensed', sans-serif)",
+              fontSize: 21,
               fontWeight: 700,
             }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.3 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
           >
             {health.score}
           </motion.span>
           <span
             style={{
-              fontFamily: "var(--font-data)",
-              fontSize: 8,
-              fontWeight: 500,
-              textTransform: "uppercase",
+              fontFamily: "var(--font-data, monospace)",
+              fontSize: 7,
+              color: "rgba(244,244,255,0.3)",
               letterSpacing: "0.05em",
-              color: "var(--pd-text-muted)",
             }}
           >
             /100
@@ -104,104 +147,69 @@ export function HealthScoreRing({
         </div>
       </div>
 
-      {/* Status label */}
+      {/* Label */}
       <span
+        className="text-[10px] font-semibold tracking-[0.07em] uppercase"
         style={{
-          fontFamily: "var(--font-data)",
-          fontSize: 10,
-          fontWeight: 500,
           color: health.color,
+          fontFamily: "var(--font-data, monospace)",
         }}
       >
         {scoreLabel(health.score)}
       </span>
 
-      {/* Hover tooltip — breakdown */}
+      {/* Tooltip breakdown */}
       <div
-        className="pointer-events-none absolute -bottom-[120px] left-1/2 z-50 -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
-        role="tooltip"
+        className="pointer-events-none absolute -bottom-[130px] left-1/2 z-50 -translate-x-1/2 transition-all duration-200"
+        style={{ opacity: hovered ? 1 : 0, transform: `translateX(-50%) translateY(${hovered ? 0 : 4}px)` }}
       >
         <div
-          className="flex flex-col gap-1.5 rounded-lg px-3 py-2.5"
+          className="flex flex-col gap-2 rounded-xl px-3.5 py-3 bg-white dark:bg-[#0E0F16] border border-black/10 dark:border-white/[0.08] shadow-xl"
           style={{
-            background: "var(--pd-surface)",
-            border: "1px solid var(--pd-border)",
-            boxShadow: "var(--pd-shadow-elevated)",
-            minWidth: 160,
+            backdropFilter: "blur(16px)",
+            minWidth: 168,
           }}
         >
           <span
-            style={{
-              fontFamily: "var(--font-data)",
-              fontSize: 10,
-              fontWeight: 600,
-              color: "var(--pd-text-muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-            }}
+            style={{ color: "rgba(244,244,255,0.35)", fontFamily: "var(--font-data, monospace)" }}
           >
             Score Breakdown
           </span>
-          <BreakdownRow
-            label="Schedule"
-            value={health.scheduleContribution}
-          />
-          <BreakdownRow
-            label="Budget"
-            value={health.budgetContribution}
-          />
-          <BreakdownRow
-            label="Velocity"
-            value={health.velocityContribution}
-          />
+          <BreakdownRow label="Schedule" value={health.scheduleContribution} />
+          <BreakdownRow label="Budget" value={health.budgetContribution} />
+          <BreakdownRow label="Velocity" value={health.velocityContribution} />
         </div>
       </div>
     </div>
   );
 }
 
-function BreakdownRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  const barColor =
-    value >= 70
-      ? "hsl(152, 68%, 45%)"
-      : value >= 40
-        ? "hsl(38, 92%, 50%)"
-        : "hsl(0, 72%, 58%)";
+function BreakdownRow({ label, value }: { label: string; value: number }) {
+  const color = value >= 70 ? "#34D399" : value >= 40 ? "#F59E0B" : "#FF4D6D";
 
   return (
     <div className="flex items-center gap-2">
       <span
-        className="w-14"
-        style={{
-          fontFamily: "var(--font-data)",
-          fontSize: 11,
-          color: "var(--pd-text-secondary)",
-        }}
+        className="w-14 text-[11px]"
+        style={{ color: "rgba(244,244,255,0.5)", fontFamily: "var(--font-data, monospace)" }}
       >
         {label}
       </span>
       <div
         className="flex-1 overflow-hidden rounded-full"
-        style={{ height: 4, background: "var(--pd-divider)" }}
+        style={{ height: 3, background: "rgba(255,255,255,0.07)" }}
       >
         <div
-          className="h-full rounded-full transition-all"
-          style={{ width: `${value}%`, background: barColor }}
+          className="h-full rounded-full"
+          style={{
+            width: `${value}%`,
+            background: `linear-gradient(90deg, ${color}60, ${color})`,
+          }}
         />
       </div>
       <span
-        className="w-6 text-right tabular-nums"
-        style={{
-          fontFamily: "var(--font-data)",
-          fontSize: 10,
-          color: "var(--pd-text-muted)",
-        }}
+        className="w-5 text-right tabular-nums text-[10px]"
+        style={{ color: "rgba(244,244,255,0.35)", fontFamily: "var(--font-data, monospace)" }}
       >
         {value}
       </span>

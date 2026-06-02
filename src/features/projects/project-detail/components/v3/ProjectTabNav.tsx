@@ -1,16 +1,22 @@
 "use client";
 
-// src/features/projects/project-detail/components/v3/ProjectTabNav.tsx
-// Tab navigation with count badges and unread dot indicators.
-
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { ActiveSection } from "../../types";
+import { useState } from "react";
+import {
+  Flag,
+  FolderOpen,
+  ReceiptText,
+  Activity,
+} from "lucide-react";
 
 interface Tab {
   id: ActiveSection;
   label: string;
+  icon: typeof Flag;
   count?: number;
   hasUnread?: boolean;
+  accent?: string;
 }
 
 interface ProjectTabNavProps {
@@ -26,6 +32,8 @@ interface ProjectTabNavProps {
   hideInvoices?: boolean;
 }
 
+import { cn } from "@/lib/utils";
+
 export function ProjectTabNav({
   activeTab,
   onTabChange,
@@ -33,30 +41,40 @@ export function ProjectTabNav({
   unreadTabs,
   hideInvoices = false,
 }: ProjectTabNavProps) {
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+
   const allTabs: Tab[] = [
     {
       id: "milestones",
       label: "Milestones",
+      icon: Flag,
       count: counts.milestones,
       hasUnread: unreadTabs?.has("milestones"),
+      accent: "#6C63FF",
     },
     {
       id: "files",
       label: "Files & Assets",
+      icon: FolderOpen,
       count: counts.files,
       hasUnread: unreadTabs?.has("files"),
+      accent: "#00F5D4",
     },
     {
       id: "invoices",
       label: "Invoices",
+      icon: ReceiptText,
       count: counts.invoices,
       hasUnread: unreadTabs?.has("invoices"),
+      accent: "#F59E0B",
     },
     {
       id: "activity",
-      label: "Activity Log",
+      label: "Activity",
+      icon: Activity,
       count: counts.activity,
       hasUnread: unreadTabs?.has("activity"),
+      accent: "#34D399",
     },
   ];
 
@@ -65,111 +83,75 @@ export function ProjectTabNav({
     : allTabs;
 
   return (
-    <div
-      className="pd-animate-fade-up w-full px-8"
-      style={{
-        background: "var(--pd-body)",
-        animationDelay: "280ms",
-      }}
-    >
-      {/* Full-width bottom border line */}
-      <div style={{ borderBottom: "1px solid var(--pd-divider)" }}>
-        <div className="flex" style={{ gap: 24 }}>
-          {tabs.map((tab) => {
-            const isActive = tab.id === activeTab;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                className="relative transition-colors"
-                style={{
-                  fontFamily: "var(--font-data)",
-                  fontSize: 13,
-                  color: isActive
-                    ? "var(--pd-text-primary)"
-                    : "var(--pd-text-muted)",
-                  fontWeight: isActive ? 500 : 400,
-                  height: 40,
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "0 2px",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive)
-                    e.currentTarget.style.color = "var(--pd-text-secondary)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive)
-                    e.currentTarget.style.color = "var(--pd-text-muted)";
-                }}
-              >
-                <span className="flex items-center" style={{ gap: 6 }}>
-                  {tab.label}
+    <div className="w-full">
+      <div className="relative mx-auto flex max-w-fit items-center rounded-2xl bg-white shadow-sm border border-black/5 p-1 dark:bg-[#08090D] dark:border-white/[0.08] dark:shadow-none">
+        {tabs.map((tab) => {
+          const isActive = tab.id === activeTab;
+          const Icon = tab.icon;
+          const accent = tab.accent ?? "#6C63FF";
 
-                  {/* Count badge */}
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span
-                      className="inline-flex items-center justify-center rounded-full"
-                      style={{
-                        background: "var(--pd-accent-subtle)",
-                        color: "var(--pd-accent)",
-                        fontFamily: "var(--font-data)",
-                        fontSize: 10,
-                        fontWeight: 600,
-                        lineHeight: 1,
-                        height: 18,
-                        minWidth: 18,
-                        padding: "0 5px",
-                      }}
-                    >
-                      {tab.count}
-                    </span>
-                  )}
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              onMouseEnter={() => setHoveredTab(tab.id)}
+              onMouseLeave={() => setHoveredTab(null)}
+              className={cn(
+                "relative z-10 flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-300",
+                isActive
+                  ? "text-gray-900 dark:text-[#F4F4FF]"
+                  : "text-gray-500 hover:text-gray-700 dark:text-[#F4F4FF]/50 dark:hover:text-[#F4F4FF]/80"
+              )}
+            >
+              {/* Active indicator */}
+              {isActive && (
+                <motion.span
+                  layoutId="tab-active-bg"
+                  className="absolute inset-0 z-0 rounded-xl bg-black/5 dark:bg-white/10"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
 
-                  {/* Unread dot — teal, 6px, animated */}
-                  {tab.hasUnread && !isActive && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 20,
-                        duration: 0.15,
-                      }}
-                      className="inline-block rounded-full"
-                      style={{
-                        width: 6,
-                        height: 6,
-                        background: "var(--pd-accent)",
-                        flexShrink: 0,
-                      }}
-                      aria-label="New activity"
-                    />
+              <Icon
+                className="relative z-10 h-4 w-4 flex-shrink-0 transition-colors duration-200"
+                style={{ color: isActive ? accent : "inherit" }}
+              />
+
+              <span className="relative z-10 hidden sm:block">{tab.label}</span>
+
+              {/* Count badge */}
+              {tab.count !== undefined && tab.count > 0 && (
+                <span
+                  className={cn(
+                    "relative z-10 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                    !isActive && "bg-black/5 text-gray-500 dark:bg-white/10 dark:text-white/40"
                   )}
+                  style={{
+                    background: isActive ? `${accent}25` : undefined,
+                    color: isActive ? accent : undefined,
+                  }}
+                >
+                  {tab.count}
                 </span>
+              )}
 
-                {/* Active underline — 2px accent */}
-                {isActive && (
-                  <motion.span
-                    className="absolute bottom-0 left-0 right-0 rounded-full"
-                    style={{
-                      height: 2,
-                      background: "var(--pd-accent)",
-                    }}
-                    layoutId="tab-underline"
-                    transition={{
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 30,
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
+              {/* Unread dot */}
+              {tab.hasUnread && !isActive && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="relative z-10 inline-block rounded-full"
+                  style={{
+                    width: 5,
+                    height: 5,
+                    background: accent,
+                    boxShadow: `0 0 6px ${accent}`,
+                  }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

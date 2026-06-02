@@ -357,20 +357,21 @@ export function ProjectDetailPage({
 
   const pageContent = (
     <div
-      className="flex min-h-screen flex-col"
-      style={{
-        background: "var(--pd-body)",
-        color: "var(--pd-text-primary)",
-      }}
+      className="flex min-h-screen flex-col bg-[#F0F0F5] dark:bg-[#08090D] text-gray-900 dark:text-[#F4F4FF]"
     >
+      {/* Ambient spotlights */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 hidden dark:block"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 50% at -5% 0%, rgba(108,99,255,0.10) 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 105% 5%, rgba(0,245,212,0.05) 0%, transparent 50%)",
+        }}
+      />
       {/* ═══ Zone 0 — Guest Preview Bar ═══════════════════════ */}
       {isPreviewMode && <GuestPreviewBar onExitPreview={exitPreview} />}
 
       {/* ═══ Zone 1 — Top Bar + Health Ring ═══════════════════ */}
-      <div
-        className="flex items-start gap-4"
-        style={{ background: "var(--pd-body)" }}
-      >
+      <div className="flex items-start gap-4">
         <div className="min-w-0 flex-1">
           <ProjectTopBar
             project={initialProject}
@@ -430,7 +431,7 @@ export function ProjectDetailPage({
       {/* ═══ Zone 5+6 — Main Content + Right Panel ══════════ */}
       <div
         className="relative flex flex-1 px-8 pt-6 pb-8"
-        style={{ background: "var(--pd-body)", gap: 24 }}
+        style={{ gap: 24 }}
       >
         {/* Main content area */}
         <main className="min-w-0 flex-1">

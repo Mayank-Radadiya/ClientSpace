@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Search,
   SlidersHorizontal,
@@ -10,6 +10,7 @@ import {
   ArrowRight,
   LayoutGrid,
   List,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
@@ -40,30 +41,25 @@ type ProjectsHeaderProps = {
   onCreateClick: () => void;
 };
 
-/* ─── Priority pill color mapping ────────────────────────────────────── */
+/* ─── Filter Tab config ──────────────────────────────────────────────── */
+
+type FilterTab = { key: string; label: string; color?: string };
+
+const FILTER_TABS: FilterTab[] = [
+  { key: "all", label: "All" },
+  { key: "not_started", label: "Not Started" },
+  { key: "in_progress", label: "Active", color: "#6C63FF" },
+  { key: "on_hold", label: "On Hold", color: "#F59E0B" },
+  { key: "completed", label: "Done", color: "#34D399" },
+  { key: "overdue", label: "Overdue", color: "#FF4D6D" },
+];
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: "#34D399",
   medium: "#F59E0B",
-  high: "#EF4444",
-  urgent: "#EF4444",
+  high: "#FF4D6D",
+  urgent: "#FF4D6D",
 };
-
-/* ─── Filter Tab config ──────────────────────────────────────────────── */
-
-type FilterTab = {
-  key: string;
-  label: string;
-};
-
-const FILTER_TABS: FilterTab[] = [
-  { key: "all", label: "ALL" },
-  { key: "not_started", label: "NOT STARTED" },
-  { key: "in_progress", label: "ACTIVE" },
-  { key: "on_hold", label: "ON HOLD" },
-  { key: "completed", label: "DONE" },
-  { key: "overdue", label: "OVERDUE" },
-];
 
 /* ─── Component ──────────────────────────────────────────────────────── */
 
@@ -82,16 +78,15 @@ export function ProjectsHeader({
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [ctaHovered, setCtaHovered] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Active filter tab derived from status filter
   const activeTab = useMemo(() => {
     if (filters.status.length === 1) return filters.status[0];
     return "all";
   }, [filters.status]);
 
-  // Debounced search
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -105,7 +100,6 @@ export function ProjectsHeader({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localSearch]);
 
-  // ⌘K keyboard shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -122,9 +116,7 @@ export function ProjectsHeader({
   }, []);
 
   const handleTabClick = (tabKey: string) => {
-    if (tabKey === "all") {
-      onFiltersChange({ ...filters, status: [] });
-    } else if (tabKey === "overdue") {
+    if (tabKey === "all" || tabKey === "overdue") {
       onFiltersChange({ ...filters, status: [] });
     } else {
       onFiltersChange({
@@ -134,9 +126,7 @@ export function ProjectsHeader({
     }
   };
 
-  const handlePriorityToggle = (
-    priority: (typeof PROJECT_PRIORITIES)[number],
-  ) => {
+  const handlePriorityToggle = (priority: (typeof PROJECT_PRIORITIES)[number]) => {
     const newPriorities = filters.priority.includes(priority)
       ? filters.priority.filter((p) => p !== priority)
       : [...filters.priority, priority];
@@ -158,100 +148,142 @@ export function ProjectsHeader({
 
   return (
     <div className="space-y-5">
-      {/* ─── Title Row ──────────────────────────────────────────── */}
+      {/* ─── Hero Title Row ──────────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        transition={{ type: "spring", stiffness: 200, damping: 24 }}
         className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
       >
         <div>
-          <h1 className="text-[38px] leading-none font-[800] tracking-[-0.02em] text-[#0D0D14] dark:text-gray-50">
+          {/* Title with gradient */}
+          <h1
+            className="leading-none font-black tracking-tight text-gray-900 dark:text-transparent dark:bg-clip-text"
+            style={{
+              fontSize: "clamp(36px, 5vw, 52px)",
+              backgroundImage: "var(--title-gradient)",
+            }}
+          >
+            <style>{`
+              :root { --title-gradient: none; }
+              .dark { --title-gradient: linear-gradient(135deg, #F4F4FF 30%, rgba(108,99,255,0.8) 100%); }
+            `}</style>
             Projects
           </h1>
-          <motion.p
+
+          {/* Live stats line */}
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="mt-2.5 text-[11px] font-(--font-data) tracking-widest text-[#6B6B7E] uppercase dark:text-gray-400"
+            transition={{ delay: 0.15, duration: 0.4 }}
+            className="mt-2.5 flex items-center gap-3"
           >
-            {totalCount} {totalCount === 1 ? "project" : "projects"} ·{" "}
-            {activeCount} active
-            {overdueCount > 0 ? (
+            <span
+              className="text-[11px] tracking-[0.08em] uppercase text-gray-500 dark:text-white/45"
+              style={{
+                fontFamily: "var(--font-data, monospace)",
+              }}
+            >
+              {totalCount} {totalCount === 1 ? "project" : "projects"}
+            </span>
+            <span className="text-gray-400 dark:text-white/15">·</span>
+            <span
+              className="flex items-center gap-1.5 text-[11px] tracking-[0.08em] uppercase"
+              style={{
+                color: "#6C63FF",
+                fontFamily: "var(--font-data, monospace)",
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full animate-pulse"
+                style={{ background: "#6C63FF" }}
+              />
+              {activeCount} active
+            </span>
+            {overdueCount > 0 && (
               <>
-                {" · "}
-                <span className="text-[#EF4444]">{overdueCount} overdue</span>
+                <span className="text-gray-400 dark:text-white/15">·</span>
+                <span
+                  className="text-[11px] tracking-[0.08em] uppercase"
+                  style={{
+                    color: "#FF4D6D",
+                    fontFamily: "var(--font-data, monospace)",
+                  }}
+                >
+                  {overdueCount} overdue
+                </span>
               </>
-            ) : (
-              <> · 0 overdue</>
             )}
-          </motion.p>
+          </motion.div>
         </div>
 
-        {/* Right action group */}
+        {/* Action group */}
         <div className="flex items-center gap-3">
-          {/* Export ghost button */}
+          {/* Export button */}
           <button
             type="button"
-            className={cn(
-              "flex h-[40px] items-center gap-2 rounded-[10px] border px-4",
-              "text-[11px] font-(--font-data) tracking-widest uppercase",
-              "transition-all duration-200",
-              "border-[#EBEBF0] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-              "hover:bg-[#FAFAFA] hover:text-[#0D0D14]",
-              "dark:border-white/5 dark:bg-transparent dark:text-gray-400 dark:shadow-none",
-              "dark:hover:border-white/10 dark:hover:bg-transparent dark:hover:text-gray-50",
-            )}
+            className="flex h-[40px] items-center gap-2 rounded-xl px-4 text-[11px] tracking-[0.08em] uppercase transition-all duration-200 border border-black/10 dark:border-white/[0.08] bg-black/5 dark:bg-white/[0.04] text-gray-500 dark:text-white/45 hover:border-black/20 hover:text-gray-900 hover:bg-black/10 dark:hover:border-white/15 dark:hover:text-white dark:hover:bg-white/[0.07]"
+            style={{
+              fontFamily: "var(--font-data, monospace)",
+            }}
           >
             <Download className="h-3.5 w-3.5" />
-            Export ↓
+            Export
           </button>
 
-          {/* + New Project CTA — gradient works both themes */}
+          {/* New Project CTA */}
           <button
             type="button"
+            id="new-project-btn"
             onClick={onCreateClick}
-            className={cn(
-              "group/cta flex h-[40px] items-center gap-2 rounded-[10px] px-5",
-              "text-[12px] font-bold tracking-wide",
-              "transition-all duration-200",
-              "bg-gradient-to-r from-[#00F7FF] to-[#0090FF] text-black",
-              "shadow-[0_2px_12px_rgba(0,144,255,0.30)]",
-              "hover:shadow-[0_4px_20px_rgba(0,144,255,0.45)]",
-              "hover:brightness-110",
-            )}
+            onMouseEnter={() => setCtaHovered(true)}
+            onMouseLeave={() => setCtaHovered(false)}
+            className="group relative flex h-[40px] items-center gap-2 overflow-hidden rounded-xl px-5 text-[12px] font-bold tracking-wide transition-all duration-300"
+            style={{
+              background: ctaHovered
+                ? "linear-gradient(135deg, #7C73FF, #6C63FF)"
+                : "linear-gradient(135deg, #6C63FF, #5B54EE)",
+              color: "#fff",
+              boxShadow: ctaHovered
+                ? "0 0 0 1px rgba(108,99,255,0.5), 0 8px 32px rgba(108,99,255,0.45)"
+                : "0 0 0 1px rgba(108,99,255,0.3), 0 4px 16px rgba(108,99,255,0.25)",
+              transform: ctaHovered ? "translateY(-1px)" : "translateY(0)",
+            }}
           >
-            <Plus className="h-3.5 w-3.5" />
+            {/* Shimmer sweep */}
+            <span
+              className="pointer-events-none absolute inset-0 -translate-x-full skew-x-[-20deg] transition-transform duration-700"
+              style={{
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
+                transform: ctaHovered ? "translateX(200%) skewX(-20deg)" : "translateX(-100%) skewX(-20deg)",
+                transition: "transform 600ms ease",
+              }}
+            />
+            <Sparkles className="h-3.5 w-3.5" />
             New Project
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover/cta:translate-x-[3px]" />
+            <ArrowRight
+              className="h-3.5 w-3.5 transition-transform duration-200"
+              style={{ transform: ctaHovered ? "translateX(3px)" : "translateX(0)" }}
+            />
           </button>
         </div>
       </motion.div>
 
       {/* ─── Search + Filter Row ─────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 20,
-          delay: 0.05,
-        }}
+        transition={{ type: "spring", stiffness: 200, damping: 24, delay: 0.07 }}
         className="flex flex-col gap-3 sm:flex-row sm:items-center"
       >
         {/* Search bar */}
-        <div className="group relative flex-1">
+        <div className="relative flex-1">
           <Search
-            className={cn(
-              "pointer-events-none absolute top-1/2 left-4 z-20 h-4 w-4 -translate-y-1/2 transition-colors duration-200",
-              searchFocused
-                ? "text-[#0090FF]"
-                : "text-[#9B9BA8] dark:text-gray-500",
-            )}
+            className={cn("pointer-events-none absolute top-1/2 left-4 z-20 h-4 w-4 -translate-y-1/2 transition-colors duration-200", searchFocused ? "text-[#6C63FF]" : "text-gray-400 dark:text-white/30")}
           />
           <input
             ref={searchRef}
+            id="projects-search"
             type="text"
             placeholder="Search by name, client, or tag..."
             value={localSearch}
@@ -259,16 +291,12 @@ export function ProjectsHeader({
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             className={cn(
-              "h-[42px] w-full rounded-[10px] border pr-16 pl-11",
-              "text-[12px] font-(--font-data)",
-              "text-[#0D0D14] placeholder:text-[#9B9BA8]",
-              "dark:text-gray-50 dark:placeholder:text-gray-600",
-              "transition-all duration-200 outline-none",
-              "border-[#EBEBF0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-              "dark:border-transparent dark:bg-white/[0.03] dark:shadow-none",
-              searchFocused &&
-                "border-[#0090FF] shadow-[0_0_0_2px_rgba(0,144,255,0.12)] dark:border-[#00F7FF]/40 dark:shadow-[0_0_0_1px_rgba(0,247,255,0.15)]",
+              "h-[44px] w-full rounded-xl pr-16 pl-11 text-[12px] outline-none transition-all duration-200 bg-black/[0.02] border-black/5 text-gray-900 shadow-inner dark:bg-white/[0.04] dark:text-[#F4F4FF]",
+              searchFocused ? "border-[#6C63FF]/50 shadow-[0_0_0_3px_rgba(108,99,255,0.12),0_4px_16px_rgba(0,0,0,0.1)]" : "border-black/10 dark:border-white/[0.08]"
             )}
+            style={{
+              fontFamily: "var(--font-data, monospace)",
+            }}
           />
           <div className="absolute top-1/2 right-3 -translate-y-1/2">
             {localSearch ? (
@@ -278,13 +306,18 @@ export function ProjectsHeader({
                   setLocalSearch("");
                   onFiltersChange({ ...filters, search: "" });
                 }}
-                className="rounded-md p-1 text-[#6B6B7E] transition-colors hover:text-[#0D0D14] dark:text-gray-500 dark:hover:text-gray-50"
+                className="rounded-lg p-1 transition-colors text-gray-400 hover:text-gray-900 dark:text-white/40 dark:hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
             ) : (
               !searchFocused && (
-                <span className="rounded border border-[#EBEBF0] px-1.5 py-0.5 text-[10px] font-(--font-data) text-[#9B9BA8] dark:border-white/5 dark:text-gray-500">
+                <span
+                  className="rounded-md border border-black/10 dark:border-white/[0.08] text-gray-400 dark:text-white/30 px-1.5 py-0.5 text-[10px] tracking-widest"
+                  style={{
+                    fontFamily: "var(--font-data, monospace)",
+                  }}
+                >
                   ⌘K
                 </span>
               )
@@ -292,29 +325,30 @@ export function ProjectsHeader({
           </div>
         </div>
 
-        {/* Filters button + view mode toggle */}
+        {/* Filters + view toggle */}
         <div className="flex items-center gap-2">
+          {/* Filters button */}
           <button
             type="button"
+            id="filters-btn"
             onClick={() => setFiltersOpen(!filtersOpen)}
             className={cn(
-              "flex h-[42px] items-center gap-2 rounded-[10px] border px-4",
-              "text-[11px] font-(--font-data) tracking-widest uppercase",
-              "transition-all duration-200",
+              "flex h-[44px] items-center gap-2 rounded-xl px-4 text-[11px] tracking-[0.08em] uppercase transition-all duration-200 border",
               filtersOpen || activeFilterCount > 0
-                ? "border-[#0090FF]/30 bg-[rgba(0,144,255,0.08)] text-[#0090FF] dark:text-[#00C8FF]"
-                : cn(
-                    "border-[#EBEBF0] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-                    "hover:border-[rgba(0,144,255,0.3)]",
-                    "dark:border-white/5 dark:bg-transparent dark:text-gray-400 dark:shadow-none",
-                    "dark:hover:border-white/10 dark:hover:text-gray-50",
-                  ),
+                ? "bg-[#6C63FF]/10 border-[#6C63FF]/40 text-[#6C63FF]"
+                : "bg-black/5 border-black/10 text-gray-500 hover:border-black/20 hover:text-gray-900 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-white/45 dark:hover:border-white/15 dark:hover:text-white"
             )}
+            style={{
+              fontFamily: "var(--font-data, monospace)",
+            }}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Filters
             {activeFilterCount > 0 && (
-              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#0090FF] px-1 text-[10px] font-(--font-data) font-bold text-white dark:text-black">
+              <span
+                className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+                style={{ background: "#6C63FF" }}
+              >
                 {activeFilterCount}
               </span>
             )}
@@ -322,61 +356,43 @@ export function ProjectsHeader({
 
           {/* View mode toggle */}
           <div
-            className={cn(
-              "flex overflow-hidden rounded-[10px] border",
-              "border-[#EBEBF0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-              "dark:border-white/5 dark:bg-transparent dark:shadow-none",
-            )}
+            className="flex overflow-hidden rounded-xl border border-black/10 bg-black/5 dark:border-white/[0.08] dark:bg-white/[0.03]"
           >
-            <button
-              type="button"
-              id="view-mode-grid"
-              onClick={() => onViewModeChange("grid")}
-              aria-label="Grid view"
-              aria-pressed={viewMode === "grid"}
-              className={cn(
-                "flex h-[42px] w-[42px] items-center justify-center transition-colors duration-200",
-                viewMode === "grid"
-                  ? "bg-[#F0F0F5] text-[#0090FF] dark:bg-white/10 dark:text-[#00C8FF]"
-                  : "text-[#9B9BA8] hover:text-[#0D0D14] dark:text-gray-500 dark:hover:text-gray-50",
-              )}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              id="view-mode-list"
-              onClick={() => onViewModeChange("list")}
-              aria-label="List view"
-              aria-pressed={viewMode === "list"}
-              className={cn(
-                "flex h-[42px] w-[42px] items-center justify-center transition-colors duration-200",
-                viewMode === "list"
-                  ? "bg-[#F0F0F5] text-[#0090FF] dark:bg-white/10 dark:text-[#00C8FF]"
-                  : "text-[#9B9BA8] hover:text-[#0D0D14] dark:text-gray-500 dark:hover:text-gray-50",
-              )}
-            >
-              <List className="h-4 w-4" />
-            </button>
+            {(["grid", "list"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                id={`view-mode-${mode}`}
+                onClick={() => onViewModeChange(mode)}
+                aria-label={`${mode} view`}
+                aria-pressed={viewMode === mode}
+                className={cn(
+                  "flex h-[44px] w-[44px] items-center justify-center transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-white",
+                  viewMode === mode ? "bg-[#6C63FF]/20 text-[#6C63FF]" : "bg-transparent text-gray-500 dark:text-white/35"
+                )}
+              >
+                {mode === "grid" ? (
+                  <LayoutGrid className="h-4 w-4" />
+                ) : (
+                  <List className="h-4 w-4" />
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </motion.div>
 
-      {/* ─── Filter Tabs (Translucent Pill Container) ────────────── */}
+      {/* ─── Filter Tab Pills ─────────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
-        className={cn(
-          "inline-flex items-center rounded-xl border p-1",
-          "border-[#EBEBF0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]",
-          "dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none dark:backdrop-blur-sm",
-        )}
+        transition={{ type: "spring", stiffness: 200, damping: 24, delay: 0.12 }}
+        className="flex flex-wrap gap-1.5"
       >
         {FILTER_TABS.map((tab) => {
-          const isActive =
-            activeTab === tab.key || (tab.key === "all" && activeTab === "all");
+          const isActive = activeTab === tab.key || (tab.key === "all" && activeTab === "all");
           const count = getTabCount(tab.key);
+          const accentColor = tab.color ?? "#F4F4FF";
 
           return (
             <button
@@ -384,28 +400,32 @@ export function ProjectsHeader({
               type="button"
               onClick={() => handleTabClick(tab.key)}
               className={cn(
-                "relative flex items-center gap-1.5 rounded-[8px] px-3 py-1.5",
-                "text-[11px] font-(--font-data) tracking-widest uppercase",
-                "transition-all duration-200",
-                isActive
-                  ? cn(
-                      "bg-[#F0F0F5] text-[#0D0D14] shadow-[0_1px_4px_rgba(0,0,0,0.08)]",
-                      "dark:bg-white/10 dark:text-gray-50 dark:shadow-none",
-                    )
-                  : cn(
-                      "text-[#6B6B7E] hover:bg-[rgba(0,0,0,0.03)] hover:text-[#0D0D14]",
-                      "dark:text-gray-500 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
-                    ),
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] tracking-[0.06em] uppercase transition-all duration-200 border",
+                isActive ? (tab.key === "all" ? "text-gray-900 dark:text-[#F4F4FF]" : "") : "bg-black/5 border-black/10 text-gray-500 hover:border-black/20 hover:bg-black/10 hover:text-gray-900 dark:bg-white/[0.04] dark:border-white/[0.07] dark:text-white/45 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white"
               )}
+              style={{
+                fontFamily: "var(--font-data, monospace)",
+                ...(isActive && {
+                  background: `${accentColor}15`,
+                  borderColor: `${accentColor}40`,
+                  color: tab.key === "all" ? undefined : accentColor, 
+                  boxShadow: `0 0 12px ${accentColor}10`
+                })
+              }}
             >
+              {tab.color && isActive && (
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: accentColor }}
+                />
+              )}
               {tab.label}
               <span
-                className={cn(
-                  "text-[10px] font-(--font-data)",
-                  isActive
-                    ? "text-[#0090FF] dark:text-[#00C8FF]"
-                    : "text-[#9B9BA8] dark:text-gray-600",
-                )}
+                className={cn("text-[10px]", isActive ? "" : "text-gray-400 dark:text-white/25")}
+                style={{
+                  color: isActive ? accentColor : undefined,
+                  fontFamily: "var(--font-data, monospace)",
+                }}
               >
                 {count}
               </span>
@@ -414,52 +434,54 @@ export function ProjectsHeader({
         })}
       </motion.div>
 
-      {/* ─── Priority Filter Panel (expandable) ───────────────────── */}
+      {/* ─── Priority Filter Panel ─────────────────────────────────── */}
       <AnimatePresence>
         {filtersOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
             <div
-              className={cn(
-                "rounded-xl border p-5",
-                "border-[#EBEBF0] bg-[#FAFAFA]",
-                "dark:border-white/5 dark:bg-[#1A1D27]/50 dark:backdrop-blur-md",
-              )}
+              className="rounded-2xl border p-5 bg-white border-black/10 shadow-lg dark:bg-white/[0.03] dark:border-white/[0.08]"
+              style={{
+                backdropFilter: "blur(12px)",
+              }}
             >
               <div className="space-y-4">
-                {/* Priority pills */}
                 <div>
-                  <p className="mb-2 text-[11px] font-(--font-data) tracking-widest text-[#6B6B7E] uppercase dark:text-gray-400">
+                  <p
+                    className="mb-3 text-[10px] tracking-[0.1em] uppercase text-gray-500 dark:text-white/35"
+                    style={{
+                      fontFamily: "var(--font-data, monospace)",
+                    }}
+                  >
                     Priority
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {PROJECT_PRIORITIES.map((priority) => {
                       const isSelected = filters.priority.includes(priority);
-                      const color = PRIORITY_COLORS[priority] || "#6B6B7E";
+                      const color = PRIORITY_COLORS[priority] ?? "#F4F4FF";
                       return (
                         <button
                           key={priority}
                           type="button"
                           onClick={() => handlePriorityToggle(priority)}
                           className={cn(
-                            "rounded-full border px-3 py-1.5",
-                            "text-[11px] font-(--font-data) tracking-widest uppercase",
-                            "transition-all duration-200",
-                            isSelected
-                              ? "border-transparent font-bold text-black"
-                              : cn(
-                                  "border-[#EBEBF0] text-[#6B6B7E] hover:border-[rgba(0,144,255,0.3)]",
-                                  "dark:border-white/5 dark:text-gray-400 dark:hover:border-white/10",
-                                ),
+                            "rounded-lg px-3 py-1.5 text-[11px] tracking-[0.08em] uppercase transition-all duration-200 border",
+                            isSelected ? "" : "bg-black/5 border-black/10 text-gray-500 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-white/45"
                           )}
-                          style={
-                            isSelected ? { backgroundColor: color } : undefined
-                          }
+                          style={{
+                            fontFamily: "var(--font-data, monospace)",
+                            ...(isSelected && {
+                              background: color + "20",
+                              borderColor: color + "50",
+                              color: color,
+                              fontWeight: 600,
+                            })
+                          }}
                         >
                           {PRIORITY_LABELS[priority]}
                         </button>
@@ -468,17 +490,28 @@ export function ProjectsHeader({
                   </div>
                 </div>
 
-                {/* Clear */}
                 {activeFilterCount > 0 && (
-                  <div className="flex items-center justify-between border-t border-[#EBEBF0] pt-3 dark:border-white/5">
-                    <span className="text-[11px] font-(--font-data) tracking-widest text-[#6B6B7E] uppercase dark:text-gray-400">
-                      {activeFilterCount} filter
-                      {activeFilterCount > 1 ? "s" : ""} active
+                  <div
+                    className="flex items-center justify-between border-t border-black/10 dark:border-white/[0.06] pt-3"
+                  >
+                    <span
+                      className="text-[10px] tracking-[0.08em] uppercase text-gray-500 dark:text-white/35"
+                      style={{
+                        fontFamily: "var(--font-data, monospace)",
+                      }}
+                    >
+                      {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""} active
                     </span>
                     <button
                       type="button"
                       onClick={clearFilters}
-                      className="text-[11px] font-(--font-data) tracking-widest text-[#EF4444] uppercase transition-colors hover:text-[#EF4444]/80"
+                      className="text-[11px] tracking-[0.08em] uppercase transition-colors"
+                      style={{
+                        color: "#FF4D6D",
+                        fontFamily: "var(--font-data, monospace)",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                     >
                       Clear all
                     </button>

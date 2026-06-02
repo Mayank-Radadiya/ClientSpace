@@ -194,13 +194,13 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
             {projects.map((project, idx) => (
               <motion.div
                 key={project.id}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   type: "spring",
-                  stiffness: 100,
-                  damping: 20,
-                  delay: 0.25 + idx * 0.05,
+                  stiffness: 260,
+                  damping: 22,
+                  delay: 0.06 + idx * 0.04,
                 }}
               >
                 <ProjectCard project={project} viewMode={viewMode} />
@@ -211,21 +211,28 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
           {/* Load more */}
           {hasNextPage && (
             <div className="flex justify-center pt-2">
-              <button
-                type="button"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className={cn(
-                  "flex h-[40px] items-center gap-2 rounded-[10px] border px-5",
-                  "font-(--font-data) text-[11px] tracking-widest uppercase",
-                  "transition-all duration-200",
-                  "border-[#EBEBF0] bg-white text-[#6B6B7E] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
-                  "hover:border-[rgba(0,144,255,0.3)] hover:text-[#0090FF]",
-                  "dark:border-white/5 dark:bg-transparent dark:text-gray-400 dark:shadow-none",
-                  "dark:hover:border-[#0090FF]/30 dark:hover:text-[#00C8FF]",
-                  "disabled:opacity-50",
-                )}
-              >
+                <button
+                  type="button"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="flex h-[42px] items-center gap-2 rounded-xl px-5 text-[11px] tracking-[0.08em] uppercase transition-all duration-200 disabled:opacity-50"
+                  style={{
+                    fontFamily: "var(--font-data, monospace)",
+                    border: "1px solid rgba(255,255,255,0.09)",
+                    background: "rgba(255,255,255,0.04)",
+                    color: "rgba(244,244,255,0.45)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)";
+                    e.currentTarget.style.color = "#6C63FF";
+                    e.currentTarget.style.background = "rgba(108,99,255,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)";
+                    e.currentTarget.style.color = "rgba(244,244,255,0.45)";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                  }}
+                >
                 {isFetchingNextPage ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
