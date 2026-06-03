@@ -651,12 +651,12 @@ export function CustomDomainSettings({ initialSettings }: CustomDomainSettingsPr
             <p className="text-xs text-zinc-600">
               Your default portal is always available at{" "}
               <a
-                href={`https://clientspace.app/portal/${settings.slug}`}
+                href={`https://clientspace.qzz.io/portal/${settings.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-zinc-500 transition hover:text-zinc-400"
               >
-                clientspace.app/portal/{settings.slug}
+                clientspace.qzz.io/portal/{settings.slug}
               </a>
             </p>
           </div>

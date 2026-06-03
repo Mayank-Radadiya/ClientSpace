@@ -18,7 +18,7 @@ type FirstClientAddedEmailProps = {
   clientEmail: string;
 };
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://clientspace.app";
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://clientspace.qzz.io";
 
 export function FirstClientAddedEmail({
   clientCompanyName,

@@ -94,11 +94,13 @@ export default async function ClientLayout({
   };
 
   // Show "Powered by ClientSpace" only on starter plan, not hidden, and NOT on custom domains
-  const showPoweredBy = !org.poweredByHidden && org.plan === "starter" && !isCustomDomain;
+  const showPoweredBy =
+    !org.poweredByHidden && org.plan === "starter" && !isCustomDomain;
 
   // Canonical URL: on custom domains, point canonical to the custom domain URL
   // to prevent duplicate-content SEO issues between the two portal URLs.
-  const canonicalUrl = isCustomDomain && customDomain ? `https://${customDomain}` : undefined;
+  const canonicalUrl =
+    isCustomDomain && customDomain ? `https://${customDomain}` : undefined;
 
   return (
     <GlobalRealtimeProvider orgId={client.orgId}>
@@ -121,7 +123,7 @@ export default async function ClientLayout({
           {showPoweredBy ? (
             <footer className="text-muted-foreground py-6 text-center text-xs">
               <a
-                href="https://clientspace.app?ref=powered-by"
+                href="https://clientspace.qzz.io?ref=powered-by"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"

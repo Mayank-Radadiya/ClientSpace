@@ -14,8 +14,17 @@ export interface ReportData {
   clientName: string;
   dateRange: { from: string; to: string };
   sections: ReportSection["key"][];
-  milestonesSummary?: { total: number; done: number; inProgress: number; overdue: number };
-  invoicesSummary?: { totalCents: number; paidCents: number; pendingCents: number };
+  milestonesSummary?: {
+    total: number;
+    done: number;
+    inProgress: number;
+    overdue: number;
+  };
+  invoicesSummary?: {
+    totalCents: number;
+    paidCents: number;
+    pendingCents: number;
+  };
   filesCount?: number;
 }
 
@@ -31,18 +40,29 @@ export async function generateProjectPdf(data: ReportData): Promise<{
 }> {
   const ctx = await getSessionContext();
   if (!ctx) return { success: false, error: "Not authenticated." };
-  if (ctx.role === "client") return { success: false, error: "Clients cannot generate reports." };
+  if (ctx.role === "client")
+    return { success: false, error: "Clients cannot generate reports." };
 
   try {
-    const { Document, Page, Text, View, StyleSheet, pdf } = await import("@react-pdf/renderer");
+    const { Document, Page, Text, View, StyleSheet, pdf } =
+      await import("@react-pdf/renderer");
 
     // ── PDF style sheet ───────────────────────────────────────────────────────────
     const styles = StyleSheet.create({
       page: { padding: 40, fontFamily: "Helvetica" },
       title: { fontSize: 24, fontWeight: "bold", marginBottom: 8 },
       subtitle: { fontSize: 12, color: "#6b7280", marginBottom: 24 },
-      sectionTitle: { fontSize: 14, fontWeight: "bold", marginBottom: 8, marginTop: 16 },
-      row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
+      sectionTitle: {
+        fontSize: 14,
+        fontWeight: "bold",
+        marginBottom: 8,
+        marginTop: 16,
+      },
+      row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: 4,
+      },
       label: { fontSize: 10, color: "#374151" },
       value: { fontSize: 10, color: "#111827" },
       divider: { borderBottom: "1pt solid #e5e7eb", marginVertical: 8 },
@@ -67,18 +87,30 @@ export async function generateProjectPdf(data: ReportData): Promise<{
           ? createElement(
               View,
               null,
-              createElement(Text, { style: styles.sectionTitle }, "Milestone Summary"),
+              createElement(
+                Text,
+                { style: styles.sectionTitle },
+                "Milestone Summary",
+              ),
               createElement(
                 View,
                 { style: styles.row },
                 createElement(Text, { style: styles.label }, "Total"),
-                createElement(Text, { style: styles.value }, String(data.milestonesSummary.total)),
+                createElement(
+                  Text,
+                  { style: styles.value },
+                  String(data.milestonesSummary.total),
+                ),
               ),
               createElement(
                 View,
                 { style: styles.row },
                 createElement(Text, { style: styles.label }, "Completed"),
-                createElement(Text, { style: styles.value }, String(data.milestonesSummary.done)),
+                createElement(
+                  Text,
+                  { style: styles.value },
+                  String(data.milestonesSummary.done),
+                ),
               ),
               createElement(
                 View,
@@ -108,7 +140,11 @@ export async function generateProjectPdf(data: ReportData): Promise<{
           ? createElement(
               View,
               null,
-              createElement(Text, { style: styles.sectionTitle }, "Invoice Summary"),
+              createElement(
+                Text,
+                { style: styles.sectionTitle },
+                "Invoice Summary",
+              ),
               createElement(
                 View,
                 { style: styles.row },
@@ -178,18 +214,25 @@ export async function sendReportToClient(
   // Step 1: Generate the PDF buffer
   const pdfResult = await generateProjectPdf(reportData);
   if (!pdfResult.success || !pdfResult.buffer) {
-    return { success: false, error: pdfResult.error ?? "PDF generation failed." };
+    return {
+      success: false,
+      error: pdfResult.error ?? "PDF generation failed.",
+    };
   }
 
-  const pdfBase64 = Buffer.from(new Uint8Array(pdfResult.buffer)).toString("base64");
-  const filename = pdfResult.filename ?? `${projectName.replace(/\s+/g, "-").toLowerCase()}-report.pdf`;
+  const pdfBase64 = Buffer.from(new Uint8Array(pdfResult.buffer)).toString(
+    "base64",
+  );
+  const filename =
+    pdfResult.filename ??
+    `${projectName.replace(/\s+/g, "-").toLowerCase()}-report.pdf`;
 
   try {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
-      from: "noreply@clientspace.app",
+      from: "noreply@clientspace.qzz.io",
       to: clientEmail,
       subject: `Project Report: ${projectName}`,
       html: `<p>Hello,</p><p>Please find your project report for <strong>${projectName}</strong> attached.</p><p>— ClientSpace</p>`,

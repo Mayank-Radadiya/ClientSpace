@@ -7,7 +7,7 @@
  *
  * Fallback chain:
  *   1. org.customEmailVerified && org.customEmailDomain → "AgencyName <hello@theirdomain.com>"
- *   2. Otherwise → "Agency via ClientSpace <noreply@clientspace.app>"
+ *   2. Otherwise → "Agency via ClientSpace <noreply@clientspace.qzz.io>"
  *
  * Reply-To is always set to the agency owner's email when orgId is provided.
  */
@@ -60,7 +60,7 @@ async function resolveOrgEmailConfig(
   const defaultFrom =
     process.env.ONBOARDING_FROM_EMAIL ??
     process.env.INVITE_FROM_EMAIL ??
-    "noreply@clientspace.app";
+    "noreply@clientspace.qzz.io";
 
   if (!orgId) {
     return { fromAddress: defaultFrom };

@@ -2,7 +2,14 @@
 
 import { useState, useTransition, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Upload, X, Check, AlertTriangle, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  Upload,
+  X,
+  Check,
+  AlertTriangle,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +19,10 @@ import {
   uploadLogoAction,
   removeLogoAction,
 } from "@/features/settings/server/brandingActions";
-import { shiftOklchLightness, getContrastTextColor } from "@/features/portal/components/PortalThemeProvider";
+import {
+  shiftOklchLightness,
+  getContrastTextColor,
+} from "@/features/portal/components/PortalThemeProvider";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,7 +50,13 @@ interface BrandingSettingsProps {
 
 function getRelativeLuminance(hex: string): number | null {
   const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const full =
+    h.length === 3
+      ? h
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : h;
   if (full.length !== 6) return null;
   const toLinear = (c: number) =>
     c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -70,10 +86,15 @@ function evaluateContrast(accentColor: string): ContrastResult {
     return { ratio: null, label: "N/A (oklch)", variant: "pass" };
   }
   const textColor = getContrastTextColor(accentColor);
-  const ratio = getContrastRatio(accentColor, textColor === "#ffffff" ? "#ffffff" : "#1a1a1a");
-  if (ratio === null) return { ratio: null, label: "Invalid color", variant: "fail" };
+  const ratio = getContrastRatio(
+    accentColor,
+    textColor === "#ffffff" ? "#ffffff" : "#1a1a1a",
+  );
+  if (ratio === null)
+    return { ratio: null, label: "Invalid color", variant: "fail" };
   if (ratio >= 4.5) return { ratio, label: "AA pass", variant: "pass" };
-  if (ratio >= 3.0) return { ratio, label: "AA fail (large text only)", variant: "warn" };
+  if (ratio >= 3.0)
+    return { ratio, label: "AA fail (large text only)", variant: "warn" };
   return { ratio, label: "AAA fail", variant: "fail" };
 }
 
@@ -294,7 +315,10 @@ function PortalPreview({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) {
+export function BrandingSettings({
+  org,
+  orgId: _orgId,
+}: BrandingSettingsProps) {
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -302,9 +326,13 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
   // Local state mirrors org values and updates live as user types
   const [brandName, setBrandName] = useState(org.brandName ?? "");
   const [accentColor, setAccentColor] = useState(org.accentColor ?? "#3b82f6");
-  const [accentColorInput, setAccentColorInput] = useState(org.accentColor ?? "#3b82f6");
+  const [accentColorInput, setAccentColorInput] = useState(
+    org.accentColor ?? "#3b82f6",
+  );
   const [poweredByHidden, setPoweredByHidden] = useState(org.poweredByHidden);
-  const [customEmailFromName, setCustomEmailFromName] = useState(org.customEmailFromName ?? "");
+  const [customEmailFromName, setCustomEmailFromName] = useState(
+    org.customEmailFromName ?? "",
+  );
   const [logoUrl, setLogoUrl] = useState(org.logoUrl);
   const [logoMarkUrl, setLogoMarkUrl] = useState(org.logoMarkUrl);
   const [faviconUrl, setFaviconUrl] = useState(org.faviconUrl);
@@ -349,7 +377,8 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Logo &amp; Assets</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Upload your agency logo. Clients will see this instead of "ClientSpace" in the portal header.
+            Upload your agency logo. Clients will see this instead of
+            "ClientSpace" in the portal header.
           </p>
         </div>
 
@@ -391,7 +420,8 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Brand Colors</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Set your accent color for buttons, links, and active nav items in the client portal.
+            Set your accent color for buttons, links, and active nav items in
+            the client portal.
           </p>
         </div>
 
@@ -432,8 +462,12 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
                 )}
               >
                 {contrast.variant === "pass" && <Check className="h-3 w-3" />}
-                {contrast.variant === "warn" && <AlertTriangle className="h-3 w-3" />}
-                {contrast.variant === "fail" && <AlertCircle className="h-3 w-3" />}
+                {contrast.variant === "warn" && (
+                  <AlertTriangle className="h-3 w-3" />
+                )}
+                {contrast.variant === "fail" && (
+                  <AlertCircle className="h-3 w-3" />
+                )}
                 {contrast.label}
                 {contrast.ratio && ` (${contrast.ratio.toFixed(2)}:1)`}
               </span>
@@ -459,7 +493,8 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Portal Display Name</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            What clients see in the portal header when no logo is set. Defaults to your organization name.
+            What clients see in the portal header when no logo is set. Defaults
+            to your organization name.
           </p>
         </div>
 
@@ -485,7 +520,8 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
         <div className="mb-6">
           <h2 className="text-lg font-semibold">Email Branding</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Customize how your agency appears in outgoing emails. Configure a custom domain in the Email Domain section below.
+            Customize how your agency appears in outgoing emails. Configure a
+            custom domain in the Email Domain section below.
           </p>
         </div>
 
@@ -503,7 +539,7 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
 
           {/* Email preview */}
           <div className="bg-muted/40 space-y-1 rounded-lg border p-3">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               Preview
             </p>
             <p className="text-sm">
@@ -514,7 +550,7 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
                 &lt;
                 {org.customEmailVerified && org.customEmailDomain
                   ? `hello@${org.customEmailDomain}`
-                  : `noreply@clientspace.app`}
+                  : `noreply@clientspace.qzz.io`}
                 &gt;
               </span>
             </p>
@@ -562,7 +598,8 @@ export function BrandingSettings({ org, orgId: _orgId }: BrandingSettingsProps) 
               Hide "Powered by ClientSpace" footer
             </p>
             <p className="text-muted-foreground mt-0.5 text-xs">
-              When enabled, the ClientSpace attribution is completely removed from the client portal footer.
+              When enabled, the ClientSpace attribution is completely removed
+              from the client portal footer.
             </p>
           </div>
         </label>

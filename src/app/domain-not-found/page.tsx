@@ -7,7 +7,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Portal Not Available",
-  description: "The domain you are visiting is not configured or has been removed.",
+  description:
+    "The domain you are visiting is not configured or has been removed.",
   robots: { index: false, follow: false },
 };
 
@@ -115,7 +116,7 @@ export default function DomainNotFoundPage() {
 
           <div className="divider" />
 
-          <a href="https://clientspace.app">
+          <a href="https://clientspace.qzz.io">
             <svg
               width="14"
               height="14"

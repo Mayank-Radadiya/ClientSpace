@@ -38,7 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
     "Manage your client projects, invoices, and file approvals - all in one place.";
   const description = isStarter ? `${base} Powered by ClientSpace.` : base;
 
-  const rawUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://clientspace.app";
+  const rawUrl =
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://clientspace.qzz.io";
   const appUrl = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
 
   return {

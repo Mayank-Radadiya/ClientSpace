@@ -12,7 +12,7 @@
 //   4. If found: rewrite the request to /portal/{slug}{originalPath}
 //      and inject x-org-id, x-org-slug, x-custom-domain response headers
 //   5. If not found: rewrite to /domain-not-found
-//   6. Admin/dashboard paths on custom domains → redirect to clientspace.app/dashboard
+//   6. Admin/dashboard paths on custom domains → redirect to clientspace.qzz.io/dashboard
 
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
@@ -74,7 +74,12 @@ type DomainCacheEntry = {
 } | null;
 
 const DOMAIN_CACHE_TTL = 300; // 5 minutes in seconds
-const CLIENTSPACE_HOSTS = ["clientspace", "localhost", "vercel.app", "vercel-dns"];
+const CLIENTSPACE_HOSTS = [
+  "clientspace",
+  "localhost",
+  "vercel.app",
+  "vercel-dns",
+];
 
 function isClientspaceDomain(hostname: string): boolean {
   return CLIENTSPACE_HOSTS.some((h) => hostname.includes(h));
@@ -163,11 +168,9 @@ async function lookupOrgByDomain(
         token: process.env.UPSTASH_REDIS_REST_TOKEN,
       });
       // Cache even null (not found) to prevent DB hammering for invalid domains
-      await redisClient.set(
-        getRedisKeyForDomain(domain),
-        orgData,
-        { ex: DOMAIN_CACHE_TTL },
-      );
+      await redisClient.set(getRedisKeyForDomain(domain), orgData, {
+        ex: DOMAIN_CACHE_TTL,
+      });
     } catch {
       // Cache write failure is non-fatal
     }
@@ -210,7 +213,7 @@ export async function proxy(request: NextRequest) {
       pathname.startsWith("/signup")
     ) {
       const appUrl =
-        process.env.NEXT_PUBLIC_APP_URL ?? "https://clientspace.app";
+        process.env.NEXT_PUBLIC_APP_URL ?? "https://clientspace.qzz.io";
       return NextResponse.redirect(new URL(`${appUrl}/dashboard`));
     }
 
