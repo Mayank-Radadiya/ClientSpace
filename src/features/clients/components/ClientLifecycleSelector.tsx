@@ -22,7 +22,7 @@ interface LifecycleOption {
   description: string;
   colorClass: string;
   dotClass: string;
-  Icon: React.ElementType;
+  Icon: React.ComponentType<any>;
 }
 
 const LIFECYCLE_OPTIONS: LifecycleOption[] = [

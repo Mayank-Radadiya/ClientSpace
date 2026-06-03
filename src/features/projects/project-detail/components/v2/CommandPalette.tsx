@@ -23,7 +23,7 @@ import { ActiveSection } from "../../types";
 interface CommandAction {
   id: string;
   label: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<any>;
   group: string;
   onSelect: () => void;
   destructive?: boolean;

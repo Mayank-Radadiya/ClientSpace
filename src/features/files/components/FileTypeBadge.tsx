@@ -20,7 +20,7 @@ const badgeConfig: Record<
   FileKind,
   {
     label: string;
-    icon: React.ElementType;
+    icon: React.ComponentType<any>;
     className: string;
   }
 > = {

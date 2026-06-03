@@ -446,11 +446,16 @@ function resolveLineColor(color: string, element: HTMLElement) {
   context.fillRect(0, 0, 1, 1)
   const pixel = context.getImageData(0, 0, 1, 1).data
 
+  const r = pixel[0] ?? 0
+  const g = pixel[1] ?? 0
+  const b = pixel[2] ?? 0
+  const a = pixel[3] ?? 255
+
   return new Float32Array([
-    pixel[0] / 255,
-    pixel[1] / 255,
-    pixel[2] / 255,
-    pixel[3] / 255,
+    r / 255,
+    g / 255,
+    b / 255,
+    a / 255,
   ])
 }
 

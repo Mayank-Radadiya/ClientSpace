@@ -27,9 +27,9 @@ export function HeroHeadline() {
                 className="inline-block"
                 tag="span"
                 delay={60}
-                animationFrom={{ opacity: 0, transform: 'translate3d(0,24px,0)', filter: 'blur(4px)' }}
-                animationTo={{ opacity: 1, transform: 'translate3d(0,0,0)', filter: 'blur(0px)' }}
-                easing={[0.25, 0.1, 0.25, 1]}
+                from={{ opacity: 0, y: 24, filter: 'blur(4px)' }}
+                to={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                ease="cubic-bezier(0.25, 0.1, 0.25, 1)"
                 threshold={0.2}
                 rootMargin="-50px"
               />
@@ -41,9 +41,9 @@ export function HeroHeadline() {
                   className="inline-block"
                   tag="span"
                   delay={60}
-                  animationFrom={{ opacity: 0, transform: 'translate3d(0,24px,0)', filter: 'blur(4px)' }}
-                  animationTo={{ opacity: 1, transform: 'translate3d(0,0,0)', filter: 'blur(0px)' }}
-                  easing={[0.25, 0.1, 0.25, 1]}
+                  from={{ opacity: 0, y: 24, filter: 'blur(4px)' }}
+                  to={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  ease="cubic-bezier(0.25, 0.1, 0.25, 1)"
                   threshold={0.2}
                   rootMargin="-50px"
                 />

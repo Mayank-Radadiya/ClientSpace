@@ -104,7 +104,7 @@ export function computeHealthAlert(client: {
 
 const SEVERITY_STYLES: Record<
   AlertSeverity,
-  { wrapper: string; icon: React.ElementType; iconClass: string }
+  { wrapper: string; icon: React.ComponentType<any>; iconClass: string }
 > = {
   critical: {
     wrapper:

@@ -75,7 +75,7 @@ const SplitText: React.FC<SplitTextProps> = ({
 
       const startPct = (1 - threshold) * 100;
       const marginMatch = /^(-?\d+(?:\.\d+)?)(px|em|rem|%)?$/.exec(rootMargin);
-      const marginValue = marginMatch ? parseFloat(marginMatch[1]) : 0;
+      const marginValue = marginMatch && marginMatch[1] ? parseFloat(marginMatch[1]) : 0;
       const marginUnit = marginMatch ? marginMatch[2] || 'px' : 'px';
       const sign =
         marginValue === 0
@@ -162,7 +162,7 @@ const SplitText: React.FC<SplitTextProps> = ({
       willChange: 'transform, opacity'
     };
     const classes = `split-parent overflow-hidden inline-block whitespace-normal ${className}`;
-    const Tag = (tag || 'p') as React.ElementType;
+    const Tag = (tag || 'p') as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span';
 
     return (
       <Tag ref={ref} style={style} className={classes}>

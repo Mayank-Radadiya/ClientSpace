@@ -54,7 +54,7 @@ const FILE_KIND_COLORS: Record<string, string> = {
 
 const FILE_ICON_CONFIG: Record<
   string,
-  { Icon: React.ElementType; color: string }
+  { Icon: React.ComponentType<any>; color: string }
 > = {
   pdf: { Icon: FileType, color: "text-rose-500" },
   image: { Icon: FileImage, color: "text-sky-500" },

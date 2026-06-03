@@ -102,7 +102,7 @@ function SectionHeader({
   action,
 }: {
   title: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<any>;
   action?: { label: string; onClick: () => void };
 }) {
   return (

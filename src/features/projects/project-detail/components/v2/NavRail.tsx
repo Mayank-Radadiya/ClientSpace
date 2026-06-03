@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import {
+  type LucideIcon,
   Milestone as MilestoneIcon,
   FolderOpen,
   Receipt,
@@ -39,7 +40,7 @@ interface NavRailProps {
 const VIEW_ITEMS: {
   key: ActiveSection;
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }[] = [
   { key: "milestones", label: "Milestones", icon: MilestoneIcon },
   { key: "files", label: "Files & Assets", icon: FolderOpen },
@@ -57,7 +58,7 @@ function NavItem({
   reduced,
 }: {
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   active?: boolean;
   onClick: () => void;
   accent?: string;
@@ -109,7 +110,7 @@ function InfoRow({
 }: {
   label: string;
   value: React.ReactNode;
-  icon: React.ElementType;
+  icon: LucideIcon;
   index: number;
   reduced: boolean;
 }) {

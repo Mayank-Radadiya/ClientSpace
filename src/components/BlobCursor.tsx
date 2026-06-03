@@ -60,8 +60,8 @@ export default function BlobCursor({
   const handleMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
       const { left, top } = updateOffset();
-      const x = 'clientX' in e ? e.clientX : e.touches[0].clientX;
-      const y = 'clientY' in e ? e.clientY : e.touches[0].clientY;
+      const x = 'clientX' in e ? e.clientX : e.touches[0]?.clientX ?? 0;
+      const y = 'clientY' in e ? e.clientY : e.touches[0]?.clientY ?? 0;
 
       blobsRef.current.forEach((el, i) => {
         if (!el) return;
@@ -104,35 +104,41 @@ export default function BlobCursor({
         className="pointer-events-none absolute inset-0 overflow-hidden select-none cursor-default"
         style={{ filter: useFilter ? `url(#${filterId})` : undefined }}
       >
-        {Array.from({ length: trailCount }).map((_, i) => (
-          <div
-            key={i}
-            ref={el => {
-              blobsRef.current[i] = el;
-            }}
-            className="absolute will-change-transform transform -translate-x-1/2 -translate-y-1/2"
-            style={{
-              width: sizes[i],
-              height: sizes[i],
-              borderRadius: blobType === 'circle' ? '50%' : '0',
-              backgroundColor: fillColor,
-              opacity: opacities[i],
-              boxShadow: `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px 0 ${shadowColor}`
-            }}
-          >
+        {Array.from({ length: trailCount }).map((_, i) => {
+          const sizeVal = sizes[i] ?? 0;
+          const innerSizeVal = innerSizes[i] ?? 0;
+          const opacityVal = opacities[i] ?? 0.6;
+
+          return (
             <div
-              className="absolute"
-              style={{
-                width: innerSizes[i],
-                height: innerSizes[i],
-                top: (sizes[i] - innerSizes[i]) / 2,
-                left: (sizes[i] - innerSizes[i]) / 2,
-                backgroundColor: innerColor,
-                borderRadius: blobType === 'circle' ? '50%' : '0'
+              key={i}
+              ref={el => {
+                blobsRef.current[i] = el;
               }}
-            />
-          </div>
-        ))}
+              className="absolute will-change-transform transform -translate-x-1/2 -translate-y-1/2"
+              style={{
+                width: sizeVal,
+                height: sizeVal,
+                borderRadius: blobType === 'circle' ? '50%' : '0',
+                backgroundColor: fillColor,
+                opacity: opacityVal,
+                boxShadow: `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px 0 ${shadowColor}`
+              }}
+            >
+              <div
+                className="absolute"
+                style={{
+                  width: innerSizeVal,
+                  height: innerSizeVal,
+                  top: (sizeVal - innerSizeVal) / 2,
+                  left: (sizeVal - innerSizeVal) / 2,
+                  backgroundColor: innerColor,
+                  borderRadius: blobType === 'circle' ? '50%' : '0'
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
