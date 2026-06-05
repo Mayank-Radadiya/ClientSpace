@@ -60,7 +60,7 @@ async function resolveOrgEmailConfig(
   const envEmail =
     process.env.ONBOARDING_FROM_EMAIL ??
     process.env.INVITE_FROM_EMAIL ??
-    "noreply@clientspace.qzz.io";
+    "hello@clientspace.qzz.io";
 
   // Ensure the default from address has a display name to prevent spam flagging
   const defaultFrom = envEmail.includes("<")
@@ -69,7 +69,7 @@ async function resolveOrgEmailConfig(
 
   // Extract just the raw email address for the 'via' formatting
   const rawEmail = envEmail.includes("<")
-    ? envEmail.match(/<([^>]+)>/)?.[1] ?? "noreply@clientspace.qzz.io"
+    ? envEmail.match(/<([^>]+)>/)?.[1] ?? "hello@clientspace.qzz.io"
     : envEmail;
 
   if (!orgId) {
@@ -136,13 +136,14 @@ export async function sendClientInviteEmail(opts: SendClientInviteOptions) {
     from: fromAddress,
     to: opts.to,
     ...(replyTo ? { replyTo } : {}),
-    subject: `You've been invited to join ClientSpace`,
+    subject: `ClientSpace Portal Invitation`,
     react: ClientInviteEmail({
       contactName: opts.contactName,
       companyName: opts.companyName,
       inviterName: opts.inviterName,
       inviteUrl: opts.inviteUrl,
     }),
+    text: `Hello ${opts.contactName},\n\n${opts.inviterName} has invited you to access their secure client portal on ClientSpace.\n\nClientSpace provides a centralized hub where you can seamlessly view your projects, manage invoices, and securely share files in one place.\n\nAccept your invitation here: ${opts.inviteUrl}\n\nFor security purposes, this invitation link will expire in 72 hours.\n\nIf you have any questions, feel free to reach out to ${opts.inviterName} directly or reply to this email.\n\n© ${new Date().getFullYear()} ClientSpace Inc. All rights reserved.\n123 Business Avenue, Suite 100 • New York, NY 10001\nIf you didn't expect this invitation, you can safely ignore this email.`,
   });
 
   if (error) {
@@ -169,6 +170,7 @@ export async function sendFirstClientAddedEmail(
       clientContactName: opts.clientContactName,
       clientEmail: opts.clientEmail,
     }),
+    text: `Your first client has been added!\n\nClient Name: ${opts.clientContactName}\nCompany: ${opts.clientCompanyName}\nEmail: ${opts.clientEmail}\n\nClientSpace Inc.`,
   });
 
   if (error) {
