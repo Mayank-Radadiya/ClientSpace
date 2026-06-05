@@ -126,7 +126,7 @@ export async function sendClientInviteEmail(opts: SendClientInviteOptions) {
     from: fromAddress,
     to: opts.to,
     ...(replyTo ? { replyTo } : {}),
-    subject: `You've been invited to ${opts.companyName}'s portal`,
+    subject: `You've been invited to join ClientSpace`,
     react: ClientInviteEmail({
       contactName: opts.contactName,
       companyName: opts.companyName,
