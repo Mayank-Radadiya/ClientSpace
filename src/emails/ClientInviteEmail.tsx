@@ -28,7 +28,7 @@ export function ClientInviteEmail({
   return (
     <Html lang="en">
       <Head />
-      <Preview>You have been invited to ClientSpace.</Preview>
+      <Preview>Welcome to your client portal.</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
@@ -37,30 +37,29 @@ export function ClientInviteEmail({
 
           <Section style={content}>
             <Heading style={heading}>
-              You're invited to join ClientSpace
+              Welcome to ClientSpace
             </Heading>
 
             <Text style={paragraph}>Hello {contactName},</Text>
             <Text style={paragraph}>
-              <strong>{inviterName}</strong> has invited you to access their
-              secure client portal on ClientSpace.
+              <strong>{inviterName}</strong> has set up an account for you on their client portal.
             </Text>
             <Text style={paragraph}>
-              ClientSpace provides a centralized hub where you can seamlessly view your projects, manage invoices, and securely share files in one place.
+              You can now log in to view your projects, access shared documents, and manage invoices.
             </Text>
             
             <Section style={buttonContainer}>
               <Button href={inviteUrl} style={button}>
-                Accept Invitation
+                Access Your Account
               </Button>
             </Section>
 
             <Text style={muted}>
-              For security purposes, this invitation link will expire in <strong>72 hours</strong>.
+              This secure access link will remain active for <strong>72 hours</strong>.
             </Text>
             <Hr style={contentDivider} />
             <Text style={subMuted}>
-              If you have any questions, feel free to reach out to {inviterName} directly or reply to this email.
+              If you have any questions, you can reply directly to this email to reach {inviterName}.
             </Text>
           </Section>
 
@@ -72,7 +71,7 @@ export function ClientInviteEmail({
               123 Business Avenue, Suite 100 • New York, NY 10001
             </Text>
             <Text style={footerText}>
-              If you didn't expect this invitation, you can safely ignore this email.
+              If you did not expect this email, you can safely ignore it.
             </Text>
           </Section>
         </Container>

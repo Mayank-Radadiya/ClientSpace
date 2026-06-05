@@ -136,14 +136,14 @@ export async function sendClientInviteEmail(opts: SendClientInviteOptions) {
     from: fromAddress,
     to: opts.to,
     ...(replyTo ? { replyTo } : {}),
-    subject: `ClientSpace Portal Invitation`,
+    subject: `Access your client portal`,
     react: ClientInviteEmail({
       contactName: opts.contactName,
       companyName: opts.companyName,
       inviterName: opts.inviterName,
       inviteUrl: opts.inviteUrl,
     }),
-    text: `Hello ${opts.contactName},\n\n${opts.inviterName} has invited you to access their secure client portal on ClientSpace.\n\nClientSpace provides a centralized hub where you can seamlessly view your projects, manage invoices, and securely share files in one place.\n\nAccept your invitation here: ${opts.inviteUrl}\n\nFor security purposes, this invitation link will expire in 72 hours.\n\nIf you have any questions, feel free to reach out to ${opts.inviterName} directly or reply to this email.\n\n© ${new Date().getFullYear()} ClientSpace Inc. All rights reserved.\n123 Business Avenue, Suite 100 • New York, NY 10001\nIf you didn't expect this invitation, you can safely ignore this email.`,
+    text: `Hello ${opts.contactName},\n\n${opts.inviterName} has set up an account for you on their client portal.\n\nYou can now log in to view your projects, access shared documents, and manage invoices.\n\nAccess Your Account: ${opts.inviteUrl}\n\nThis secure access link will remain active for 72 hours.\n\nIf you have any questions, you can reply directly to this email to reach ${opts.inviterName}.\n\n© ${new Date().getFullYear()} ClientSpace Inc. All rights reserved.\n123 Business Avenue, Suite 100 • New York, NY 10001\nIf you did not expect this email, you can safely ignore it.`,
   });
 
   if (error) {
