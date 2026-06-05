@@ -57,10 +57,20 @@ async function resolveOrgEmailConfig(
   orgId: string | undefined,
   fallbackFromName?: string,
 ): Promise<OrgEmailConfig> {
-  const defaultFrom =
+  const envEmail =
     process.env.ONBOARDING_FROM_EMAIL ??
     process.env.INVITE_FROM_EMAIL ??
     "noreply@clientspace.qzz.io";
+
+  // Ensure the default from address has a display name to prevent spam flagging
+  const defaultFrom = envEmail.includes("<")
+    ? envEmail
+    : `ClientSpace <${envEmail}>`;
+
+  // Extract just the raw email address for the 'via' formatting
+  const rawEmail = envEmail.includes("<")
+    ? envEmail.match(/<([^>]+)>/)?.[1] ?? "noreply@clientspace.qzz.io"
+    : envEmail;
 
   if (!orgId) {
     return { fromAddress: defaultFrom };
@@ -101,7 +111,7 @@ async function resolveOrgEmailConfig(
     // Unverified domain — fall back with transparent attribution
     const fromName = fallbackFromName ?? org.name;
     return {
-      fromAddress: `${fromName} via ClientSpace <${defaultFrom}>`,
+      fromAddress: `${fromName} via ClientSpace <${rawEmail}>`,
       replyTo: owner?.email,
     };
   } catch (err) {
