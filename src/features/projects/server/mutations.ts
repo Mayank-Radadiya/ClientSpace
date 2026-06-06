@@ -1,6 +1,6 @@
 import { createDrizzleClient } from "@/db/createDrizzleClient";
 import { and, eq } from "drizzle-orm";
-import { projects } from "@/db/schema";
+import { projects, projectMembers, orgMemberships, users } from "@/db/schema";
 
 /**
  * Inserts a new project into the database with explicit column mapping.
@@ -148,4 +148,61 @@ export async function deleteProject(orgId: string, projectId: string) {
     console.error("[deleteProject] Database delete failed:", error);
     throw error;
   }
+}
+
+/**
+ * Adds an existing org member to a project by their email address.
+ * Throws descriptive errors for: user not found, not in org, already a member.
+ */
+export async function addProjectMember(
+  orgId: string,
+  projectId: string,
+  email: string,
+) {
+  const db = await createDrizzleClient();
+
+  // 1. Resolve email → user
+  const [user] = await db
+    .select({ id: users.id, email: users.email })
+    .from(users)
+    .where(eq(users.email, email.toLowerCase().trim()))
+    .limit(1);
+
+  if (!user) {
+    throw new Error("No account found with that email address.");
+  }
+
+  // 2. Must already belong to this org
+  const [membership] = await db
+    .select({ role: orgMemberships.role })
+    .from(orgMemberships)
+    .where(
+      and(eq(orgMemberships.userId, user.id), eq(orgMemberships.orgId, orgId)),
+    )
+    .limit(1);
+
+  if (!membership) {
+    throw new Error("That user is not a member of your organisation.");
+  }
+
+  // 3. Guard duplicate
+  const [existing] = await db
+    .select({ projectId: projectMembers.projectId })
+    .from(projectMembers)
+    .where(
+      and(
+        eq(projectMembers.projectId, projectId),
+        eq(projectMembers.userId, user.id),
+      ),
+    )
+    .limit(1);
+
+  if (existing) {
+    throw new Error("That person is already a member of this project.");
+  }
+
+  // 4. Insert
+  await db.insert(projectMembers).values({ projectId, userId: user.id });
+
+  return { userId: user.id, email: user.email };
 }

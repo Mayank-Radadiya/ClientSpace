@@ -7,7 +7,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, FileDown, Mail, Check, Loader2 } from "lucide-react";
+import { X, FileDown, Mail, Check, Loader2, AlertTriangle } from "lucide-react";
+import Link from "next/link";
 import { generateProjectPdf, sendReportToClient } from "@/features/projects/server/reportActions";
 
 type ReportSectionKey =
@@ -31,7 +32,8 @@ interface ReportBuilderPanelProps {
   projectId: string;
   projectName: string;
   clientName: string;
-  clientEmail: string;
+  clientEmail: string | null;
+  clientId: string | null;
   milestonesSummary?: { total: number; done: number; inProgress: number; overdue: number };
   invoicesSummary?: { totalCents: number; paidCents: number; pendingCents: number };
   filesCount?: number;
@@ -44,6 +46,7 @@ export function ReportBuilderPanel({
   projectName,
   clientName,
   clientEmail,
+  clientId,
   milestonesSummary,
   invoicesSummary,
   filesCount,
@@ -107,6 +110,7 @@ export function ReportBuilderPanel({
   };
 
   const handleSendToClient = async () => {
+    if (!clientEmail) return;
     setSending(true);
     setError(null);
     try {
@@ -320,38 +324,48 @@ export function ReportBuilderPanel({
               )}
             </button>
 
-            <button
-              id="report-send-btn"
-              onClick={handleSendToClient}
-              disabled={sending || selectedSections.size === 0}
-              className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-              style={{
-                borderColor: "var(--pd-border)",
-                color: "var(--pd-text-secondary)",
-                fontFamily: "var(--font-data)",
-                fontSize: 13,
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled)
-                  e.currentTarget.style.background = "var(--pd-accent-subtle)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              {sending ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Sending…
-                </>
-              ) : (
-                <>
-                  <Mail size={14} />
-                  Send to {clientEmail.split("@")[0]}
-                </>
+            <div className="flex flex-col gap-1 w-full">
+              <button
+                id="report-send-btn"
+                onClick={handleSendToClient}
+                disabled={sending || selectedSections.size === 0 || !clientEmail}
+                className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                style={{
+                  borderColor: "var(--pd-border)",
+                  color: "var(--pd-text-secondary)",
+                  fontFamily: "var(--font-data)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+                onMouseEnter={(e) => {
+                  if (!e.currentTarget.disabled)
+                    e.currentTarget.style.background = "var(--pd-accent-subtle)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                {sending ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Sending…
+                  </>
+                ) : (
+                  <>
+                    <Mail size={14} />
+                    {clientEmail ? `Send to ${clientEmail.split("@")[0]}` : "Send to Client"}
+                  </>
+                )}
+              </button>
+              {!clientEmail && clientId && (
+                <Link href={`/clients/${clientId}`} className="hover:underline mt-1">
+                  <p className="text-xs text-amber-600 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    No client email on file. Add one in Client Settings before sending.
+                  </p>
+                </Link>
               )}
-            </button>
+            </div>
           </div>
         </motion.div>
       )}

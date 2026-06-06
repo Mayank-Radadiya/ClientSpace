@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useProjectDetail } from "./hooks/useProjectDetail";
 import { useProjectPermissions } from "./hooks/useProjectPermissions";
@@ -17,6 +18,9 @@ import type {
   ActiveSection,
 } from "./types";
 import { gooeyToast } from "goey-toast";
+import { trpc } from "@/lib/trpc/client";
+import { createClient } from "@/lib/supabase/client";
+import type { MilestoneStatus } from "@/features/projects/schemas";
 import type { ActivityEventMetadata } from "@/db/schema";
 import { differenceInDays } from "date-fns";
 import { computeHealthScore } from "./lib/healthScore";
@@ -55,6 +59,37 @@ import { MilestoneCommandPanel } from "./components/v3/MilestoneCommandPanel";
 import { ReportBuilderPanel } from "./components/v3/ReportBuilderPanel";
 import { ProjectCommandPalette } from "./components/v3/ProjectCommandPalette";
 import { mapEventTypeToCategory } from "../utils/mapEventTypeToCategory";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogClose,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  updateProjectSchema,
+  type UpdateProjectInput,
+  STATUS_LABELS,
+  PRIORITY_LABELS,
+  PROJECT_STATUSES,
+  PROJECT_PRIORITIES,
+} from "@/features/projects/schemas";
 
 /* ────────────────────────────────────────────────────────────── */
 
@@ -104,6 +139,11 @@ export function ProjectDetailPage({
   const permissions = useProjectPermissions(role);
   const reduced = useReducedMotion();
   const effectiveRole: OrgRole = role ?? "member";
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const utils = trpc.useUtils();
 
   const {
     milestones,
@@ -116,6 +156,135 @@ export function ProjectDetailPage({
     initialMilestones,
     initialDiscussions: initialComments,
     initialFiles: initialAssets,
+  });
+
+  // ── tRPC mutations ─────────────────────────────────────────
+  const createMilestone = trpc.milestones.create.useMutation({
+    onMutate: async (input) => {
+      // Cancel in-flight refetches to avoid overwriting optimistic update
+      await utils.milestones.list.cancel({ projectId });
+      const previous = utils.milestones.list.getData({ projectId });
+      // Optimistically insert with a temporary id
+      type CacheRow = NonNullable<ReturnType<typeof utils.milestones.list.getData>>[number];
+      utils.milestones.list.setData({ projectId }, (old) => [
+        ...(old ?? []),
+        {
+          ...input,
+          id: `optimistic-${Date.now()}`,
+          orgId,
+          completed: false,
+          completedAt: null,
+          subTasks: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          description: null,
+          assigneeId: null,
+          startDate: null,
+          dueDate: input.dueDate ?? null,
+        } as CacheRow,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _input, ctx) => {
+      // Roll back on failure
+      if (ctx?.previous !== undefined) {
+        utils.milestones.list.setData({ projectId }, ctx.previous);
+      }
+      gooeyToast.error("Failed to create milestone. Please try again.");
+    },
+    onSettled: () => {
+      utils.milestones.list.invalidate({ projectId });
+    },
+  });
+
+  const updateMilestoneStatus = trpc.milestones.updateStatus.useMutation({
+    onMutate: async ({ id, status }) => {
+      await utils.milestones.list.cancel({ projectId });
+      const previous = utils.milestones.list.getData({ projectId });
+      utils.milestones.list.setData({ projectId }, (old) =>
+        old?.map((m) => (m.id === id ? { ...m, status } : m)) ?? []
+      );
+      return { previous };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.previous !== undefined) {
+        utils.milestones.list.setData({ projectId }, ctx.previous);
+      }
+      gooeyToast.error("Failed to move milestone.");
+    },
+    onSettled: () => {
+      utils.milestones.list.invalidate({ projectId });
+    },
+  });
+
+  const archiveProject = trpc.projects.archive.useMutation({
+    onSuccess: () => {
+      gooeyToast.success("Project archived successfully.");
+      router.push("/projects");
+    },
+    onError: () => gooeyToast.error("Failed to archive project. Please try again."),
+  });
+
+  const updateProject = trpc.projects.update.useMutation({
+    onSuccess: (updated) => {
+      utils.projects.byId.setData({ id: projectId }, (old) => {
+        if (!old) return undefined;
+        return { ...old, ...updated };
+      });
+      setIsEditing(false);
+      gooeyToast.success("Project updated.");
+    },
+    onError: () => gooeyToast.error("Failed to save changes."),
+  });
+
+  const deleteProject = trpc.projects.delete.useMutation({
+    onSuccess: () => {
+      gooeyToast.success("Project permanently deleted.");
+      router.push("/projects");
+    },
+    onError: () => gooeyToast.error("Failed to delete project."),
+  });
+
+  const inviteMember = trpc.projects.inviteMember.useMutation({
+    onSuccess: () => {
+      gooeyToast.success("Invitation sent successfully.");
+      setIsInviteOpen(false);
+      utils.projects.byId.invalidate({ id: projectId });
+    },
+    onError: (err) =>
+      setInviteError(err.message ?? "Failed to send invite."),
+  });
+
+  const createFile = trpc.files.create.useMutation({
+    onSuccess: () => {
+      utils.files.list.invalidate({ projectId });
+      gooeyToast.success("File uploaded successfully.");
+      setUploadProgress(null);
+    },
+    onError: () => {
+      gooeyToast.error("Upload failed. Please try again.");
+      setUploadProgress(null);
+    },
+  });
+
+  const deleteFile = trpc.files.delete.useMutation({
+    onSuccess: () => {
+      utils.files.list.invalidate({ projectId });
+      gooeyToast.success("Asset removed.");
+      setIsDeletingAsset(null);
+    },
+    onError: () => {
+      gooeyToast.error("Failed to delete asset.");
+      setIsDeletingAsset(null);
+    },
+  });
+
+  const createInvoice = trpc.invoices.create.useMutation({
+    onSuccess: (invoice) => {
+      gooeyToast.success("Invoice created. Opening builder...");
+      router.push(`/invoices/${invoice.id}`);
+    },
+    onError: () => gooeyToast.error("Failed to create invoice."),
   });
 
   const invoicesTotal = initialInvoices.reduce(
@@ -170,6 +339,26 @@ export function ProjectDetailPage({
   );
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [reportPanelOpen, setReportPanelOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isDeletingAsset, setIsDeletingAsset] = useState<string | null>(null);
+
+  const editForm = useForm<UpdateProjectInput>({
+    resolver: zodResolver(updateProjectSchema) as any,
+    defaultValues: {
+      name: initialProject.name,
+      description: initialProject.description ?? "",
+      status: initialProject.status,
+      priority: initialProject.priority,
+      budget: initialProject.budget ?? 0,
+    },
+  });
 
   // Check for ?preview=guest on mount
   useEffect(() => {
@@ -184,15 +373,12 @@ export function ProjectDetailPage({
   }, []);
 
   const exitPreview = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("preview");
+    const newUrl = params.size > 0 ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(newUrl, { scroll: false });
     setIsPreviewMode(false);
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.delete("preview");
-      window.history.replaceState({}, "", url.toString());
-    } catch {
-      // ignore
-    }
-  }, []);
+  }, [router, searchParams, pathname]);
 
   // Effective role for rendering (preview mode forces "client")
   const renderRole = isPreviewMode ? "client" : effectiveRole;
@@ -218,30 +404,83 @@ export function ProjectDetailPage({
   }));
 
   // ── Handlers ──────────────────────────────────────────────
-  const handleEdit = () => gooeyToast.success("Edit mode");
-  const handleArchive = () => gooeyToast.success("Project archived");
-  const handleDelete = () => gooeyToast.error("Project deleted");
-  const handleCreateInvoice = () => gooeyToast.success("Creating invoice...");
-  const handleAddMember = () => gooeyToast.success("Invite sent");
+  const handleEdit = () => setIsEditing(true);
+  const handleArchive = () => setIsArchiveDialogOpen(true);
+
+  const handleProjectSave = editForm.handleSubmit((values) => {
+    updateProject.mutate({ id: projectId, data: values });
+  });
+  const handleDelete = () => setIsDeleteDialogOpen(true);
+  const handleCreateInvoice = () => {
+    if (!initialProject.client_id) return;
+    createInvoice.mutate({
+      projectId,
+      clientId: initialProject.client_id,
+      currency: "USD",
+      taxRateBasisPoints: 0,
+      items: [
+        {
+          description: `Services for ${initialProject.name}`,
+          quantity: 1,
+          unitPriceCents: 0,
+        }
+      ],
+      notes: `Invoice for ${initialProject.name}`,
+    });
+  };
+
+  const onUpload = async (uploadedFiles: File[]) => {
+    const supabase = createClient();
+    for (const file of uploadedFiles) {
+      const path = `projects/${projectId}/${Date.now()}-${file.name}`;
+      setUploadProgress(0);
+      const { data, error } = await supabase.storage
+        .from("project-files")
+        .upload(path, file, { upsert: false });
+      if (error || !data) {
+        gooeyToast.error(`Failed to upload ${file.name}`);
+        setUploadProgress(null);
+        continue;
+      }
+      setUploadProgress(100);
+      createFile.mutate({
+        projectId,
+        storagePath: data.path,
+        fileSize: file.size,
+        fileType: file.type || "application/octet-stream",
+        fileName: file.name,
+      });
+    }
+  };
+
+  const onDelete = (assetId: string) => {
+    setIsDeletingAsset(assetId);
+    deleteFile.mutate({ projectId, assetId });
+  };
+
+  const handleAddMember = () => setIsInviteOpen(true);
 
   const handleAddMilestone = useCallback(
     (presetStatus?: string, title?: string) => {
       const resolvedTitle = (title ?? "").trim() || "New Milestone";
-      const newMilestone: Milestone = {
-        id: crypto.randomUUID(),
-        org_id: orgId,
-        project_id: projectId,
-        title: resolvedTitle,
-        due_date: null,
-        completed: presetStatus === "done",
-        completed_at: presetStatus === "done" ? new Date().toISOString() : null,
-        order: milestones.length,
-        status: (presetStatus || "todo") as Milestone["status"],
-      };
-      addMilestoneOptimistic(newMilestone);
-      gooeyToast.success("Milestone added");
+      createMilestone.mutate(
+        {
+          projectId,
+          title: resolvedTitle,
+          status: ((presetStatus === "done" || presetStatus === "in_progress" || presetStatus === "todo")
+            ? presetStatus
+            : "todo") as "todo" | "in_progress" | "done",
+          priority: "medium",
+          order: milestones.length,
+        },
+        {
+          onSuccess: () => {
+            gooeyToast.success("Milestone added");
+          },
+        },
+      );
     },
-    [orgId, projectId, milestones.length, addMilestoneOptimistic],
+    [projectId, milestones.length, createMilestone],
   );
 
   const handleUpdateMilestone = useCallback(
@@ -261,35 +500,23 @@ export function ProjectDetailPage({
 
   const handleMoveMilestone = useCallback(
     (id: string, newStatus: string) => {
+      const validStatus = (newStatus === "todo" || newStatus === "in_progress" || newStatus === "done")
+        ? (newStatus as MilestoneStatus)
+        : "todo" as MilestoneStatus;
       updateMilestoneOptimistic(id, {
-        status: newStatus as Milestone["status"],
-        completed: newStatus === "done",
-        completed_at: newStatus === "done" ? new Date().toISOString() : null,
+        status: validStatus,
+        completed: validStatus === "done",
+        completed_at: validStatus === "done" ? new Date().toISOString() : null,
       });
+      updateMilestoneStatus.mutate({ id, status: validStatus });
       gooeyToast.success("Milestone moved");
     },
-    [updateMilestoneOptimistic],
+    [updateMilestoneOptimistic, updateMilestoneStatus],
   );
 
   const handleMilestoneCreated = useCallback((id: string) => {
     gooeyToast.success("Milestone created");
   }, []);
-
-  // ── Keyboard shortcuts ────────────────────────────────────
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (
-        (e.target as HTMLElement).tagName === "INPUT" ||
-        (e.target as HTMLElement).tagName === "TEXTAREA"
-      )
-        return;
-      if (e.key === "Escape" && selectedMilestone) {
-        setSelectedMilestone(null);
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [selectedMilestone]);
 
   // ── Tab counts ────────────────────────────────────────────
   const counts = {
@@ -311,7 +538,7 @@ export function ProjectDetailPage({
   );
 
   // ── Client email for report builder ───────────────────────
-  const clientEmail = initialProject.client?.email ?? "client@example.com";
+  const clientEmail = initialProject.client?.email ?? null;
 
   // ── Render active section ─────────────────────────────────
   const renderSection = () => {
@@ -330,8 +557,10 @@ export function ProjectDetailPage({
           <FilesAssetsTab
             projectId={projectId}
             files={files}
-            onUpload={() => gooeyToast.success("Upload started...")}
-            onDelete={() => gooeyToast.success("Asset deleted")}
+            onUpload={onUpload}
+            onDelete={onDelete}
+            uploadProgress={uploadProgress}
+            isDeletingAsset={isDeletingAsset}
           />
         );
       case "invoices":
@@ -339,6 +568,8 @@ export function ProjectDetailPage({
           <InvoicesDetailTab
             invoices={initialInvoices}
             onCreateInvoice={handleCreateInvoice}
+            isCreatingInvoice={createInvoice.isPending}
+            hasClient={!!initialProject.client_id}
           />
         );
       case "activity":
@@ -356,6 +587,7 @@ export function ProjectDetailPage({
     : null;
 
   const pageContent = (
+    <>
     <div
       className="flex min-h-screen flex-col bg-[#F0F0F5] dark:bg-[#08090D] text-gray-900 dark:text-[#F4F4FF]"
     >
@@ -385,6 +617,18 @@ export function ProjectDetailPage({
             presenceSlot={
               presenceUser ? <PresenceAvatarsConnected /> : undefined
             }
+            isEditing={isEditing}
+            isUpdating={updateProject.isPending}
+            editForm={editForm}
+            onSave={handleProjectSave}
+            onCancelEdit={() => {
+              editForm.reset();
+              setIsEditing(false);
+            }}
+            statusOptions={PROJECT_STATUSES}
+            statusLabels={STATUS_LABELS}
+            priorityOptions={PROJECT_PRIORITIES}
+            priorityLabels={PRIORITY_LABELS}
           />
         </div>
 
@@ -493,6 +737,7 @@ export function ProjectDetailPage({
             "Client"
           }
           clientEmail={clientEmail}
+          clientId={initialProject.client_id ?? null}
           milestonesSummary={{
             total: milestones.length,
             done: milestones.filter((m) => m.completed).length,
@@ -518,6 +763,157 @@ export function ProjectDetailPage({
         />
       </div>
     </div>
+
+    {/* Archive confirmation dialog */}
+    <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Archive "{initialProject.name}"?</AlertDialogTitle>
+          <AlertDialogDescription>
+            The project will be hidden from the active projects list. You can unarchive it
+            later from Settings. This will not delete any data.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogClose render={<Button variant="outline">Cancel</Button>} />
+          <Button
+            onClick={() => archiveProject.mutate({ projectId })}
+            disabled={archiveProject.isPending}
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            {archiveProject.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Archive Project
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Delete confirmation dialog — requires typing the project name */}
+    <Dialog
+      open={isDeleteDialogOpen}
+      onOpenChange={(open) => {
+        setIsDeleteDialogOpen(open);
+        if (!open) setDeleteConfirmText("");
+      }}
+    >
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Permanently delete project?</DialogTitle>
+          <DialogDescription>
+            This action is irreversible. All milestones, files, comments, and invoices
+            linked to this project will be permanently removed. Type the project name to
+            confirm.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="px-6 pb-2">
+          <Input
+            placeholder={initialProject.name}
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+        <DialogFooter>
+          <DialogClose
+            render={
+              <Button
+                variant="outline"
+                onClick={() => setDeleteConfirmText("")}
+              >
+                Cancel
+              </Button>
+            }
+          />
+          <Button
+            variant="destructive"
+            disabled={
+              deleteConfirmText !== initialProject.name || deleteProject.isPending
+            }
+            onClick={() => deleteProject.mutate({ id: projectId })}
+          >
+            {deleteProject.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Delete permanently
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    {/* Invite member dialog */}
+    <Dialog
+      open={isInviteOpen}
+      onOpenChange={(open) => {
+        setIsInviteOpen(open);
+        if (!open) {
+          setInviteEmail("");
+          setInviteError(null);
+        }
+      }}
+    >
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>Add team member</DialogTitle>
+          <DialogDescription>
+            Enter the email address of an existing organisation member to add
+            them to this project.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="px-6 pb-2 flex flex-col gap-3">
+          <Input
+            id="invite-email"
+            type="email"
+            placeholder="colleague@example.com"
+            value={inviteEmail}
+            autoComplete="email"
+            onChange={(e) => {
+              setInviteEmail(e.target.value);
+              setInviteError(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.form?.requestSubmit();
+            }}
+          />
+          {inviteError && (
+            <p className="text-sm text-destructive">{inviteError}</p>
+          )}
+        </div>
+        <DialogFooter>
+          <DialogClose
+            render={
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setInviteEmail("");
+                  setInviteError(null);
+                }}
+              >
+                Cancel
+              </Button>
+            }
+          />
+          <Button
+            disabled={
+              !inviteEmail.includes("@") ||
+              inviteEmail.trim() === "" ||
+              inviteMember.isPending
+            }
+            onClick={() => {
+              setInviteError(null);
+              inviteMember.mutate({ projectId, email: inviteEmail.trim() });
+            }}
+          >
+            {inviteMember.isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Send invite
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 
   // Wrap with PresenceProvider if we have a current user

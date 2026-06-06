@@ -99,15 +99,6 @@ export function MilestoneCommandPanel({
     }
   }, [milestone]);
 
-  // Escape to close
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
-
   const handleSave = useCallback(() => {
     if (!milestone) return;
     onUpdate(milestone.id, {
@@ -176,6 +167,19 @@ export function MilestoneCommandPanel({
           }}
           role="complementary"
           aria-label={`Milestone details: ${milestone.title}`}
+          tabIndex={-1}
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
+          onKeyDown={(e) => {
+            if (
+              e.key === "Escape" &&
+              (e.target as HTMLElement).tagName !== "INPUT" &&
+              (e.target as HTMLElement).tagName !== "TEXTAREA"
+            ) {
+              e.stopPropagation();
+              onClose();
+            }
+          }}
         >
           {/* Header */}
           <div

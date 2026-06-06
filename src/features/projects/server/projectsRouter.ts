@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, rateLimitedProcedure } from "@/lib/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { getProjectList, getProjectDetail } from "./queries";
-import { createProject, updateProject, deleteProject } from "./mutations";
+import { createProject, updateProject, deleteProject, addProjectMember } from "./mutations";
 import { projectSchema, updateProjectSchema } from "../schemas";
 import { withRLS } from "@/db/createDrizzleClient";
 import { projectHealth, projects, clients } from "@/db/schema";
@@ -118,6 +118,58 @@ export const projectsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete project.",
+        });
+      }
+    }),
+
+  /** Archive a project — sets status to "archived" and hides it from active listings. */
+  archive: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid("Invalid project ID") }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.role === "client" || ctx.role === "member") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Admins and Owners can archive projects.",
+        });
+      }
+      try {
+        const archived = await updateProject(ctx.orgId, input.projectId, {
+          status: "archived",
+        });
+        return archived;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to archive project.",
+        });
+      }
+    }),
+
+  /** Add an existing org member to this project by email address. */
+  inviteMember: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid("Invalid project ID"),
+        email: z.string().email("Please enter a valid email address"),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.role === "client" || ctx.role === "member") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Admins and Owners can add members to projects.",
+        });
+      }
+      try {
+        return await addProjectMember(ctx.orgId, input.projectId, input.email);
+      } catch (error) {
+        // Surface descriptive messages from addProjectMember verbatim
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to add member to project.",
         });
       }
     }),

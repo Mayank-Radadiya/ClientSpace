@@ -29,18 +29,20 @@ function formatDate(iso: string): string {
 interface FilesAssetsTabProps {
   projectId: string;
   files: Asset[];
-  onUpload: (file: File) => void;
+  onUpload: (files: File[]) => void;
   onDelete: (id: string) => void;
+  uploadProgress?: number | null;
+  isDeletingAsset?: string | null;
 }
 
-export function FilesAssetsTab({ projectId, files, onUpload, onDelete }: FilesAssetsTabProps) {
+export function FilesAssetsTab({ projectId, files, onUpload, onDelete, uploadProgress, isDeletingAsset }: FilesAssetsTabProps) {
   const [dragOver, setDragOver] = useState(false);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const f = e.dataTransfer.files[0];
-    if (f) onUpload(f);
+    const dropped = Array.from(e.dataTransfer.files);
+    if (dropped.length > 0) onUpload(dropped);
   };
 
   return (
@@ -50,7 +52,17 @@ export function FilesAssetsTab({ projectId, files, onUpload, onDelete }: FilesAs
         <label className="flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 transition-all"
           style={{ background: "var(--pd-accent)", color: "#fff", fontFamily: "var(--font-data)", fontSize: 13, fontWeight: 500 }}>
           <Upload size={14} />Upload
-          <input type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) onUpload(e.target.files[0]); }} />
+          <input
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const picked = Array.from(e.target.files ?? []);
+              if (picked.length > 0) onUpload(picked);
+              // Reset so the same file can be re-selected
+              e.target.value = "";
+            }}
+          />
         </label>
       </div>
 
@@ -64,6 +76,32 @@ export function FilesAssetsTab({ projectId, files, onUpload, onDelete }: FilesAs
         </span>
       </div>
 
+      {/* Upload progress bar */}
+      {uploadProgress !== null && uploadProgress !== undefined && (
+        <div className="mb-4">
+          <div className="mb-1 flex items-center justify-between">
+            <span style={{ fontFamily: "var(--font-data)", fontSize: 11, color: "var(--pd-text-muted)" }}>
+              Uploading…
+            </span>
+            <span style={{ fontFamily: "var(--font-data)", fontSize: 11, color: "var(--pd-text-muted)" }}>
+              {uploadProgress}%
+            </span>
+          </div>
+          <div
+            className="h-1 w-full overflow-hidden rounded-full"
+            style={{ background: "var(--pd-elevated)" }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-200"
+              style={{
+                width: `${uploadProgress}%`,
+                background: "var(--pd-accent)",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {files.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <FileText size={32} style={{ color: "var(--pd-text-muted)", marginBottom: 12 }} />
@@ -75,9 +113,15 @@ export function FilesAssetsTab({ projectId, files, onUpload, onDelete }: FilesAs
           {files.map((file) => {
             const { Icon, color } = fileIcon(file.name);
             return (
-            <div key={file.id} className="group relative flex items-center gap-3 rounded-xl transition-colors"
-                style={{ background: "var(--pd-surface)", border: "1px solid var(--pd-border)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--pd-accent)"; }}
+            <div key={file.id} className="group relative flex items-center gap-3 rounded-xl transition-all"
+                style={{
+                  background: "var(--pd-surface)",
+                  border: "1px solid var(--pd-border)",
+                  opacity: isDeletingAsset === file.id ? 0.5 : 1,
+                  pointerEvents: isDeletingAsset === file.id ? "none" : "auto",
+                  transition: "opacity 0.2s",
+                }}
+                onMouseEnter={(e) => { if (isDeletingAsset !== file.id) e.currentTarget.style.borderColor = "var(--pd-accent)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--pd-border)"; }}>
                 <Link
                   href={`/projects/${projectId}/files/${file.id}`}
@@ -106,11 +150,18 @@ export function FilesAssetsTab({ projectId, files, onUpload, onDelete }: FilesAs
                   <button
                     onClick={(e) => { e.stopPropagation(); onDelete(file.id); }}
                     aria-label="Delete file"
+                    disabled={isDeletingAsset === file.id}
                     className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
                     style={{ color: "var(--pd-text-muted)" }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.08)"; e.currentTarget.style.color = "var(--pd-status-overdue)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--pd-text-muted)"; }}>
-                    <Trash2 size={14} />
+                    {isDeletingAsset === file.id ? (
+                      <svg className="animate-spin" width={14} height={14} viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="31.4" strokeDashoffset="10" />
+                      </svg>
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
                   </button>
                 </div>
               </div>

@@ -5,7 +5,7 @@ import { getFileList, getFileVersionHistory } from "./queries";
 import { createFileVersionInDb, deleteAsset } from "./mutations";
 import { createClient } from "@/lib/supabase/server";
 import { createFileVersionSchema } from "../schemas";
-import { folders } from "@/db/schema";
+import { folders, fileVersions } from "@/db/schema";
 import { and, eq, isNull, asc } from "drizzle-orm";
 import { createDrizzleClient } from "@/db/createDrizzleClient";
 
@@ -80,8 +80,38 @@ export const filesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const db = await createDrizzleClient(ctx);
+
+        // 1. Fetch all storage paths for this asset's file versions
+        const versions = await db
+          .select({ storagePath: fileVersions.storagePath })
+          .from(fileVersions)
+          .where(
+            and(
+              eq(fileVersions.assetId, input.assetId),
+              eq(fileVersions.orgId, ctx.orgId),
+            )
+          );
+
+        // 2. Remove from storage (best-effort — do not block DB deletion on failure)
+        if (versions.length > 0) {
+          const paths = versions.map((v) => v.storagePath);
+          const supabase = await createClient();
+          const { error: storageError } = await supabase.storage
+            .from("project-files")
+            .remove(paths);
+          if (storageError) {
+            console.error(
+              "[files.delete] Storage removal partially failed:",
+              storageError.message,
+            );
+          }
+        }
+
+        // 3. Soft-delete the asset DB record
         return await deleteAsset(ctx.orgId, input.projectId, input.assetId);
       } catch (error) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to delete file.",

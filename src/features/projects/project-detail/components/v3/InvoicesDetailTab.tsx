@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Invoice } from "../../types";
 import { formatCurrency } from "../../../utils/formatters";
 
@@ -18,9 +19,11 @@ function statusStyle(s: string) {
 interface InvoicesDetailTabProps {
   invoices: Invoice[];
   onCreateInvoice: () => void;
+  isCreatingInvoice?: boolean;
+  hasClient?: boolean;
 }
 
-export function InvoicesDetailTab({ invoices, onCreateInvoice }: InvoicesDetailTabProps) {
+export function InvoicesDetailTab({ invoices, onCreateInvoice, isCreatingInvoice, hasClient }: InvoicesDetailTabProps) {
   const stats = useMemo(() => {
     const total = invoices.reduce((a, i) => a + i.amount_cents, 0);
     const paid = invoices.filter((i) => i.status === "paid").reduce((a, i) => a + i.amount_cents, 0);
@@ -32,12 +35,26 @@ export function InvoicesDetailTab({ invoices, onCreateInvoice }: InvoicesDetailT
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, color: "var(--pd-text-primary)" }}>Invoices</h2>
-        <button onClick={onCreateInvoice} className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 transition-all"
-          style={{ background: "var(--pd-accent)", color: "#fff", fontFamily: "var(--font-data)", fontSize: 13, fontWeight: 500 }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--pd-accent-hover)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "var(--pd-accent)"; }}>
-          <Plus size={14} />Create Invoice
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-block">
+                <button onClick={onCreateInvoice} disabled={isCreatingInvoice || hasClient === false} className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: "var(--pd-accent)", color: "#fff", fontFamily: "var(--font-data)", fontSize: 13, fontWeight: 500 }}
+                  onMouseEnter={(e) => { if (!e.currentTarget.disabled) e.currentTarget.style.background = "var(--pd-accent-hover)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--pd-accent)"; }}>
+                  {isCreatingInvoice ? <Loader2 className="animate-spin h-4 w-4" /> : <Plus size={14} />}
+                  Create Invoice
+                </button>
+              </span>
+            </TooltipTrigger>
+            {hasClient === false && (
+              <TooltipContent>
+                <p>Assign a client to this project first.</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Stats mini-row */}
@@ -57,8 +74,25 @@ export function InvoicesDetailTab({ invoices, onCreateInvoice }: InvoicesDetailT
       {invoices.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
           <p style={{ fontFamily: "var(--font-data)", fontSize: 14, color: "var(--pd-text-secondary)", marginBottom: 8 }}>No invoices for this project</p>
-          <button onClick={onCreateInvoice} className="rounded-full px-4 py-1.5"
-            style={{ background: "var(--pd-accent)", color: "#fff", fontFamily: "var(--font-data)", fontSize: 13 }}>Create Invoice</button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block">
+                  <button onClick={onCreateInvoice} disabled={isCreatingInvoice || hasClient === false} className="rounded-full px-4 py-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ background: "var(--pd-accent)", color: "#fff", fontFamily: "var(--font-data)", fontSize: 13 }}>
+                    {isCreatingInvoice ? (
+                      <span className="flex items-center gap-2"><Loader2 className="animate-spin h-4 w-4" />Creating...</span>
+                    ) : "Create Invoice"}
+                  </button>
+                </span>
+              </TooltipTrigger>
+              {hasClient === false && (
+                <TooltipContent>
+                  <p>Assign a client to this project first.</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--pd-border)" }}>

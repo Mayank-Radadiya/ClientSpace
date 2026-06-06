@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "motion/react";
 import { trpc } from "@/lib/trpc/client";
 import { ProjectCard } from "@/features/projects/components/project-card/ProjectCard";
@@ -16,9 +16,12 @@ import { CreateProjectDialog } from "@/features/projects/components/createProjec
 import { EmptyProjects } from "@/features/projects/components/EmptyProjects";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ProjectCardSkeleton } from "./project-card/ProjectCardSkeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────
+
+type ViewMode = "grid" | "list";
 
 type Client = { id: string; companyName: string | null; email: string };
 
@@ -61,13 +64,15 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
     status: [],
     priority: [],
   });
-  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
-    if (typeof window === "undefined") return "grid";
-    const saved = localStorage.getItem("projects-view-mode");
-    return saved === "list" ? "list" : "grid";
-  });
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
-  const handleViewModeChange = (mode: "grid" | "list") => {
+  // Hydrate from localStorage after mount to avoid SSR/client mismatch
+  useEffect(() => {
+    const stored = localStorage.getItem("projects-view-mode") as ViewMode | null;
+    if (stored === "list" || stored === "grid") setViewMode(stored);
+  }, []);
+
+  const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);
     try {
       localStorage.setItem("projects-view-mode", mode);
@@ -170,6 +175,7 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
       {/* Loading state */}
       {isLoading ? (
         <div
+          suppressHydrationWarning
           className={cn(
             "grid w-full gap-4",
             viewMode === "grid"
@@ -184,6 +190,7 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
       ) : projects.length > 0 ? (
         <>
           <div
+            suppressHydrationWarning
             className={cn(
               "grid w-full gap-4",
               viewMode === "grid"
@@ -211,28 +218,12 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
           {/* Load more */}
           {hasNextPage && (
             <div className="flex justify-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  className="flex h-[42px] items-center gap-2 rounded-xl px-5 text-[11px] tracking-[0.08em] uppercase transition-all duration-200 disabled:opacity-50"
-                  style={{
-                    fontFamily: "var(--font-data, monospace)",
-                    border: "1px solid rgba(255,255,255,0.09)",
-                    background: "rgba(255,255,255,0.04)",
-                    color: "rgba(244,244,255,0.45)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(108,99,255,0.4)";
-                    e.currentTarget.style.color = "#6C63FF";
-                    e.currentTarget.style.background = "rgba(108,99,255,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)";
-                    e.currentTarget.style.color = "rgba(244,244,255,0.45)";
-                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                  }}
-                >
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage || !hasNextPage}
+              >
                 {isFetchingNextPage ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -241,7 +232,7 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
                 ) : (
                   "Load more"
                 )}
-              </button>
+              </Button>
             </div>
           )}
         </>
