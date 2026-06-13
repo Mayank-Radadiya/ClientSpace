@@ -223,18 +223,10 @@ export function ProjectRightPanel({
 
   return (
     <aside
-      className="pd-scroll pd-animate-fade-up shrink-0"
-      style={{
-        width: 288,
-        position: "sticky",
-        top: 24,
-        alignSelf: "flex-start",
-        maxHeight: "calc(100vh - 64px)",
-        overflowY: "auto",
-        animationDelay: "100ms",
-      }}
+      className="pd-scroll pd-animate-fade-up shrink-0 w-72 sticky top-6 self-start max-h-[calc(100vh-64px)] overflow-y-auto"
+      style={{ animationDelay: "100ms" }}
     >
-      <div className="flex flex-col" style={{ gap: 16 }}>
+      <div className="flex flex-col gap-4">
         {/* ── Card 1: PROJECT INFO ─────────────────────────── */}
         <div className="pd-card" style={{ padding: 16 }}>
           <div className="flex items-center justify-between pb-2">
@@ -268,67 +260,15 @@ export function ProjectRightPanel({
             </button>
           </div>
 
-          <InfoRow icon={User2} label="Client">
-            <span className="flex items-center gap-1.5">
+          <InfoRow icon={User2} label="Client" isLast={!project.tags || project.tags.length === 0}>
+            <span className="flex items-center gap-1.5 font-medium text-gray-900 dark:text-white">
               <span
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                style={{
-                  background: "var(--pd-accent)",
-                  color: "#fff",
-                  fontSize: 8,
-                  fontWeight: 700,
-                }}
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white bg-gray-900 dark:bg-white dark:text-gray-900"
               >
                 {clientName.charAt(0).toUpperCase()}
               </span>
               {clientName}
             </span>
-          </InfoRow>
-
-          <InfoRow icon={BarChart3} label="Status">
-            <span
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5"
-              style={{
-                background: statusBg(project.status),
-                color: statusColor(project.status),
-                fontSize: 12,
-              }}
-            >
-              <span
-                className="inline-block h-1.5 w-1.5 rounded-full"
-                style={{ background: statusColor(project.status) }}
-              />
-              {formatStatus(project.status)}
-            </span>
-          </InfoRow>
-
-          <InfoRow icon={Flag} label="Priority">
-            <span className="flex items-center gap-1.5">
-              <span
-                className={`inline-block h-2 w-2 rounded-full ${project.priority === "urgent" ? "pd-pulse-critical" : ""}`}
-                style={{ background: priorityDotColor(project.priority) }}
-              />
-              {project.priority.charAt(0).toUpperCase() +
-                project.priority.slice(1)}
-            </span>
-          </InfoRow>
-
-          <InfoRow icon={Calendar} label="Deadline">
-            <span
-              className="flex items-center gap-1"
-              style={{
-                color: isOverdue
-                  ? "var(--pd-status-overdue)"
-                  : "var(--pd-text-primary)",
-              }}
-            >
-              {isOverdue && <AlertTriangle size={11} />}
-              {deadline}
-            </span>
-          </InfoRow>
-
-          <InfoRow icon={DollarSign} label="Budget">
-            {formatCurrency(project.budget)}
           </InfoRow>
 
           {project.tags && project.tags.length > 0 && (
@@ -337,14 +277,7 @@ export function ProjectRightPanel({
                 {project.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-md px-1.5 py-0.5"
-                    style={{
-                      background: "var(--pd-elevated)",
-                      border: "1px solid var(--pd-border)",
-                      color: "var(--pd-text-secondary)",
-                      fontSize: 11,
-                      fontFamily: "var(--font-data)",
-                    }}
+                    className="rounded-md px-1.5 py-0.5 bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300 font-mono text-[11px]"
                   >
                     {tag}
                   </span>
@@ -366,7 +299,7 @@ export function ProjectRightPanel({
                 color: "var(--pd-text-muted)",
               }}
             >
-              ACTIONS
+              QUICK ACTIONS
             </span>
           </div>
 
@@ -374,25 +307,8 @@ export function ProjectRightPanel({
             <ActionBtn
               icon={FileText}
               label="+ Create Invoice"
-              variant="blue"
+              variant="neutral"
               onClick={onCreateInvoice}
-            />
-
-            <div
-              className="my-1"
-              style={{ height: 1, background: "var(--pd-divider)" }}
-            />
-
-            <ActionBtn
-              icon={Archive}
-              label="🗄 Archive Project"
-              onClick={onArchive}
-            />
-            <ActionBtn
-              icon={Trash2}
-              label="⚠ Delete Project"
-              variant="danger"
-              onClick={onDelete}
             />
           </div>
         </div>
@@ -521,6 +437,34 @@ export function ProjectRightPanel({
             <TeamNotes projectId={project.id} />
           </div>
         )}
+
+        {/* ── Card 5: DANGER ZONE ─────────────────────────── */}
+        <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
+          <div className="pb-2">
+            <span
+              className="text-[10px] font-medium tracking-widest text-red-600 dark:text-red-400"
+            >
+              DANGER ZONE
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={onArchive}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-red-700 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+            >
+              <Archive size={14} />
+              Archive Project
+            </button>
+            <button
+              onClick={onDelete}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-red-700 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/40"
+            >
+              <Trash2 size={14} />
+              Delete Project
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
   );

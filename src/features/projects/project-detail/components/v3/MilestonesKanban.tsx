@@ -56,14 +56,12 @@ function InlineAddForm({ onSubmit, onCancel }: { onSubmit: (t: string) => void; 
 function EmptyColumnCard({ onClick }: { onClick: () => void }) {
   return (
     <button onClick={onClick}
-      className="flex w-full flex-col items-center justify-center gap-2 rounded-[10px] py-10 transition-all"
-      style={{ border: "1px dashed rgba(59,111,240,0.2)", minHeight: 120 }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--pd-accent-subtle)"; e.currentTarget.style.borderColor = "var(--pd-accent)"; e.currentTarget.style.borderStyle = "solid"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(59,111,240,0.2)"; e.currentTarget.style.borderStyle = "dashed"; }}>
-      <div className="flex h-7 w-7 items-center justify-center rounded-full" style={{ background: "var(--pd-accent-subtle)" }}>
-        <Plus size={14} style={{ color: "var(--pd-accent)" }} />
+      className="flex w-full flex-col items-center justify-center gap-2 rounded-[10px] py-10 transition-all border border-dashed border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5"
+      style={{ minHeight: 120 }}>
+      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10">
+        <Plus size={14} className="text-gray-500 dark:text-gray-400" />
       </div>
-      <span style={{ fontFamily: "var(--font-data)", fontSize: 12, color: "var(--pd-accent)" }}>Add milestone</span>
+      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Add milestone</span>
     </button>
   );
 }

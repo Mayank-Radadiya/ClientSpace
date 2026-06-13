@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { differenceInDays, format } from "date-fns";
-import { AlertTriangle, TrendingUp, DollarSign, Target, Clock } from "lucide-react";
+import { AlertTriangle, TrendingUp, DollarSign, Target, Clock, Activity } from "lucide-react";
 import type { Project, Milestone } from "../../types";
 import { useCountUp } from "../../hooks/useCountUp";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
@@ -14,12 +14,14 @@ interface HeroStatsBandProps {
   project: Project;
   milestones: Milestone[];
   invoicesTotal: number;
+  health?: number;
 }
 
 export function HeroStatsBand({
   project,
   milestones,
   invoicesTotal,
+  health,
 }: HeroStatsBandProps) {
   const reduced = useReducedMotion();
 
@@ -66,20 +68,17 @@ export function HeroStatsBand({
 
   const stats = [
     {
-      icon: Target,
-      label: "Completion",
-      value: reduced ? `${percentage}%` : `${animPct}%`,
-      rawValue: percentage,
-      accent: percentage >= 80 ? "#34D399" : percentage >= 50 ? "#6C63FF" : "#F59E0B",
-      sub: `${completed} of ${total} milestones`,
-      showBar: true,
-      barPct: percentage,
+      icon: Activity,
+      label: "Health & Progress",
+      value: health !== undefined ? `${health}/100` : `${percentage}%`,
+      accent: health && health >= 80 ? "#34D399" : health && health >= 50 ? "#F59E0B" : "#FF4D6D",
+      sub: `${completed} of ${total} milestones completed`,
+      isOverdue: false,
     },
     {
       icon: Clock,
-      label: "Deadline",
+      label: "Timeline",
       value: deadlineLabel,
-      rawValue: null,
       accent: urgencyColor,
       sub: daysRemaining === null
         ? "No deadline set"
@@ -88,33 +87,19 @@ export function HeroStatsBand({
           : daysRemaining === 0
             ? "Due today"
             : `${daysRemaining} days remaining`,
-      showBar: false,
-      barPct: 0,
       isOverdue: daysRemaining !== null && daysRemaining < 0,
     },
     {
       icon: DollarSign,
-      label: "Budget",
-      value: formatCurrency(budgetCents),
-      rawValue: null,
-      accent: isOverBudget ? "#FF4D6D" : "#34D399",
+      label: "Financials",
+      value: formatCurrency(invoicesTotal),
+      accent: isOverBudget ? "#FF4D6D" : "#6C63FF",
       sub: budgetCents
         ? isOverBudget
           ? `Over by ${formatCurrency(invoicesTotal - budgetCents)}`
-          : `${formatCurrency(budgetCents - invoicesTotal)} remaining`
+          : `Budget: ${formatCurrency(budgetCents)}`
         : "No budget set",
-      showBar: !!budgetCents,
-      barPct: budgetUsedPct,
-    },
-    {
-      icon: TrendingUp,
-      label: "Invoiced",
-      value: formatCurrency(invoicesTotal),
-      rawValue: null,
-      accent: "#6C63FF",
-      sub: isOverBudget ? "Over budget ↑" : "Of budget used",
-      showBar: false,
-      barPct: 0,
+      isOverdue: isOverBudget,
     },
   ];
 
@@ -140,10 +125,10 @@ export function HeroStatsBand({
                     {stat.label}
                   </span>
                   <div
-                    className="flex h-6 w-6 items-center justify-center rounded-lg bg-black/5 dark:bg-white/5"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 dark:bg-white/10"
                   >
                     <Icon
-                      className="h-3 w-3"
+                      className="h-3.5 w-3.5"
                       style={{ color: stat.accent }}
                     />
                   </div>
@@ -151,30 +136,15 @@ export function HeroStatsBand({
 
                 {/* Value */}
                 <div
-                  className="text-2xl font-bold leading-none tabular-nums"
+                  className="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-white"
                   style={{
-                    color: stat.accent,
                     fontFamily: "var(--font-metrics, 'Barlow Condensed', sans-serif)",
-                    letterSpacing: "-0.02em",
                   }}
                 >
                   {stat.value}
                 </div>
 
-                {/* Progress bar */}
-                {stat.showBar && (
-                  <div
-                    className="mt-3 h-[2px] w-full overflow-hidden rounded-full bg-black/5 dark:bg-white/[0.07]"
-                  >
-                    <div
-                      className="h-full rounded-full transition-all duration-1000"
-                      style={{
-                        width: `${stat.barPct}%`,
-                        background: `linear-gradient(90deg, ${stat.accent}60, ${stat.accent})`,
-                      }}
-                    />
-                  </div>
-                )}
+
 
                 {/* Sub text */}
                 <p

@@ -589,16 +589,8 @@ export function ProjectDetailPage({
   const pageContent = (
     <>
     <div
-      className="flex min-h-screen flex-col bg-[#F0F0F5] dark:bg-[#08090D] text-gray-900 dark:text-[#F4F4FF]"
+      className="flex min-h-screen flex-col bg-gray-50 dark:bg-[#0A0A0A] text-gray-900 dark:text-gray-100"
     >
-      {/* Ambient spotlights */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 hidden dark:block"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 50% at -5% 0%, rgba(108,99,255,0.10) 0%, transparent 55%), radial-gradient(ellipse 40% 30% at 105% 5%, rgba(0,245,212,0.05) 0%, transparent 50%)",
-        }}
-      />
       {/* ═══ Zone 0 — Guest Preview Bar ═══════════════════════ */}
       {isPreviewMode && <GuestPreviewBar onExitPreview={exitPreview} />}
 
@@ -632,13 +624,6 @@ export function ProjectDetailPage({
           />
         </div>
 
-        {/* Health ring — pinned top-right of Zone 1 */}
-        <div
-          className="pd-animate-fade-up shrink-0 pt-2"
-          style={{ animationDelay: "120ms" }}
-        >
-          <HealthScoreRing health={health} size={80} />
-        </div>
       </div>
 
       {/* ═══ Zone 2 — Client Approval Centre ════════════════ */}
@@ -654,6 +639,7 @@ export function ProjectDetailPage({
         project={initialProject}
         milestones={milestones}
         invoicesTotal={invoicesTotal}
+        health={health}
       />
 
       {/* ═══ Zone 4 — Risk Banner ═══════════════════════════ */}

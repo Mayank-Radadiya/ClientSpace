@@ -617,56 +617,56 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PROJECT DETAIL v4 — "Obsidian Luxury × Precision Engineering"
-   Linear × Vercel × Stripe Dashboard aesthetic
+   PROJECT DETAIL v5 — Unified Violet Accent System
+   Consistent with projects list, cards, and shared components
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
   /* ── Backgrounds ─────────────────────────────────────────── */
-  --pd-body: #F6F7FB;
+  --pd-body: #F7F7FA;
   --pd-surface: #FFFFFF;
-  --pd-elevated: #F0F1F8;
+  --pd-elevated: #F0F1F6;
 
   /* ── Borders ─────────────────────────────────────────────── */
-  --pd-border: rgba(0,0,0,0.07);
-  --pd-divider: rgba(0,0,0,0.06);
+  --pd-border: rgba(0,0,0,0.06);
+  --pd-divider: rgba(0,0,0,0.05);
 
-  /* ── Accent — electric blue ──────────────────────────────── */
-  --pd-accent: #2D5EE8;
-  --pd-accent-hover: #2451D0;
-  --pd-accent-subtle: rgba(45,94,232,0.08);
-  --pd-accent-glow: rgba(45,94,232,0.08);
+  /* ── Accent — unified indigo-violet ──────────────────────── */
+  --pd-accent: #6C63FF;
+  --pd-accent-hover: #5B54EE;
+  --pd-accent-subtle: rgba(108,99,255,0.08);
+  --pd-accent-glow: rgba(108,99,255,0.10);
 
   /* ── Text ────────────────────────────────────────────────── */
-  --pd-text-primary: #0D0D1A;
-  --pd-text-secondary: #5C5C72;
-  --pd-text-muted: #A0A0B8;
+  --pd-text-primary: #111827;
+  --pd-text-secondary: #6B7280;
+  --pd-text-muted: #9CA3AF;
 
   /* ── Shadows ─────────────────────────────────────────────── */
-  --pd-shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.08);
-  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.10);
-  --pd-shadow-slide: -4px 0 24px rgba(0,0,0,0.12);
+  --pd-shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+  --pd-shadow-elevated: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.08);
+  --pd-shadow-slide: -4px 0 24px rgba(0,0,0,0.10);
 
   /* ── Semantic Status ─────────────────────────────────────── */
-  --pd-danger: #C94040;
-  --pd-warning: #A06820;
-  --pd-success: #2D8A5E;
-  --pd-status-progress: #2D5EE8;
-  --pd-status-progress-bg: rgba(45,94,232,0.08);
-  --pd-status-done: #2D8A5E;
-  --pd-status-done-bg: rgba(45,138,94,0.08);
-  --pd-status-hold: #5C5C72;
-  --pd-status-hold-bg: rgba(92,92,114,0.08);
-  --pd-status-overdue: #C94040;
-  --pd-status-overdue-bg: rgba(201,64,64,0.08);
-  --pd-status-warning: #A06820;
-  --pd-status-warning-bg: rgba(160,104,32,0.08);
+  --pd-danger: #FF4D6D;
+  --pd-warning: #F59E0B;
+  --pd-success: #34D399;
+  --pd-status-progress: #6C63FF;
+  --pd-status-progress-bg: rgba(108,99,255,0.08);
+  --pd-status-done: #34D399;
+  --pd-status-done-bg: rgba(52,211,153,0.08);
+  --pd-status-hold: #6B7280;
+  --pd-status-hold-bg: rgba(107,114,128,0.08);
+  --pd-status-overdue: #FF4D6D;
+  --pd-status-overdue-bg: rgba(255,77,109,0.08);
+  --pd-status-warning: #F59E0B;
+  --pd-status-warning-bg: rgba(245,158,11,0.08);
 
   /* ── Priority dots ───────────────────────────────────────── */
-  --pd-priority-low: #2D8A5E;
-  --pd-priority-medium: #A06820;
-  --pd-priority-high: #C94040;
-  --pd-priority-critical: #C94040;
+  --pd-priority-low: #34D399;
+  --pd-priority-medium: #F59E0B;
+  --pd-priority-high: #FF4D6D;
+  --pd-priority-critical: #FF4D6D;
 
   /* ── Easing ──────────────────────────────────────────────── */
   --pd-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -674,24 +674,24 @@ body {
 
 .dark {
   /* ── Backgrounds ─────────────────────────────────────────── */
-  --pd-body: #0A0A0F;
-  --pd-surface: #111118;
-  --pd-elevated: #16161F;
+  --pd-body: #08090D;
+  --pd-surface: rgba(255,255,255,0.03);
+  --pd-elevated: rgba(255,255,255,0.05);
 
   /* ── Borders ─────────────────────────────────────────────── */
-  --pd-border: rgba(255,255,255,0.06);
+  --pd-border: rgba(255,255,255,0.07);
   --pd-divider: rgba(255,255,255,0.05);
 
   /* ── Accent ──────────────────────────────────────────────── */
-  --pd-accent: #3B6FF0;
-  --pd-accent-hover: #5585F5;
-  --pd-accent-subtle: rgba(59,111,240,0.12);
-  --pd-accent-glow: rgba(59,111,240,0.15);
+  --pd-accent: #6C63FF;
+  --pd-accent-hover: #8B83FF;
+  --pd-accent-subtle: rgba(108,99,255,0.12);
+  --pd-accent-glow: rgba(108,99,255,0.15);
 
   /* ── Text ────────────────────────────────────────────────── */
-  --pd-text-primary: #F0F0F5;
-  --pd-text-secondary: #6B6B80;
-  --pd-text-muted: #3A3A4A;
+  --pd-text-primary: #F4F4FF;
+  --pd-text-secondary: rgba(244,244,255,0.6);
+  --pd-text-muted: rgba(244,244,255,0.35);
 
   /* ── Shadows ─────────────────────────────────────────────── */
   --pd-shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.25);
@@ -699,25 +699,25 @@ body {
   --pd-shadow-slide: -4px 0 24px rgba(0,0,0,0.5);
 
   /* ── Semantic Status ─────────────────────────────────────── */
-  --pd-danger: #E05C5C;
-  --pd-warning: #C47F2A;
-  --pd-success: #3DAA72;
-  --pd-status-progress: #3B6FF0;
-  --pd-status-progress-bg: rgba(59,111,240,0.12);
-  --pd-status-done: #3DAA72;
-  --pd-status-done-bg: rgba(61,170,114,0.12);
-  --pd-status-hold: #6B6B80;
-  --pd-status-hold-bg: rgba(107,107,128,0.10);
-  --pd-status-overdue: #E05C5C;
-  --pd-status-overdue-bg: rgba(224,92,92,0.10);
-  --pd-status-warning: #C47F2A;
-  --pd-status-warning-bg: rgba(196,127,42,0.10);
+  --pd-danger: #FF4D6D;
+  --pd-warning: #F59E0B;
+  --pd-success: #34D399;
+  --pd-status-progress: #6C63FF;
+  --pd-status-progress-bg: rgba(108,99,255,0.12);
+  --pd-status-done: #34D399;
+  --pd-status-done-bg: rgba(52,211,153,0.12);
+  --pd-status-hold: rgba(244,244,255,0.35);
+  --pd-status-hold-bg: rgba(244,244,255,0.06);
+  --pd-status-overdue: #FF4D6D;
+  --pd-status-overdue-bg: rgba(255,77,109,0.10);
+  --pd-status-warning: #F59E0B;
+  --pd-status-warning-bg: rgba(245,158,11,0.10);
 
   /* ── Priority dots ───────────────────────────────────────── */
-  --pd-priority-low: #3DAA72;
-  --pd-priority-medium: #C47F2A;
-  --pd-priority-high: #E05C5C;
-  --pd-priority-critical: #E05C5C;
+  --pd-priority-low: #34D399;
+  --pd-priority-medium: #F59E0B;
+  --pd-priority-high: #FF4D6D;
+  --pd-priority-critical: #FF4D6D;
 }
 
 /* ── Card base ─────────────────────────────────────────────── */
@@ -810,12 +810,12 @@ body {
 /* ── Scrollbar ─────────────────────────────────────────────── */
 .pd-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(59,111,240,0.2) transparent;
+  scrollbar-color: rgba(108,99,255,0.2) transparent;
 }
 .pd-scroll::-webkit-scrollbar { width: 4px; }
 .pd-scroll::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background: rgba(59,111,240,0.2);
+  background: rgba(108,99,255,0.2);
 }
 .pd-scroll::-webkit-scrollbar-track { background: transparent; }
 

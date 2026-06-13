@@ -174,7 +174,7 @@ export function ProjectTopBar({
 
   return (
     <div
-      className="w-full px-8 pt-6 pb-2 bg-[#08090D]"
+      className="w-full px-8 pt-6 pb-4 border-b border-black/5 dark:border-white/5 bg-transparent"
     >
       {/* Breadcrumb */}
       <div className="mb-3 flex items-center gap-1.5">
@@ -285,57 +285,50 @@ export function ProjectTopBar({
             </form>
           ) : (
             <>
-              <h1
-                className="font-black leading-none tracking-tight text-[clamp(26px,3.5vw,36px)]"
-                style={{
-                  background: `linear-gradient(135deg, #F4F4FF 40%, ${accent}90 100%)`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
                 {project.name}
               </h1>
 
               {/* Badge row */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
                 {/* Status pill */}
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] tracking-[0.06em] uppercase font-mono"
-                  style={{
-                    background: `${accent}15`,
-                    border: `1px solid ${accent}30`,
-                    color: accent,
-                  }}
-                >
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 dark:text-gray-300">
                   <span
-                    className="inline-block h-1.5 w-1.5 rounded-full animate-pulse"
+                    className="inline-block h-2 w-2 rounded-full"
                     style={{ background: accent }}
                   />
                   {formatStatus(project.status)}
                 </span>
 
-                {/* Client pill */}
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] tracking-[0.06em] uppercase font-mono bg-black/5 border border-black/10 text-gray-600 dark:bg-white/5 dark:border-white/10 dark:text-white/50"
-                >
+                <div className="h-3 w-px bg-gray-300 dark:bg-gray-700" />
+
+                {/* Priority pill */}
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 dark:text-gray-300">
                   <span
-                    className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white"
-                    style={{ background: "linear-gradient(135deg, #6C63FF, #00F5D4)" }}
-                  >
-                    {clientName.charAt(0).toUpperCase()}
-                  </span>
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{
+                      background: project.priority === 'urgent' || project.priority === 'high' ? '#FF4D6D' : project.priority === 'medium' ? '#F59E0B' : '#34D399'
+                    }}
+                  />
+                  {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
+                </span>
+
+                <div className="h-3 w-px bg-gray-300 dark:bg-gray-700" />
+
+                {/* Client pill */}
+                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 dark:text-gray-300">
                   {clientName}
                 </span>
 
                 {/* Overdue badge */}
                 {daysOverdue && (
-                  <span
-                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] tracking-[0.06em] uppercase font-mono bg-[#FF4D6D]/10 border border-[#FF4D6D]/25 text-[#FF4D6D]"
-                  >
-                    <Clock size={10} />
-                    {daysOverdue}d overdue
-                  </span>
+                  <>
+                    <div className="h-3 w-px bg-gray-300 dark:bg-gray-700" />
+                    <span className="flex items-center gap-1 text-[12px] font-medium text-amber-600 dark:text-amber-500">
+                      <Clock size={12} />
+                      {daysOverdue}d overdue
+                    </span>
+                  </>
                 )}
               </div>
             </>
@@ -351,9 +344,9 @@ export function ProjectTopBar({
         <div className="relative flex shrink-0 items-center gap-2">
           {/* Edit button — hidden while editing */}
           {!isEditing && (
-            <button
+              <button
               onClick={onEdit}
-              className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[12px] transition-all duration-200 active:scale-[0.97] border-black/10 text-gray-600 font-mono bg-black/3 hover:border-[#6C63FF]/40 hover:text-[#6C63FF] hover:bg-[#6C63FF]/10 dark:border-white/10 dark:text-white/50 dark:bg-white/3 dark:hover:text-white"
+              className="flex items-center gap-1.5 rounded-lg border border-black/10 dark:border-white/10 px-3 py-2 text-[12px] transition-colors text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 font-medium"
             >
               <Pencil size={13} />
               Edit
@@ -363,30 +356,16 @@ export function ProjectTopBar({
           {/* Add Milestone CTA */}
           <button
             onClick={onAddMilestone}
-            onMouseEnter={() => setAddHovered(true)}
-            onMouseLeave={() => setAddHovered(false)}
-            className="relative flex items-center gap-1.5 overflow-hidden rounded-xl px-4 py-2 text-[12px] font-bold text-white transition-all duration-200 active:scale-[0.97]"
-            style={{
-              background: addHovered
-                ? "linear-gradient(135deg, #7C73FF, #6C63FF)"
-                : "linear-gradient(135deg, #6C63FF, #5B54EE)",
-              boxShadow: addHovered
-                ? "0 0 0 1px rgba(108,99,255,0.5), 0 6px 24px rgba(108,99,255,0.4)"
-                : "0 0 0 1px rgba(108,99,255,0.3), 0 2px 10px rgba(108,99,255,0.2)",
-            }}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-medium text-white transition-colors bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
           >
-            <span
-              className="pointer-events-none absolute inset-0 -translate-x-full skew-x-[-20deg] bg-linear-to-r from-transparent via-white/15 to-transparent transition-transform duration-600"
-              style={{ transform: addHovered ? "translateX(200%) skewX(-20deg)" : "translateX(-100%) skewX(-20deg)", transition: "transform 500ms ease" }}
-            />
-            <Sparkles size={13} />
+            <Plus size={14} />
             Add Milestone
           </button>
 
           {/* Kebab */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex h-[36px] w-[36px] items-center justify-center rounded-xl border transition-all duration-200 active:scale-[0.97] border-black/10 text-gray-500 bg-black/3 hover:text-gray-900 hover:bg-black/10 dark:border-white/10 dark:text-white/40 dark:bg-white/3 dark:hover:text-white dark:hover:bg-white/10"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-black/10 dark:border-white/10 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
           >
             <MoreHorizontal size={16} />
           </button>
