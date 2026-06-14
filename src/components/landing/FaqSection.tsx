@@ -23,24 +23,24 @@ const faqs = [
   },
   {
     question: "Can I invite my whole team?",
-    answer: "Yes, both plans allow unlimited team members. You only pay based on the number of active clients you're managing.",
+    answer: "Yes, both plans allow unlimited team members. You only pay based on the number of active projects you're managing.",
   },
   {
-    question: "What happens if I go over my client limit?",
-    answer: "We'll gently notify you to upgrade to the Pro plan. Your clients will never be locked out or experience interruptions.",
+    question: "What happens if I go over my project limit?",
+    answer: "We'll gently notify you to upgrade to the Agency plan. Your clients will never be locked out or experience interruptions.",
   }
 ];
 
 export function FaqSection() {
   return (
-    <section className="w-full py-24 md:py-32 bg-background relative border-t border-border/40">
+    <section className="w-full py-24 md:py-32 bg-[#0C0D14] relative z-10">
       <div className="mx-auto max-w-3xl px-6 md:px-12">
         <div className="text-center mb-16">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-bold tracking-tight mb-6"
+            viewport={{ once: true, margin: "-100px" }}
+            className="text-3xl md:text-5xl font-bold tracking-tight mb-6 text-white font-body"
           >
             Frequently asked questions
           </motion.h2>
@@ -49,16 +49,16 @@ export function FaqSection() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.5 }}
         >
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left text-lg font-medium hover:text-primary transition-colors">
+              <AccordionItem key={index} value={`item-${index}`} className="border-b border-white/10">
+                <AccordionTrigger className="text-left text-lg font-medium hover:text-[#818CF8] hover:no-underline transition-colors text-white py-6 font-body">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                <AccordionContent className="text-white/60 text-base leading-relaxed pb-6 font-body">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>

@@ -1,92 +1,83 @@
 "use client";
 
-import React, { useRef } from "react";
-import dynamic from "next/dynamic";
+import React from "react";
 import { motion } from "framer-motion";
-import { Mail, FileText, MessagesSquare } from "lucide-react";
-
-const AnimatedBeam = dynamic(() => import("@/components/ui/animated-beam").then(mod => mod.AnimatedBeam), { ssr: false });
 
 export function ProblemSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const fromRef1 = useRef<HTMLDivElement>(null);
-  const fromRef2 = useRef<HTMLDivElement>(null);
-  const fromRef3 = useRef<HTMLDivElement>(null);
-  const toRef = useRef<HTMLDivElement>(null);
+  const comparisons = [
+    {
+      old: "Sending 5 emails to get one approval.",
+      new: "One-click approvals inside the portal.",
+    },
+    {
+      old: "Clients losing the Google Drive link.",
+      new: "All deliverables in one branded space.",
+    },
+    {
+      old: "Chasing unpaid PDF invoices.",
+      new: "Invoices attached to the work itself.",
+    },
+    {
+      old: "Answering 'what's the status?' again.",
+      new: "Real-time visual progress bars.",
+    },
+  ];
 
   return (
-    <section className="w-full py-24 md:py-32 bg-muted/30 text-foreground relative overflow-hidden">
-      <div className="mx-auto max-w-7xl px-6 md:px-12 relative z-10">
-        <div className="max-w-2xl mx-auto text-center mb-20">
-          <motion.h2 
+    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-surface border-b border-lp-border">
+      <div className="max-w-7xl mx-auto px-6 lg:px-16">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          
+          {/* Left Column: Editorial Quote */}
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold tracking-tight mb-6"
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col relative"
           >
-            The old way is broken
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-muted-foreground"
-          >
-            Sending invoices via email, sharing deliverables in Slack, and requesting feedback in Google Docs. It's a mess.
-          </motion.p>
-        </div>
-
-        <div 
-          className="relative flex h-[400px] w-full max-w-4xl mx-auto items-center justify-center overflow-hidden rounded-2xl border border-border bg-card p-10 md:shadow-xl"
-          ref={containerRef}
-        >
-          <div className="flex h-full w-full flex-col items-stretch justify-between gap-10">
-            <div className="flex flex-row items-center justify-between h-full">
-              <div className="flex flex-col justify-between h-full">
-                <div ref={fromRef1} className="z-10 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background shadow-md">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div ref={fromRef2} className="z-10 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background shadow-md">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div ref={fromRef3} className="z-10 flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background shadow-md">
-                  <MessagesSquare className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </div>
-
-              <div ref={toRef} className="z-10 flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-primary/20 bg-primary text-primary-foreground shadow-lg">
-                <span className="font-bold text-xl">C</span>
-              </div>
+            <div className="text-8xl text-lp-accent/30 font-serif leading-none absolute -top-8 -left-6 lg:-top-10 lg:-left-10 select-none">
+              "
             </div>
-          </div>
+            <h2 className="text-3xl md:text-[2.5rem] font-serif text-lp-text leading-[1.2] tracking-tight relative z-10">
+              We were spending more time managing clients than actually designing.
+            </h2>
+            <p className="mt-8 text-[15px] text-lp-text-secondary font-body font-medium tracking-wide uppercase">
+              The universal freelancer problem
+            </p>
+          </motion.div>
 
-          <AnimatedBeam
-            containerRef={containerRef}
-            fromRef={fromRef1}
-            toRef={toRef}
-            curvature={-75}
-            endYOffset={-10}
-            pathColor="gray"
-            pathOpacity={0.2}
-          />
-          <AnimatedBeam
-            containerRef={containerRef}
-            fromRef={fromRef2}
-            toRef={toRef}
-            pathColor="gray"
-            pathOpacity={0.2}
-          />
-          <AnimatedBeam
-            containerRef={containerRef}
-            fromRef={fromRef3}
-            toRef={toRef}
-            curvature={75}
-            endYOffset={10}
-            pathColor="gray"
-            pathOpacity={0.2}
-          />
+          {/* Right Column: The Comparison */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col gap-8"
+          >
+            {comparisons.map((item, idx) => (
+              <div key={idx} className="flex flex-col gap-2 relative">
+                <div className="flex items-center gap-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-lp-danger/40" />
+                  <p className="text-lp-text-secondary line-through font-body text-[15px]">
+                    {item.old}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-lp-accent-secondary" />
+                  <p className="text-lp-text font-medium font-body text-[17px]">
+                    {item.new}
+                  </p>
+                </div>
+                {idx !== comparisons.length - 1 && (
+                  <div className="w-full h-px bg-lp-border mt-6" />
+                )}
+              </div>
+            ))}
+          </motion.div>
         </div>
+
       </div>
     </section>
   );

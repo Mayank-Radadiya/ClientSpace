@@ -639,7 +639,7 @@ export function ProjectDetailPage({
         project={initialProject}
         milestones={milestones}
         invoicesTotal={invoicesTotal}
-        health={health}
+        health={health.score}
       />
 
       {/* ═══ Zone 4 — Risk Banner ═══════════════════════════ */}

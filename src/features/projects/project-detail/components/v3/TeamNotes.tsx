@@ -17,6 +17,7 @@ interface TeamNotesProps {
 export function TeamNotes({ projectId }: TeamNotesProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [isRevealed, setIsRevealed] = useState<boolean>(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -70,66 +71,86 @@ export function TeamNotes({ projectId }: TeamNotesProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={handleInput}
-        className="team-notes-editor min-h-[80px] max-h-[200px] overflow-y-auto rounded-lg p-3 outline-none transition-colors focus:ring-1"
-        style={{
-          background: "var(--pd-elevated)",
-          border: "1px solid var(--pd-border)",
-          fontFamily: "var(--font-data)",
-          fontSize: 13,
-          color: "var(--pd-text-primary)",
-          lineHeight: 1.5,
-        }}
-        role="textbox"
-        aria-label="Internal team notes"
-        aria-multiline="true"
-      />
-
-      {/* Empty state placeholder via CSS */}
-      <style>{`
-        .team-notes-editor:empty::before {
-          content: "Internal notes — passwords, vendor contacts, meeting decisions…";
-          color: var(--pd-text-muted);
-          pointer-events: none;
-          font-style: italic;
-          font-size: 12px;
-        }
-        .team-notes-editor:focus {
-          border-color: var(--pd-accent) !important;
-          ring-color: var(--pd-accent);
-        }
-      `}</style>
-
-      {/* Save state indicator */}
-      <AnimatePresence mode="wait">
-        {saveState !== "idle" && (
-          <motion.span
-            key={saveState}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            style={{
-              fontFamily: "var(--font-data)",
-              fontSize: 11,
-              color:
-                saveState === "error"
-                  ? "var(--pd-status-overdue)"
-                  : saveState === "saved"
-                    ? "var(--pd-status-done)"
-                    : "var(--pd-text-muted)",
-            }}
+      {!isRevealed ? (
+        <button
+          onClick={() => setIsRevealed(true)}
+          className="flex h-20 w-full items-center justify-center rounded-lg border border-dashed transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+          style={{
+            borderColor: "var(--pd-border)",
+          }}
+        >
+          <span
+            className="flex items-center gap-2 text-sm font-medium"
+            style={{ color: "var(--pd-text-muted)" }}
           >
-            {saveState === "saving" && "Saving…"}
-            {saveState === "saved" && "Saved ✓"}
-            {saveState === "error" && "Failed to save"}
-          </motion.span>
-        )}
-      </AnimatePresence>
+            <span className="text-lg">🔒</span>
+            Click to reveal team notes
+          </span>
+        </button>
+      ) : (
+        <>
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={handleInput}
+            className="team-notes-editor min-h-[80px] max-h-[200px] overflow-y-auto rounded-lg p-3 outline-none transition-colors focus:ring-1"
+            style={{
+              background: "var(--pd-elevated)",
+              border: "1px solid var(--pd-border)",
+              fontFamily: "var(--font-data)",
+              fontSize: 13,
+              color: "var(--pd-text-primary)",
+              lineHeight: 1.5,
+            }}
+            role="textbox"
+            aria-label="Internal team notes"
+            aria-multiline="true"
+          />
+
+          {/* Empty state placeholder via CSS */}
+          <style>{`
+            .team-notes-editor:empty::before {
+              content: "Add internal team notes...";
+              color: var(--pd-text-muted);
+              pointer-events: none;
+              font-style: italic;
+              font-size: 12px;
+            }
+            .team-notes-editor:focus {
+              border-color: var(--pd-accent) !important;
+              ring-color: var(--pd-accent);
+            }
+          `}</style>
+
+          {/* Save state indicator */}
+          <AnimatePresence mode="wait">
+            {saveState !== "idle" && (
+              <motion.span
+                key={saveState}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  fontFamily: "var(--font-data)",
+                  fontSize: 11,
+                  color:
+                    saveState === "error"
+                      ? "var(--pd-status-overdue)"
+                      : saveState === "saved"
+                        ? "var(--pd-status-done)"
+                        : "var(--pd-text-muted)",
+                }}
+              >
+                {saveState === "saving" && "Saving…"}
+                {saveState === "saved" && "Saved ✓"}
+                {saveState === "error" && "Failed to save"}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </>
+      )}
     </div>
   );
 }

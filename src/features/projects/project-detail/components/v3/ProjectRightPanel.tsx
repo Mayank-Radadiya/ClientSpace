@@ -228,16 +228,11 @@ export function ProjectRightPanel({
     >
       <div className="flex flex-col gap-4">
         {/* ── Card 1: PROJECT INFO ─────────────────────────── */}
-        <div className="pd-card" style={{ padding: 16 }}>
-          <div className="flex items-center justify-between pb-2">
+        <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#0C0D14]">
+          <div className="flex items-center justify-between pb-3">
             <span
-              style={{
-                fontFamily: "var(--font-data)",
-                fontSize: 10,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--pd-text-muted)",
-              }}
+              className="text-[11px] font-semibold tracking-[0.06em] uppercase text-gray-500 dark:text-gray-400"
+              style={{ fontFamily: "var(--font-data, monospace)" }}
             >
               PROJECT INFO
             </span>
@@ -288,16 +283,11 @@ export function ProjectRightPanel({
         </div>
 
         {/* ── Card 2: QUICK ACTIONS ───────────────────────── */}
-        <div className="pd-card" style={{ padding: 16 }}>
-          <div className="pb-2">
+        <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#0C0D14]">
+          <div className="pb-3">
             <span
-              style={{
-                fontFamily: "var(--font-data)",
-                fontSize: 10,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "var(--pd-text-muted)",
-              }}
+              className="text-[11px] font-semibold tracking-[0.06em] uppercase text-gray-500 dark:text-gray-400"
+              style={{ fontFamily: "var(--font-data, monospace)" }}
             >
               QUICK ACTIONS
             </span>
@@ -315,16 +305,11 @@ export function ProjectRightPanel({
 
         {/* ── Card 3: TEAM ────────────────────────────────── */}
         {role !== "client" && (
-          <div className="pd-card" style={{ padding: 16 }}>
-            <div className="flex items-center justify-between pb-3">
+          <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#0C0D14]">
+            <div className="flex items-center justify-between pb-4">
               <span
-                style={{
-                  fontFamily: "var(--font-data)",
-                  fontSize: 10,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: "var(--pd-text-muted)",
-                }}
+                className="text-[11px] font-semibold tracking-[0.06em] uppercase text-gray-500 dark:text-gray-400"
+                style={{ fontFamily: "var(--font-data, monospace)" }}
               >
                 TEAM
               </span>
@@ -420,16 +405,11 @@ export function ProjectRightPanel({
 
         {/* ── Card 4: TEAM NOTES (internal only) ──────────── */}
         {role !== "client" && (
-          <div className="pd-card" style={{ padding: 16 }}>
-            <div className="pb-2">
+          <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#0C0D14]">
+            <div className="pb-3">
               <span
-                style={{
-                  fontFamily: "var(--font-data)",
-                  fontSize: 10,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  color: "var(--pd-text-muted)",
-                }}
+                className="text-[11px] font-semibold tracking-[0.06em] uppercase text-gray-500 dark:text-gray-400"
+                style={{ fontFamily: "var(--font-data, monospace)" }}
               >
                 TEAM NOTES
               </span>

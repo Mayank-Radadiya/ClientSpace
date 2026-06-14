@@ -1,84 +1,114 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import React from "react";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, Receipt, Workflow } from "lucide-react";
-
-const MagicCard = dynamic(() => import("@/components/ui/magic-card").then(mod => mod.MagicCard), { ssr: false });
-
-const features = [
-  {
-    title: "Client Dashboard",
-    description: "A centralized hub where your clients can view project progress, outstanding tasks, and recent files without ever asking 'what's the status?'",
-    icon: LayoutDashboard
-  },
-  {
-    title: "Collaborative Feedback",
-    description: "Leave comments directly on deliverables. Turn vague feedback into actionable tasks instantly.",
-    icon: Users
-  },
-  {
-    title: "Seamless Invoicing",
-    description: "Create, send, and track invoices in the same place you manage the work. Get paid faster with integrated Stripe payments.",
-    icon: Receipt
-  },
-  {
-    title: "Automated Workflows",
-    description: "Set up triggers for when a client approves a milestone. We'll automatically generate the next invoice and notify the team.",
-    icon: Workflow
-  }
-];
+import { Check } from "lucide-react";
 
 export function FeatureShowcase() {
-  return (
-    <section className="w-full py-24 md:py-32 bg-background relative" id="features">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="flex flex-col md:flex-row items-end justify-between mb-16 md:mb-24 gap-6">
-          <div className="max-w-2xl">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-4xl md:text-6xl font-bold tracking-tight mb-6"
-            >
-              Everything you need.<br/>Nothing you don't.
-            </motion.h2>
-          </div>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-muted-foreground max-w-md"
-          >
-            We stripped away the complexity of traditional project management tools to give you exactly what matters for client work.
-          </motion.p>
-        </div>
+  const features = [
+    {
+      id: "agency-view",
+      label: "Project Management",
+      title: "Control the chaos behind the scenes.",
+      description: "Manage timelines, assign tasks, and track internal progress without your clients seeing the messy middle. Keep your team aligned and your deadlines intact.",
+      benefits: [
+        "Internal kanban boards",
+        "Private team discussions",
+        "Time tracking and capacity planning"
+      ],
+      imagePosition: "right",
+    },
+    {
+      id: "client-view",
+      label: "Client Portals",
+      title: "A premium experience they will love.",
+      description: "Give every client a branded, white-labeled portal where they can view deliverables, leave feedback, and track project status in real-time.",
+      benefits: [
+        "Custom branding per client",
+        "One-click file approvals",
+        "Centralized feedback threads"
+      ],
+      imagePosition: "left",
+    },
+    {
+      id: "invoicing",
+      label: "Invoicing",
+      title: "Get paid faster, with zero friction.",
+      description: "Attach invoices directly to milestones. When clients approve a deliverable, they are immediately prompted to pay—securely and seamlessly via Stripe.",
+      benefits: [
+        "Automated payment reminders",
+        "Stripe & Bank transfer integration",
+        "Subscription & retainer billing"
+      ],
+      imagePosition: "right",
+    }
+  ];
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {features.map((feature, idx) => (
-            <motion.div
-              key={idx}
+  return (
+    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-bg" id="features">
+      <div className="max-w-7xl mx-auto px-6 lg:px-16 flex flex-col gap-32">
+        
+        {features.map((feature, idx) => (
+          <div 
+            key={feature.id} 
+            className={`flex flex-col ${feature.imagePosition === "left" ? "lg:flex-row-reverse" : "lg:flex-row"} gap-12 lg:gap-24 items-center`}
+          >
+            {/* Text Content */}
+            <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 * idx }}
-              className="h-full"
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full lg:w-1/2 flex flex-col"
             >
-              <MagicCard className="p-8 md:p-10 h-full flex flex-col items-start gap-6 cursor-pointer bg-muted/30">
-                <div className="p-4 rounded-2xl bg-background border border-border/50 shadow-sm">
-                  <feature.icon className="h-6 w-6 text-foreground" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </MagicCard>
+              <span className="text-lp-accent text-[11px] font-bold tracking-[0.2em] uppercase mb-6">
+                {feature.label}
+              </span>
+              <h3 className="text-4xl md:text-5xl font-serif text-lp-text leading-[1.1] mb-6">
+                {feature.title}
+              </h3>
+              <p className="text-lg text-lp-text-secondary leading-relaxed font-body mb-8">
+                {feature.description}
+              </p>
+              <ul className="flex flex-col gap-4">
+                {feature.benefits.map((benefit, bIdx) => (
+                  <li key={bIdx} className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-lp-accent-secondary" />
+                    <span className="text-[15px] font-body text-lp-text font-medium">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
             </motion.div>
-          ))}
-        </div>
+
+            {/* Visual/Image Mockup */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full lg:w-1/2 aspect-[4/3] rounded-2xl bg-lp-surface border border-lp-border shadow-xl overflow-hidden relative flex items-center justify-center p-8"
+            >
+              {/* Abstract structural representation instead of random images */}
+              <div className="w-full h-full border border-lp-border/50 rounded-xl bg-lp-bg/50 shadow-inner flex flex-col overflow-hidden">
+                <div className="h-10 border-b border-lp-border/50 flex items-center px-4 bg-lp-surface">
+                   <div className="w-20 h-3 rounded bg-lp-border/50" />
+                </div>
+                <div className="flex-1 p-6 flex gap-4">
+                   <div className="w-1/3 h-full rounded-lg bg-lp-surface border border-lp-border/50 shadow-sm flex flex-col p-4 gap-3">
+                     <div className="w-1/2 h-3 rounded bg-lp-border/50" />
+                     <div className="w-full h-16 rounded bg-lp-border/20 mt-2" />
+                     <div className="w-full h-16 rounded bg-lp-border/20" />
+                   </div>
+                   <div className="w-2/3 h-full rounded-lg bg-lp-surface border border-lp-border/50 shadow-sm flex flex-col p-4 gap-3">
+                     <div className="w-1/3 h-3 rounded bg-lp-border/50" />
+                     <div className="w-full h-24 rounded bg-lp-accent/10 border border-lp-accent/20 mt-2" />
+                   </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        ))}
+
       </div>
     </section>
   );

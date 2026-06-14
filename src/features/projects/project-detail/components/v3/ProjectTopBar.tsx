@@ -290,22 +290,20 @@ export function ProjectTopBar({
               </h1>
 
               {/* Badge row */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 {/* Status pill */}
-                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 dark:text-gray-300">
+                <span className="flex items-center gap-1.5 rounded-full border border-black/5 bg-gray-50 px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
                   <span
-                    className="inline-block h-2 w-2 rounded-full"
+                    className="inline-block h-1.5 w-1.5 rounded-full shadow-sm"
                     style={{ background: accent }}
                   />
                   {formatStatus(project.status)}
                 </span>
 
-                <div className="h-3 w-px bg-gray-300 dark:bg-gray-700" />
-
                 {/* Priority pill */}
-                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 dark:text-gray-300">
+                <span className="flex items-center gap-1.5 rounded-full border border-black/5 bg-gray-50 px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
                   <span
-                    className="inline-block h-2 w-2 rounded-full"
+                    className="inline-block h-1.5 w-1.5 rounded-full shadow-sm"
                     style={{
                       background: project.priority === 'urgent' || project.priority === 'high' ? '#FF4D6D' : project.priority === 'medium' ? '#F59E0B' : '#34D399'
                     }}
@@ -313,22 +311,17 @@ export function ProjectTopBar({
                   {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
                 </span>
 
-                <div className="h-3 w-px bg-gray-300 dark:bg-gray-700" />
-
                 {/* Client pill */}
-                <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-600 dark:text-gray-300">
+                <span className="flex items-center gap-1.5 rounded-full border border-black/5 bg-gray-50 px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300">
                   {clientName}
                 </span>
 
                 {/* Overdue badge */}
                 {daysOverdue && (
-                  <>
-                    <div className="h-3 w-px bg-gray-300 dark:bg-gray-700" />
-                    <span className="flex items-center gap-1 text-[12px] font-medium text-amber-600 dark:text-amber-500">
-                      <Clock size={12} />
-                      {daysOverdue}d overdue
-                    </span>
-                  </>
+                  <span className="flex items-center gap-1 rounded-full border border-[#FF4D6D]/20 bg-[#FF4D6D]/10 px-2.5 py-1 text-[11px] font-semibold text-[#FF4D6D]">
+                    <Clock size={12} />
+                    {daysOverdue}d overdue
+                  </span>
                 )}
               </div>
             </>

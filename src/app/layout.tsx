@@ -7,6 +7,9 @@ import {
   syne,
   dmMono,
   barlowCondensed,
+  jetbrainsMono,
+  playfair,
+  inter,
 } from "@/lib/fonts";
 import "./globals.css";
 import Provider from "@/provider/Provider";
@@ -85,7 +88,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      className={`${dmSans.variable} ${jakarta.variable} ${montserrat.variable} ${geist.variable} ${syne.variable} ${dmMono.variable} ${barlowCondensed.variable}`}
+      className={`${dmSans.variable} ${jakarta.variable} ${montserrat.variable} ${geist.variable} ${syne.variable} ${dmMono.variable} ${barlowCondensed.variable} ${jetbrainsMono.variable} ${playfair.variable} ${inter.variable}`}
       lang="en"
       suppressHydrationWarning
     >

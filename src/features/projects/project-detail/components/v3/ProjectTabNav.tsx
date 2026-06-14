@@ -84,7 +84,7 @@ export function ProjectTabNav({
 
   return (
     <div className="w-full">
-      <div className="relative mx-auto flex max-w-fit items-center rounded-2xl bg-white shadow-sm border border-black/5 p-1 dark:bg-[#08090D] dark:border-white/[0.08] dark:shadow-none">
+      <div className="relative mx-auto flex max-w-fit items-center rounded-2xl bg-white shadow-sm border border-black/5 p-1.5 dark:bg-[#0C0D14] dark:border-white/10">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab;
           const Icon = tab.icon;
@@ -107,8 +107,8 @@ export function ProjectTabNav({
               {isActive && (
                 <motion.span
                   layoutId="tab-active-bg"
-                  className="absolute inset-0 z-0 rounded-xl bg-black/5 dark:bg-white/10"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="absolute inset-0 z-0 rounded-[10px] bg-gray-100 shadow-sm dark:bg-white/10"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}
 

@@ -53,15 +53,26 @@ function InlineAddForm({ onSubmit, onCancel }: { onSubmit: (t: string) => void; 
   );
 }
 
-function EmptyColumnCard({ onClick }: { onClick: () => void }) {
+function EmptyColumnCard({ onClick, colId }: { onClick: () => void; colId: ColumnId }) {
+  const emptyIcons = {
+    todo: "🎯",
+    in_progress: "🚀",
+    done: "🎉"
+  };
+  
   return (
     <button onClick={onClick}
-      className="flex w-full flex-col items-center justify-center gap-2 rounded-[10px] py-10 transition-all border border-dashed border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5"
-      style={{ minHeight: 120 }}>
-      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10">
-        <Plus size={14} className="text-gray-500 dark:text-gray-400" />
+      className="group flex w-full flex-col items-center justify-center gap-3 rounded-2xl py-10 transition-all border border-dashed border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+      style={{ minHeight: 160 }}>
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/5 dark:bg-white/5 text-xl transition-transform duration-300 group-hover:scale-110">
+        {emptyIcons[colId] || "✨"}
       </div>
-      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Add milestone</span>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-[13px] font-medium text-gray-600 dark:text-gray-300">No milestones</span>
+        <span className="flex items-center gap-1 text-[11px] font-medium text-gray-400 transition-colors group-hover:text-indigo-600 dark:text-gray-500 dark:group-hover:text-indigo-400">
+          <Plus size={12} /> Add milestone
+        </span>
+      </div>
     </button>
   );
 }
@@ -174,10 +185,10 @@ export function MilestonesKanban({ milestones, onMilestoneClick, onAddMilestone,
                   onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--pd-text-muted)"; e.currentTarget.style.opacity = "0"; }}
                   title="Add milestone"><Plus size={12} /></button>
               </div>
-              <div className="flex flex-col gap-2.5 rounded-[12px] p-3 transition-colors"
-                style={{ minHeight: 300, background: isDragOver ? "var(--pd-accent-subtle)" : "rgba(128,128,128,0.02)",
-                  border: `1px dashed ${isDragOver ? "var(--pd-accent)" : "var(--pd-divider)"}` }}>
-                {items.length === 0 && addingTo !== col.id && <EmptyColumnCard onClick={() => setAddingTo(col.id)} />}
+              <div className="flex flex-col gap-3 rounded-2xl p-3 transition-colors"
+                style={{ minHeight: 300, background: isDragOver ? "var(--pd-accent-subtle)" : "rgba(0,0,0,0.02)",
+                  border: isDragOver ? "1px dashed var(--pd-accent)" : "1px solid transparent" }}>
+                {items.length === 0 && addingTo !== col.id && <EmptyColumnCard colId={col.id} onClick={() => setAddingTo(col.id)} />}
                 {items.map((ms) => (<MilestoneCard key={ms.id} milestone={ms} onClick={() => onMilestoneClick(ms)} onDragStart={handleDragStart} />))}
                 {addingTo === col.id && <InlineAddForm onSubmit={(title) => { onAddMilestone(col.id, title); setAddingTo(null); }} onCancel={() => setAddingTo(null)} />}
               </div>

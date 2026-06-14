@@ -6,6 +6,9 @@ import {
   Geist,
   Syne,
   Barlow_Condensed,
+  JetBrains_Mono,
+  Playfair_Display,
+  Inter,
 } from "next/font/google";
 
 // Google fonts
@@ -40,6 +43,21 @@ export const barlowCondensed = Barlow_Condensed({
   subsets: ["latin"],
   variable: "--font-barlow-condensed",
   weight: ["400", "500", "600", "700"],
+});
+
+export const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+});
+
+export const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
+
+export const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 // Local replacement (Axiforma is missing, using Montserrat as fallback)

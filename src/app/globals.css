@@ -47,6 +47,16 @@ body {
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  --color-lp-bg: var(--lp-bg);
+  --color-lp-surface: var(--lp-surface);
+  --color-lp-border: var(--lp-border);
+  --color-lp-text: var(--lp-text);
+  --color-lp-text-secondary: var(--lp-text-secondary);
+  --color-lp-accent: var(--lp-accent);
+  --color-lp-accent-secondary: var(--lp-accent-secondary);
+  --color-lp-danger: var(--lp-danger);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -215,6 +225,19 @@ body {
   --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
   --tracking-normal: 0em;
 
+  /* Landing Page Editorial Theme (Light) */
+  --lp-bg: #FAFAF9;
+  --lp-surface: #FFFFFF;
+  --lp-border: #E8E4DF;
+  --lp-text: #1A1714;
+  --lp-text-secondary: #6B6560;
+  --lp-accent: #D4A853;
+  --lp-accent-secondary: #2D5A3D;
+  --lp-danger: #C0392B;
+  --font-body: var(--font-inter);
+  --font-serif: var(--font-playfair);
+  --font-mono: var(--font-geist-mono);
+
   /* Invoices Page Light Theme Variables */
   --inv-base-bg: #f5f5f8;
   --inv-surface: #ffffff;
@@ -309,6 +332,16 @@ body {
   --font-sans: var(--font-sans), ui-sans-serif, system-ui;
   --font-serif: var(--font-serif), serif;
   --font-mono: var(--font-mono), monospace;
+
+  /* Landing Page Editorial Theme (Dark) */
+  --lp-bg: #0F0E0C;
+  --lp-surface: #1A1916;
+  --lp-border: rgba(255, 255, 255, 0.07);
+  --lp-text: #F0EDE8;
+  --lp-text-secondary: #8A8480;
+  --lp-accent: #D4A853;
+  --lp-accent-secondary: #2D5A3D;
+  --lp-danger: #C0392B;
 
   /* Invoices Page Dark Theme Variables */
   --inv-base-bg: #0a0a0f;

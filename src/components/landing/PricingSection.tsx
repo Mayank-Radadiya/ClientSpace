@@ -1,101 +1,101 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
-const MagicCard = dynamic(() => import("@/components/ui/magic-card").then(mod => mod.MagicCard), { ssr: false });
+import { Check } from "lucide-react";
 
 export function PricingSection() {
+  const [isAnnual, setIsAnnual] = useState(true);
+
   return (
-    <section className="w-full py-24 md:py-32 bg-background text-foreground relative overflow-hidden" id="pricing">
-      <div className="mx-auto max-w-7xl px-6 md:px-12 relative z-10">
-        <div className="text-center mb-16 md:mb-24">
+    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-bg border-t border-lp-border" id="pricing">
+      <div className="max-w-7xl mx-auto px-6 lg:px-16 relative z-10">
+        
+        <div className="text-center mb-16">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold tracking-tight mb-6"
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl md:text-5xl font-serif text-lp-text mb-6"
           >
-            Simple, transparent pricing
+            Honest pricing. <span className="italic text-lp-text-secondary">No hidden fees.</span>
           </motion.h2>
-          <motion.p 
+          <motion.p
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true, margin: "-100px" }}
+             transition={{ duration: 0.5, delay: 0.1 }}
+             className="text-lp-text-secondary text-lg max-w-xl mx-auto font-body mb-10"
+          >
+            A single straightforward plan designed for independent professionals and boutique studios.
+          </motion.p>
+
+          {/* Billing Toggle */}
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-muted-foreground max-w-2xl mx-auto"
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex items-center justify-center gap-4"
           >
-            No hidden fees. No surprise limits. Just one clear plan that gives you everything you need to run your agency.
-          </motion.p>
+            <span className={`text-sm font-body ${!isAnnual ? 'text-lp-text font-medium' : 'text-lp-text-secondary'}`}>Monthly</span>
+            <button 
+              onClick={() => setIsAnnual(!isAnnual)}
+              className="w-14 h-8 rounded-full bg-lp-surface border border-lp-border relative flex items-center px-1 transition-colors hover:border-lp-text/20"
+            >
+              <div 
+                className={`w-6 h-6 rounded-full bg-lp-text transition-transform duration-300 ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`} 
+              />
+            </button>
+            <span className={`text-sm font-body flex items-center gap-2 ${isAnnual ? 'text-lp-text font-medium' : 'text-lp-text-secondary'}`}>
+              Annually <span className="text-[10px] bg-lp-accent/10 text-lp-accent px-2 py-0.5 rounded-full border border-lp-accent/20 font-bold uppercase tracking-wider">Save 20%</span>
+            </span>
+          </motion.div>
         </div>
 
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="max-w-md mx-auto">
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="h-full"
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="relative bg-lp-surface rounded-2xl border border-lp-border p-8 md:p-12 shadow-xl flex flex-col"
           >
-            <MagicCard className="h-full flex flex-col justify-between p-8 md:p-10 bg-card border-border">
-              <div>
-                <h3 className="text-2xl font-bold text-card-foreground mb-2">Starter</h3>
-                <p className="text-muted-foreground mb-6">Perfect for freelancers getting started.</p>
-                <div className="mb-8">
-                  <span className="text-5xl font-bold tracking-tight text-foreground">$29</span>
-                  <span className="text-muted-foreground">/mo</span>
+            <h3 className="text-2xl font-serif text-lp-text mb-2">Professional</h3>
+            <p className="text-lp-text-secondary text-sm mb-8 font-body">Everything you need to run your client business.</p>
+            
+            <div className="mb-8 flex items-baseline gap-1 border-b border-lp-border pb-8">
+              <span className="text-6xl font-bold text-lp-text tracking-tight">${isAnnual ? '29' : '39'}</span>
+              <span className="text-lp-text-secondary font-body">/month</span>
+            </div>
+
+            <div className="flex flex-col gap-4 flex-1 mb-10">
+              {[
+                "Unlimited active projects",
+                "Custom domain & white-labeling",
+                "Smart approvals & sign-offs",
+                "Stripe integration for zero-fee invoicing",
+                "Automated email follow-ups",
+                "Up to 500GB file storage",
+                "Priority support channel"
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-lp-accent/10 flex items-center justify-center shrink-0">
+                    <Check className="w-3 h-3 text-lp-accent" />
+                  </div>
+                  <span className="text-lp-text text-sm font-body font-medium">{feature}</span>
                 </div>
-                <ul className="space-y-4 mb-8">
-                  {["Up to 5 active clients", "Basic client portal", "Standard invoicing", "Community support"].map((feature, i) => (
-                    <li key={i} className="flex items-center text-muted-foreground">
-                      <Check className="h-5 w-5 mr-3 text-muted-foreground/50" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <Button variant="outline" className="w-full">
-                Start Free Trial
-              </Button>
-            </MagicCard>
+              ))}
+            </div>
+
+            <button className="w-full py-4 rounded-xl bg-lp-text text-lp-bg font-bold font-body transition-transform active:scale-[0.98] hover:bg-lp-text/90">
+              Start Free Trial
+            </button>
+            <p className="text-center text-xs text-lp-text-secondary mt-4 font-body">14-day free trial. No credit card required.</p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="h-full"
-          >
-            <MagicCard className="h-full flex flex-col justify-between p-8 md:p-10 bg-gradient-to-b from-primary/10 to-background border-primary/30 relative">
-              <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2">
-                <span className="bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full flex items-center gap-1 shadow-lg">
-                  <Zap className="w-3 h-3" /> Most Popular
-                </span>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-card-foreground mb-2">Pro Agency</h3>
-                <p className="text-primary/80 mb-6">For agencies ready to scale operations.</p>
-                <div className="mb-8">
-                  <span className="text-5xl font-bold tracking-tight text-foreground">$99</span>
-                  <span className="text-muted-foreground">/mo</span>
-                </div>
-                <ul className="space-y-4 mb-8">
-                  {["Unlimited active clients", "Custom domain portals", "Advanced automations", "Stripe integration", "Priority 24/7 support"].map((feature, i) => (
-                    <li key={i} className="flex items-center text-muted-foreground">
-                      <Check className="h-5 w-5 mr-3 text-primary" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-0">
-                Get Started
-              </Button>
-            </MagicCard>
-          </motion.div>
         </div>
       </div>
     </section>

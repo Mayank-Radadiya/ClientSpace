@@ -1,38 +1,43 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { Mountain, Layers, Hexagon, Triangle, Circle, Square } from "lucide-react";
+import React from "react";
+import { motion } from "framer-motion";
 
-const Marquee = dynamic(() => import("@/components/ui/marquee").then(mod => mod.Marquee), { ssr: false });
-
-const companies = [
-  { name: "Acme Corp", icon: Mountain },
-  { name: "Quantum", icon: Hexagon },
-  { name: "Nexus", icon: Triangle },
-  { name: "Horizon", icon: Circle },
-  { name: "Vertex", icon: Layers },
-  { name: "Pinnacle", icon: Square },
+const COMPANIES = [
+  "Acme Corp",
+  "Globex",
+  "Soylent Corp",
+  "Initech",
+  "Umbrella",
+  "Stark Ind",
 ];
 
 export function LogoCloud() {
   return (
-    <section className="w-full py-12 md:py-24 bg-background border-t border-border/40 overflow-hidden">
-      <div className="mx-auto max-w-7xl px-6 md:px-12 text-center">
-        <p className="text-sm font-medium text-muted-foreground mb-8">
-          Trusted by top-tier agencies and freelancers
-        </p>
-        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
-          <Marquee pauseOnHover className="[--duration:20s]">
-            {companies.map((company, i) => (
-              <div key={i} className="mx-12 flex items-center gap-2 grayscale opacity-50 hover:opacity-100 hover:grayscale-0 transition-all duration-300">
-                <company.icon className="h-6 w-6" />
-                <span className="text-xl font-bold tracking-tight">{company.name}</span>
+    <section className="w-full py-12 md:py-20 border-b border-white/5 relative z-10 bg-[#0C0D14]">
+      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-8 md:gap-16">
+        
+        <div className="shrink-0 flex items-center gap-2 text-white/50 font-body text-sm font-medium">
+          <span>Trusted by teams at</span>
+          <span aria-hidden="true">&rarr;</span>
+        </div>
+
+        <div className="relative flex-1 overflow-hidden w-full">
+          {/* Fade Masks */}
+          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-24 bg-gradient-to-r from-[#0C0D14] to-transparent" />
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-[#0C0D14] to-transparent" />
+
+          {/* Marquee Content */}
+          <div className="flex w-max min-w-full animate-marquee gap-16 py-2 [--duration:30s] hover:[animation-play-state:paused]">
+            {[...COMPANIES, ...COMPANIES, ...COMPANIES].map((company, idx) => (
+              <div 
+                key={idx} 
+                className="text-xl md:text-2xl font-bold font-display text-white/20 tracking-tight uppercase"
+              >
+                {company}
               </div>
             ))}
-          </Marquee>
-          
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-background dark:from-background"></div>
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-background dark:from-background"></div>
+          </div>
         </div>
       </div>
     </section>
