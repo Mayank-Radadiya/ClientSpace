@@ -42,7 +42,7 @@ export const DesktopSidebar = ({
     <motion.aside
       className={cn(
         // Base sidebar styles: fixed layout, glassmorphism, dark/light support
-        "group/sidebar fixed top-0 left-0 z-40 hidden h-screen w-[280px] shrink-0 overflow-hidden border-r border-neutral-200/50 bg-white/80 shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-colors md:flex dark:border-neutral-800/50 dark:bg-neutral-950/80",
+        "group/sidebar fixed top-0 left-0 z-40 hidden h-screen w-[280px] shrink-0 overflow-hidden border-r border-neutral-200/50 bg-white/80 shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] backdrop-blur-xl transition-colors md:flex dark:border-neutral-800/50 dark:bg-[#1a1916]/30",
         className,
       )}
       initial={false}
