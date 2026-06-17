@@ -9,7 +9,7 @@ import { clients, invitations } from "@/db/schema";
 import { getSessionContext } from "@/lib/auth/session";
 import { sendClientInviteEmail } from "@/emails/send";
 import { setActiveOrg } from "@/lib/auth/orgSwitcher";
-import { inviteRateLimit } from "@/lib/rateLimit";
+import { inviteRateLimitRedis, RATE_LIMIT_ERROR } from "@/lib/rateLimit";
 import {
   inviteClientSchema,
   acceptInviteSignUpSchema,
@@ -209,14 +209,114 @@ export async function inviteClientAction(
   return { success: true };
 }
 
-export async function resendInviteAction(_clientId: string): Promise<never> {
-  throw new Error("Not yet implemented - see Task 09.");
+export async function resendInviteAction(
+  invitationId: string,
+): Promise<InviteActionResult> {
+  const ctx = await getSessionContext();
+  if (!ctx) return { error: "Unauthorized." };
+  if (ctx.role !== "owner" && ctx.role !== "admin") {
+    return { error: "Only admins can resend invitations." };
+  }
+
+  try {
+    const invitation = await withRLS(ctx, async (tx) => {
+      const inv = await tx.query.invitations.findFirst({
+        where: and(
+          eq(invitations.id, invitationId),
+          eq(invitations.orgId, ctx.orgId),
+        ),
+        with: {
+          client: { columns: { contactName: true, companyName: true } },
+        },
+      });
+      return inv ?? null;
+    });
+
+    if (!invitation) {
+      return { error: "Invitation not found." };
+    }
+
+    if (invitation.status !== "pending") {
+      return { error: "Only pending invitations can be resent." };
+    }
+
+    const rawToken = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+    const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
+
+    await withRLS(ctx, async (tx) => {
+      await tx
+        .update(invitations)
+        .set({
+          tokenHash,
+          expiresAt,
+        } as any)
+        .where(eq(invitations.id, invitationId));
+    });
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      return { success: true, warning: "Token updated but NEXT_PUBLIC_APP_URL is missing." };
+    }
+
+    const inviteUrl = `${appUrl}/client/auth?token=${rawToken}`;
+
+    await sendClientInviteEmail({
+      to: invitation.email,
+      contactName: (invitation.client as any)?.contactName ?? "Client",
+      companyName: (invitation.client as any)?.companyName ?? "Company",
+      inviterName: "ClientSpace",
+      inviteUrl,
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("[resendInviteAction] Failed:", err);
+    return { error: "Failed to resend invitation. Please try again." };
+  }
 }
 
 export async function revokeInviteAction(
-  _invitationId: string,
-): Promise<never> {
-  throw new Error("Not yet implemented - see Task 09.");
+  invitationId: string,
+): Promise<InviteActionResult> {
+  const ctx = await getSessionContext();
+  if (!ctx) return { error: "Unauthorized." };
+  if (ctx.role !== "owner" && ctx.role !== "admin") {
+    return { error: "Only admins can revoke invitations." };
+  }
+
+  try {
+    const result = await withRLS(ctx, async (tx) => {
+      const invitation = await tx.query.invitations.findFirst({
+        where: and(
+          eq(invitations.id, invitationId),
+          eq(invitations.orgId, ctx.orgId),
+        ),
+        columns: { id: true, status: true },
+      });
+
+      if (!invitation) return null;
+      if (invitation.status !== "pending") {
+        throw new Error("CANNOT_REVOKE_NON_PENDING");
+      }
+
+      await tx
+        .update(invitations)
+        .set({ status: "revoked", updatedAt: new Date() } as any)
+        .where(eq(invitations.id, invitationId));
+
+      return { ok: true };
+    });
+
+    if (!result) return { error: "Invitation not found." };
+    return { success: true };
+  } catch (err) {
+    if (err instanceof Error && err.message === "CANNOT_REVOKE_NON_PENDING") {
+      return { error: "Only pending invitations can be revoked." };
+    }
+    console.error("[revokeInviteAction] Failed:", err);
+    return { error: "Failed to revoke invitation. Please try again." };
+  }
 }
 
 // ─── Accept Invite Actions ───────────────────────────────────────────────────
@@ -256,12 +356,9 @@ export async function acceptInviteSignUpAction(
   const { token, email, name, password } = parsed.data;
 
   // 0. Rate limit check by email
-  const rateLimitResult = inviteRateLimit(email);
-  if (!rateLimitResult.allowed) {
-    return {
-      error:
-        rateLimitResult.error || "Too many attempts. Please try again later.",
-    };
+  const rateLimitAllowed = await inviteRateLimitRedis(email);
+  if (!rateLimitAllowed) {
+    return { error: RATE_LIMIT_ERROR };
   }
 
   // 1. Validate invitation
@@ -571,12 +668,9 @@ export async function acceptInviteSignInAction(
   const { token, email, password } = parsed.data;
 
   // 0. Rate limit check by email
-  const rateLimitResult = inviteRateLimit(email);
-  if (!rateLimitResult.allowed) {
-    return {
-      error:
-        rateLimitResult.error || "Too many attempts. Please try again later.",
-    };
+  const rateLimitAllowed = await inviteRateLimitRedis(email);
+  if (!rateLimitAllowed) {
+    return { error: RATE_LIMIT_ERROR };
   }
 
   // 1. Validate invitation

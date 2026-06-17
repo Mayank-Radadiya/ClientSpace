@@ -28,3 +28,24 @@ export const mutationRateLimiter = new Ratelimit({
   prefix: "ratelimit:mutation",
 });
 
+export async function blockToken(jti: string, expiresAtMs: number): Promise<void> {
+  const key = getRedisKey(`jwt:blocklist:${jti}`);
+  const ttlSeconds = Math.max(1, Math.ceil((expiresAtMs - Date.now()) / 1000));
+  try {
+    await redis.setex(key, ttlSeconds, "1");
+  } catch (error) {
+    console.error("[jwtBlocklist] Failed to block token:", error);
+  }
+}
+
+export async function isTokenBlocked(jti: string): Promise<boolean> {
+  const key = getRedisKey(`jwt:blocklist:${jti}`);
+  try {
+    const result = await redis.get(key);
+    return result === "1";
+  } catch (error) {
+    console.error("[jwtBlocklist] Failed to check blocked token:", error);
+    return false;
+  }
+}
+

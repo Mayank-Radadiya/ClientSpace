@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createTRPCContext } from "@/lib/trpc/init";
 import { setActiveOrg, clearActiveOrg } from "@/lib/auth/orgSwitcher";
@@ -20,8 +20,27 @@ import {
   type VerifyOtpInput,
   type ResendOtpInput,
 } from "../schemas";
+import {
+  authRateLimit,
+  signupRateLimit,
+  passwordResetRateLimit,
+  checkAccountLockout,
+  recordFailedLogin,
+  clearAccountLockout,
+  RATE_LIMIT_ERROR,
+  ACCOUNT_LOCKED_ERROR,
+} from "@/lib/rateLimit";
+import { blockToken } from "@/lib/redis";
+import { logAuthEvent } from "@/lib/authAudit";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+async function getClientIp(): Promise<string> {
+  const headersList = await headers();
+  return (
+    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headersList.get("x-real-ip") ??
+    "unknown"
+  );
+}
 
 export type AuthState<T> = {
   error?: string;
@@ -42,15 +61,45 @@ export async function loginAction(
     };
   }
 
+  const ip = await getClientIp();
+  const email = parsed.data.email;
+
+  const isLocked = await checkAccountLockout(email);
+  if (isLocked) {
+    return { error: ACCOUNT_LOCKED_ERROR };
+  }
+
+  const compositeKey = `${email}:${ip}`;
+  const { success } = await authRateLimit.limit(compositeKey);
+  if (!success) {
+    return { error: RATE_LIMIT_ERROR };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
-    email: parsed.data.email,
+    email,
     password: parsed.data.password,
   });
 
   if (error) {
-    return { error: error.message };
+    const justLocked = await recordFailedLogin(email);
+    await logAuthEvent({
+      event: "login_failure",
+      ip,
+      metadata: { emailPrefix: email.slice(0, 3) + "***" },
+    });
+    return {
+      error: justLocked
+        ? ACCOUNT_LOCKED_ERROR
+        : "Invalid email or password. Please try again.",
+    };
   }
+
+  await clearAccountLockout(email);
+  await logAuthEvent({
+    event: "login_success",
+    ip,
+  });
 
   // Get user's org context
   const ctx = await createTRPCContext();
@@ -76,6 +125,12 @@ export async function signupAction(
       fieldErrors: parsed.error.flatten()
         .fieldErrors as AuthState<SignupInput>["fieldErrors"],
     };
+  }
+
+  const ip = await getClientIp();
+  const { success } = await signupRateLimit.limit(ip);
+  if (!success) {
+    return { error: RATE_LIMIT_ERROR };
   }
 
   const supabase = await createClient();
@@ -109,6 +164,11 @@ export async function resetPasswordAction(
       fieldErrors: parsed.error.flatten()
         .fieldErrors as AuthState<ResetPasswordInput>["fieldErrors"],
     };
+  }
+
+  const { success } = await passwordResetRateLimit.limit(parsed.data.email);
+  if (!success) {
+    return { error: RATE_LIMIT_ERROR };
   }
 
   const supabase = await createClient();
@@ -163,6 +223,12 @@ export async function verifyOtpAction(
     };
   }
 
+  const ip = await getClientIp();
+  const { success } = await authRateLimit.limit(`${parsed.data.email}:${ip}`);
+  if (!success) {
+    return { error: RATE_LIMIT_ERROR };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({
     email: parsed.data.email,
@@ -194,6 +260,12 @@ export async function resendOtpAction(
     };
   }
 
+  const ip = await getClientIp();
+  const { success } = await authRateLimit.limit(`${parsed.data.email}:${ip}`);
+  if (!success) {
+    return { error: RATE_LIMIT_ERROR };
+  }
+
   const supabase = await createClient();
 
   if (parsed.data.type === "recovery") {
@@ -219,13 +291,39 @@ export async function resendOtpAction(
 export async function logoutAction(): Promise<never> {
   const supabase = await createClient();
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     const jwt = session?.access_token;
     if (jwt) {
+      const parts = jwt.split(".");
+      if (parts.length === 3) {
+        try {
+          const payload = JSON.parse(
+            Buffer.from(parts[1]!, "base64url").toString("utf-8"),
+          ) as { jti?: string; exp?: number };
+          if (payload.jti && payload.exp) {
+            await blockToken(payload.jti, payload.exp * 1000);
+          }
+        } catch {
+          /* ignore parse errors */
+        }
+      }
       await invalidateUserCache(jwt);
     }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    await logAuthEvent({
+      event: "logout",
+      userId: user?.id ?? undefined,
+    });
   } catch (e) {
-    console.error("[logoutAction] Failed to extract session JWT for cache invalidation:", e);
+    console.error(
+      "[logoutAction] Failed to extract session JWT for cache invalidation:",
+      e,
+    );
   }
 
   await supabase.auth.signOut();

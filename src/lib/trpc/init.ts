@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm";
 import { getActiveOrgId } from "@/lib/auth/orgSwitcher";
 import { getCachedUser } from "@/lib/auth/getCachedUser";
 import { createClient } from "@/lib/supabase/server";
+import { checkMFARequirement } from "@/lib/auth/mfa";
 
 
 // Context shape available in all procedures
@@ -100,6 +101,12 @@ export const createTRPCContext = cache(
     // Fallback to first membership if cookie invalid/missing
     if (!activeMembership) {
       activeMembership = memberships[0]!; // Safe: we already checked memberships.length > 0
+    }
+
+    // MFA enforcement: admin/owner roles must have AAL2
+    const mfaResult = await checkMFARequirement(activeMembership.role, userId);
+    if (mfaResult && mfaResult.mfaRequired && !mfaResult.mfaSatisfied) {
+      return null; // Require MFA — treat as unauthenticated
     }
 
     return {

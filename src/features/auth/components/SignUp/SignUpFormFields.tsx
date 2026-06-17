@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { gooeyToast } from "@/components/ui/goey-toaster";
+import Link from "next/link";
 
 function SignUpFormFields() {
   const {

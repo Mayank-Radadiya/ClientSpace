@@ -42,7 +42,9 @@ function SubmitButton() {
 
 export function ForgotPasswordForm() {
   const [state, formAction] = useActionState(
-    resetPasswordAction as (...args: unknown[]) => Promise<ResetPasswordActionState>,
+    resetPasswordAction as (
+      ...args: unknown[]
+    ) => Promise<ResetPasswordActionState>,
     {} as ResetPasswordActionState,
   );
 

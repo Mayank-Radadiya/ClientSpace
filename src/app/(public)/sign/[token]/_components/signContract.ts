@@ -18,6 +18,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { contracts } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { inngest } from "@/inngest/client";
+import { contractSignRateLimit, RATE_LIMIT_ERROR } from "@/lib/rateLimit";
 
 interface SignContractInput {
   token: string;
@@ -31,11 +32,22 @@ interface SignContractInput {
 export async function signContractAction(input: SignContractInput): Promise<void> {
   const { token, contractId, signerName, signerEmail, signatureDataUrl, tabMode } = input;
 
+  // ── Step 0: Rate limit by IP ───────────────────────────────────────────
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { success } = await contractSignRateLimit.limit(ip);
+  if (!success) {
+    throw new Error(RATE_LIMIT_ERROR);
+  }
+
+  // Hash the token before lookup
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+
   // ── Step 1: Re-validate token server-side ───────────────────────────────
   const db = await createDrizzleClient();
 
   const contract = await db.query.contracts.findFirst({
-    where: eq(contracts.signingToken, token),
+    where: eq(contracts.signingToken, tokenHash),
     columns: {
       id: true,
       orgId: true,
@@ -75,7 +87,7 @@ export async function signContractAction(input: SignContractInput): Promise<void
   }
 
   // ── Step 2: Read request metadata ───────────────────────────────────────
-  const headersList = await headers();
+  // headersList already fetched above for rate limiting
   const rawIp = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
   const signerIp = rawIp ? createHash("sha256").update(rawIp).digest("hex") : null;
   const signerUserAgent = headersList.get("user-agent") ?? null;

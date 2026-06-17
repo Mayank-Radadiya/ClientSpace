@@ -21,6 +21,17 @@ export async function getCachedUser(jwt: string): Promise<User | null> {
     return null;
   }
 
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1]!, "base64url").toString("utf-8")) as { jti?: string; exp?: number };
+    if (payload.jti) {
+      const { isTokenBlocked } = await import("@/lib/redis");
+      const blocked = await isTokenBlocked(payload.jti);
+      if (blocked) return null;
+    }
+  } catch {
+    // Malformed or test JWT without a valid JSON payload — skip blocklist check
+  }
+
   const cacheKey = getRedisKey(`session:${sig}`);
   let cachedUser: User | null = null;
 

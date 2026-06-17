@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionContext } from "@/lib/auth/session";
 import { withRLS } from "@/db/createDrizzleClient";
-import { folders, organizations, projects } from "@/db/schema";
+import { folders, organizations, projects, projectMembers } from "@/db/schema";
 import {
   uploadRequestSchema,
   createFileVersionSchema,
@@ -57,6 +57,20 @@ export async function getUploadToken(input: unknown): Promise<ActionState> {
       columns: { id: true },
     });
     if (!project) return { error: "Project not found." };
+
+    // Verify project membership for non-owner/admin roles
+    if (ctx.role !== "owner" && ctx.role !== "admin") {
+      const member = await tx.query.projectMembers.findFirst({
+        where: and(
+          eq(projectMembers.projectId, projectId),
+          eq(projectMembers.userId, ctx.userId),
+        ),
+        columns: { projectId: true },
+      });
+      if (!member) {
+        return { error: "You do not have access to this project." };
+      }
+    }
 
     const org = await tx.query.organizations.findFirst({
       where: eq(organizations.id, ctx.orgId),

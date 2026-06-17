@@ -51,8 +51,7 @@ export const loginSchema = z.object({
  *  - Confirm password must match password
  */
 
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 export const signupSchema = z
   .object({
@@ -62,7 +61,7 @@ export const signupSchema = z
       .string()
       .regex(
         passwordRegex,
-        "Password must contain uppercase, lowercase, number, and special character.",
+        "Must contain uppercase, lowercase, number, and at least one special character",
       )
       .min(8, "Password must be at least 8 characters.")
       .max(72, "Password must be at most 72 characters"),
@@ -101,7 +100,7 @@ export const updatePasswordSchema = z
       .string()
       .regex(
         passwordRegex,
-        "Password must contain uppercase, lowercase, number, and special character.",
+        "Must contain uppercase, lowercase, number, and at least one special character",
       )
       .min(8, "Password must be at least 8 characters.")
       .max(72, "Password must be at most 72 characters"),

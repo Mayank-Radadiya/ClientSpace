@@ -14,6 +14,7 @@
 //   1. External: Supabase session cookie (browser download)
 //   2. Internal: x-internal-secret header (reserved for server-to-server calls)
 
+import { timingSafeEqual } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { invoices } from "@/db/schema";
@@ -37,10 +38,17 @@ export async function GET(
   // ── Auth Resolution ────────────────────────────────────────────────────────
 
   const internalSecret = req.headers.get("x-internal-secret");
-  const isInternal =
-    internalSecret &&
-    process.env.INTERNAL_API_SECRET &&
-    internalSecret === process.env.INTERNAL_API_SECRET;
+  const isInternal = (() => {
+    if (!internalSecret || !process.env.INTERNAL_API_SECRET) return false;
+    try {
+      const a = Buffer.from(internalSecret);
+      const b = Buffer.from(process.env.INTERNAL_API_SECRET);
+      if (a.length !== b.length) return false;
+      return timingSafeEqual(a, b);
+    } catch {
+      return false;
+    }
+  })();
 
   let orgId: string;
   let userId: string;

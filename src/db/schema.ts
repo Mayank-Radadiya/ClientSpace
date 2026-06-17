@@ -806,6 +806,42 @@ export const csatResponses = pgTable("csat_responses", {
     .notNull(),
 }).enableRLS();
 
+// ─── Auth Events (append-only security audit log) ─────────────────────────────
+export const authEventEnum = pgEnum("auth_event", [
+  "login_success",
+  "login_failure",
+  "logout",
+  "password_change",
+  "password_reset_request",
+  "password_reset_complete",
+  "role_change",
+  "invite_accepted",
+  "account_locked",
+  "oauth_login",
+  "contract_signed",
+]);
+
+export const authEvents = pgTable(
+  "auth_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id"),
+    orgId: uuid("org_id"),
+    event: authEventEnum("event").notNull(),
+    ip: text("ip"),
+    userAgent: text("user_agent"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("auth_events_user_idx").on(t.userId),
+    index("auth_events_org_idx").on(t.orgId),
+    index("auth_events_created_idx").on(t.createdAt),
+  ],
+).enableRLS();
+
 // ─── AI Project Health (Nightly Gemini Analysis) ──────────────────────────────
 // One row per project per nightly analysis run — dashboard reads the latest.
 

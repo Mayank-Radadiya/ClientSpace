@@ -11,6 +11,7 @@
 //     already-resolved tRPC session and skips the redundant Supabase
 //     auth.getUser() + membership DB query that (no-args) would trigger.
 
+import { createHash } from "node:crypto";
 import { createTRPCRouter, protectedProcedure, rateLimitedProcedure } from "@/lib/trpc/init";
 import { TRPCError } from "@trpc/server";
 import { createDrizzleClient } from "@/db/createDrizzleClient";
@@ -240,7 +241,8 @@ export const contractsRouter = createTRPCRouter({
       }
 
       // Generate signing token — UUID is unguessable, security model: "link = consent"
-      const signingToken = crypto.randomUUID();
+      const rawToken = crypto.randomUUID();
+      const signingToken = createHash("sha256").update(rawToken).digest("hex");
       const signingTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
       await db
@@ -259,7 +261,7 @@ export const contractsRouter = createTRPCRouter({
         data: { contractId: input.contractId, orgId: ctx.orgId },
       });
 
-      const signingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/sign/${signingToken}`;
+      const signingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/sign/${rawToken}`;
 
       return { ok: true, signingUrl, signingToken };
     }),

@@ -21,7 +21,9 @@ type PasswordActionState = {
 
 export function UpdatePasswordForm() {
   const [state, formAction] = useActionState(
-    updatePasswordAction as (...args: unknown[]) => Promise<PasswordActionState>,
+    updatePasswordAction as (
+      ...args: unknown[]
+    ) => Promise<PasswordActionState>,
     {} as PasswordActionState,
   );
   const { pending } = useFormStatus();

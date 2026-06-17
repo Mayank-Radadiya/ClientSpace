@@ -7,6 +7,7 @@
 //   - Token lookup uses admin Drizzle (no RLS) — correct for public routes
 //   - First view: marks viewedAt, updates status to 'viewed'
 
+import { createHash } from "node:crypto";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
@@ -51,8 +52,10 @@ export default async function SignContractPage({ params }: PageProps) {
 
   if (!token) return notFound();
 
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+
   const contract = await db.query.contracts.findFirst({
-    where: eq(contracts.signingToken, token),
+    where: eq(contracts.signingToken, tokenHash),
     columns: {
       id: true,
       title: true,
@@ -150,13 +153,17 @@ export default async function SignContractPage({ params }: PageProps) {
     ?? (contract.client as any)?.email
     ?? "";
 
+  const signerEmail = (contract.client as any)?.email ?? "";
+  const emailSuffix = signerEmail.length >= 4 ? signerEmail.slice(-4) : signerEmail;
+
   return (
     <SigningPageClient
       contractId={contract.id}
       token={token}
       title={contract.title}
       sanitizedHtml={sanitizedHtml}
-      signerEmail={(contract.client as any)?.email ?? ""}
+      signerEmail={signerEmail}
+      emailSuffix={emailSuffix}
       org={{
         name: (contract.organization as any)?.name ?? "Agency",
         logoUrl: (contract.organization as any)?.logoUrl ?? null,

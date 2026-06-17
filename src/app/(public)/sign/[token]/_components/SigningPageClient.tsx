@@ -27,6 +27,7 @@ interface SigningPageClientProps {
   title: string;
   sanitizedHtml: string;
   signerEmail: string;
+  emailSuffix: string;
   org: { name: string; logoUrl: string | null };
 }
 
@@ -40,6 +41,7 @@ export function SigningPageClient({
   title,
   sanitizedHtml,
   signerEmail: initialEmail,
+  emailSuffix,
   org,
 }: SigningPageClientProps) {
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -49,6 +51,9 @@ export function SigningPageClient({
   const [agreed, setAgreed] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [emailConfirmValue, setEmailConfirmValue] = useState("");
+  const emailConfirmError = emailConfirmValue.length > 0 && emailConfirmValue !== emailSuffix ? "Email suffix does not match." : null;
 
   // Canvas refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -208,7 +213,34 @@ export function SigningPageClient({
           )}
           id="signature-section"
         >
-          {/* Name + email */}
+          {/* Email verification */}
+          {!emailConfirmed && (
+            <div className="rounded-xl border bg-white dark:bg-neutral-900 p-6 space-y-4">
+              <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Verify your email</h2>
+              <p className="text-sm text-neutral-500">
+                Please type the last 4 characters of the email address that received this signing link.
+              </p>
+              <Input
+                placeholder="e.g. .com"
+                value={emailConfirmValue}
+                onChange={(e) => setEmailConfirmValue(e.target.value)}
+              />
+              {emailConfirmError && (
+                <p className="text-sm text-red-500">{emailConfirmError}</p>
+              )}
+              <Button
+                onClick={() => {
+                  if (emailConfirmValue === emailSuffix) setEmailConfirmed(true);
+                }}
+                disabled={emailConfirmValue !== emailSuffix}
+                className="w-full"
+              >
+                Confirm Email
+              </Button>
+            </div>
+          )}
+
+          {emailConfirmed && (<>
           <div className="p-6 space-y-4 border-b border-neutral-200 dark:border-neutral-800">
             <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Your details</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -354,7 +386,13 @@ export function SigningPageClient({
                 Scroll through the contract to enable signing.
               </p>
             )}
-          </div>
+          </div></>)}
+
+          {!emailConfirmed && (
+            <p className="text-sm text-center text-neutral-400">
+              Verify your email above to access the signing form.
+            </p>
+          )}
         </div>
       </main>
     </div>

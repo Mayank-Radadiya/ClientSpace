@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { and, eq, gt } from "drizzle-orm";
 import { headers } from "next/headers";
 import { invitations, organizations, clients } from "@/db/schema";
-import { tokenValidationRateLimit } from "@/lib/rateLimit";
+import { tokenValidationRateLimitRedis } from "@/lib/rateLimit";
 import { pool } from "@/db/pool";
 
 export type InvitationWithDetails = {
@@ -52,8 +52,8 @@ export async function getInvitationByToken(
   const ip = await getRequestIp();
 
   if (!shouldBypassTokenRateLimit(ip)) {
-    const rateLimitResult = tokenValidationRateLimit(ip);
-    if (!rateLimitResult.allowed) {
+    const rateLimitAllowed = await tokenValidationRateLimitRedis(ip);
+    if (!rateLimitAllowed) {
       console.warn(`[getInvitationByToken] Rate limit exceeded for IP: ${ip}`);
       return null; // Return null to appear as invalid token
     }
@@ -132,8 +132,8 @@ export async function reserveInvitationByToken(
   const ip = await getRequestIp();
 
   if (!shouldBypassTokenRateLimit(ip)) {
-    const rateLimitResult = tokenValidationRateLimit(ip);
-    if (!rateLimitResult.allowed) {
+    const rateLimitAllowed = await tokenValidationRateLimitRedis(ip);
+    if (!rateLimitAllowed) {
       console.warn(
         `[reserveInvitationByToken] Rate limit exceeded for IP: ${ip}`,
       );

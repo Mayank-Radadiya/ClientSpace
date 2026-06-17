@@ -1,132 +1,93 @@
-/**
- * Rate Limiting Utilities
- * ------------------------
- * Implements in-memory rate limiting to prevent brute-force attacks
- * on invitation tokens and authentication endpoints.
- *
- * Features:
- *  - Per-email rate limiting for invite acceptances (5 attempts/hour)
- *  - Per-IP rate limiting for token validation (10 attempts/hour)
- *  - Automatic cleanup of expired entries
- *  - Human-readable error messages with reset time
- *
- * Note: This is in-memory rate limiting suitable for single-instance deployments.
- * For multi-instance deployments, consider using Redis or a database-backed solution.
- */
+import { Ratelimit } from "@upstash/ratelimit";
+import { redis } from "./redis";
 
-type RateLimitEntry = {
-  attempts: number;
-  resetAt: number; // Unix timestamp (ms)
-};
+export const authRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "60 s"),
+  analytics: true,
+  prefix: "ratelimit:auth",
+});
 
-// In-memory stores
-const inviteAttempts = new Map<string, RateLimitEntry>();
-const tokenAttempts = new Map<string, RateLimitEntry>();
+export const signupRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, "60 s"),
+  analytics: true,
+  prefix: "ratelimit:signup",
+});
 
-// Configuration
-const INVITE_LIMIT = 5; // attempts per window
-const TOKEN_LIMIT = 10; // attempts per window
-const WINDOW_MS = 60 * 60 * 1000; // 1 hour
+export const passwordResetRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, "300 s"),
+  analytics: true,
+  prefix: "ratelimit:passwordreset",
+});
 
-/**
- * Clean up expired entries to prevent memory leaks
- */
-function cleanup(store: Map<string, RateLimitEntry>) {
-  const now = Date.now();
-  for (const [key, entry] of store.entries()) {
-    if (now > entry.resetAt) {
-      store.delete(key);
+export const contractSignRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "600 s"),
+  analytics: true,
+  prefix: "ratelimit:contractsign",
+});
+
+export async function checkAccountLockout(email: string): Promise<boolean> {
+  const lockedKey = `lockout:locked:${email.toLowerCase()}`;
+  try {
+    const result = await redis.get(lockedKey);
+    return result === "1";
+  } catch {
+    return false;
+  }
+}
+
+export async function recordFailedLogin(email: string): Promise<boolean> {
+  const normalizedEmail = email.toLowerCase();
+  const counterKey = `lockout:counter:${normalizedEmail}`;
+  const lockedKey = `lockout:locked:${normalizedEmail}`;
+  try {
+    const attempts = await redis.incr(counterKey);
+    if (attempts === 1) {
+      await redis.expire(counterKey, 900);
     }
+    if (attempts >= 5) {
+      await redis.setex(lockedKey, 900, "1");
+      await redis.del(counterKey);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
   }
 }
 
-/**
- * Check and increment rate limit
- * @returns null if allowed, error message if rate limited
- */
-function checkRateLimit(
-  store: Map<string, RateLimitEntry>,
-  key: string,
-  limit: number,
-): { allowed: boolean; error?: string; resetAt?: number } {
-  // Clean up expired entries periodically (every 100 checks)
-  if (Math.random() < 0.01) {
-    cleanup(store);
+export async function clearAccountLockout(email: string): Promise<void> {
+  const normalizedEmail = email.toLowerCase();
+  try {
+    await redis.del(`lockout:locked:${normalizedEmail}`);
+    await redis.del(`lockout:counter:${normalizedEmail}`);
+  } catch {
+    // Non-fatal
   }
-
-  const now = Date.now();
-  const entry = store.get(key);
-
-  // No entry or expired → allow and create new entry
-  if (!entry || now > entry.resetAt) {
-    store.set(key, {
-      attempts: 1,
-      resetAt: now + WINDOW_MS,
-    });
-    return { allowed: true };
-  }
-
-  // Check if limit exceeded
-  if (entry.attempts >= limit) {
-    const minutesUntilReset = Math.ceil((entry.resetAt - now) / 60000);
-    return {
-      allowed: false,
-      error: `Too many attempts. Please try again in ${minutesUntilReset} minute${minutesUntilReset === 1 ? "" : "s"}.`,
-      resetAt: entry.resetAt,
-    };
-  }
-
-  // Increment attempts
-  entry.attempts += 1;
-  return { allowed: true };
 }
 
-/**
- * Rate limit invitation acceptance attempts by email
- * Limit: 5 attempts per hour per email address
- *
- * @param email - Email address attempting to accept invitation
- * @returns Object with allowed flag and optional error message
- */
-export function inviteRateLimit(email: string): {
-  allowed: boolean;
-  error?: string;
-  resetAt?: number;
-} {
-  const normalizedEmail = email.toLowerCase().trim();
-  return checkRateLimit(inviteAttempts, normalizedEmail, INVITE_LIMIT);
+export const RATE_LIMIT_ERROR = "Too many attempts. Please try again later.";
+export const ACCOUNT_LOCKED_ERROR = "Your account has been temporarily locked. Please try again later.";
+
+export async function inviteRateLimitRedis(email: string): Promise<boolean> {
+  const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, "3600 s"),
+    prefix: "ratelimit:invite",
+  });
+  const { success } = await limiter.limit(`invite:${email.toLowerCase()}`);
+  return success;
 }
 
-/**
- * Rate limit token validation attempts by IP address
- * Limit: 10 attempts per hour per IP
- *
- * @param ip - IP address attempting to validate token
- * @returns Object with allowed flag and optional error message
- */
-export function tokenValidationRateLimit(ip: string): {
-  allowed: boolean;
-  error?: string;
-  resetAt?: number;
-} {
-  return checkRateLimit(tokenAttempts, ip, TOKEN_LIMIT);
-}
-
-/**
- * Clear all rate limit entries (for testing purposes)
- */
-export function clearRateLimits() {
-  inviteAttempts.clear();
-  tokenAttempts.clear();
-}
-
-/**
- * Get rate limit stats for monitoring
- */
-export function getRateLimitStats() {
-  return {
-    inviteAttempts: inviteAttempts.size,
-    tokenAttempts: tokenAttempts.size,
-    totalEntries: inviteAttempts.size + tokenAttempts.size,
-  };
+export async function tokenValidationRateLimitRedis(ip: string): Promise<boolean> {
+  const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, "3600 s"),
+    prefix: "ratelimit:token",
+  });
+  const { success } = await limiter.limit(`token:${ip}`);
+  return success;
 }
