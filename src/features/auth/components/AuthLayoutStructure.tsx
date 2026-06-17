@@ -9,7 +9,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ThemeToggleButton } from "@/components/global/ThemeToggleButton";
 
 interface AuthLayoutProps {
@@ -17,83 +17,102 @@ interface AuthLayoutProps {
 }
 
 const AuthLayoutStructure = ({ children }: AuthLayoutProps) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  const orbTransition1 = shouldReduceMotion
+    ? ({ duration: 0 } as const)
+    : ({
+        duration: 20,
+        repeat: Infinity,
+        ease: "easeInOut" as const,
+      } as const);
+
+  const orbTransition2 = shouldReduceMotion
+    ? ({ duration: 0 } as const)
+    : ({
+        duration: 25,
+        repeat: Infinity,
+        ease: "easeInOut" as const,
+        delay: 2,
+      } as const);
+
+  const orbTransition3 = shouldReduceMotion
+    ? ({ duration: 0 } as const)
+    : ({
+        duration: 22,
+        repeat: Infinity,
+        ease: "easeInOut" as const,
+        delay: 5,
+      } as const);
+
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center p-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-zinc-50/40 p-4 transition-colors duration-300 dark:bg-zinc-950/40">
       {/* Background Elements: Dynamic Aurora Orbs and Subtle Grid */}
-      <div className="bg-background absolute inset-0 z-0 overflow-hidden">
-        {/* Subtle Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] mask-[radial-gradient(ellipse_90%_80%_at_50%_0%,#000_70%,transparent_100%)] bg-size-[24px_24px]" />
+      <div className="bg-background absolute inset-0 z-0 overflow-hidden transition-colors duration-300">
+        {/* Subtle Grid with safari mask support */}
+        <div 
+          className="absolute inset-0 bg-[linear-gradient(to_right,#8080800c_1px,transparent_1px),linear-gradient(to_bottom,#8080800c_1px,transparent_1px)] bg-[size:24px_24px]"
+          style={{
+            WebkitMaskImage: "radial-gradient(ellipse 90% 80% at 50% 0%, #000 60%, transparent 100%)",
+            maskImage: "radial-gradient(ellipse 90% 80% at 50% 0%, #000 60%, transparent 100%)"
+          }}
+        />
 
         {/* Grid texture background */}
-        <div className="bg-grid-small-black/[0.2] dark:bg-grid-small-white/[0.05] absolute inset-0 z-0"></div>
-
-        {/* Radial mask to soften edges and focus center */}
-        {/* <div className="bg-background absolute inset-0 z-0 mask-[radial-gradient(ellipse_at_center,transparent_20%,black)]"></div> */}
+        <div className="bg-grid-small-black/[0.1] dark:bg-grid-small-white/[0.02] absolute inset-0 z-0" />
 
         {/* Ambient gradient blobs for depth */}
-        <div className="absolute top-0 -left-1/4 z-0 h-[500px] w-[500px] rounded-full bg-[#e05d38]/5 blur-[120px] dark:bg-[#e05d38]/20"></div>
+        <div className="absolute top-0 -left-1/4 z-0 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px] dark:bg-primary/10" />
+        <div className="absolute -right-1/4 bottom-0 z-0 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px] dark:bg-primary/5" />
+        <div className="absolute bottom-0 left-1/3 z-0 h-[400px] w-[400px] rounded-full bg-blue-500/5 blur-[100px] dark:bg-blue-500/5" />
 
-        <div className="absolute -right-1/4 bottom-0 z-0 h-[500px] w-[500px] rounded-full bg-[#e05d38]/50 blur-[120px] dark:bg-[#e05d38]/10"></div>
-
-        <div className="absolute bottom-0 left-1/3 z-0 h-[300px] w-[300px] rounded-full bg-blue-500/5 blur-[80px] dark:bg-blue-500/10"></div>
-
-        {/* Animated Glow Orbs */}
-        <motion.div
-          initial={{ opacity: 0.5, x: 0, y: 0, scale: 1 }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 0.8, 0.5],
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="bg-primary/40 absolute -top-[10%] -left-[10%] h-[400px] w-[400px] rounded-full blur-[100px] sm:h-[500px] sm:w-[500px]"
-        />
-        <motion.div
-          initial={{ opacity: 0.4, x: 0, y: 0, scale: 1 }}
-          animate={{
-            scale: [1, 1.5, 1],
-            opacity: [0.4, 0.6, 0.4],
-            x: [0, -50, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-          className="absolute -right-[10%] -bottom-[10%] h-[400px] w-[400px] rounded-full bg-blue-500/30 blur-[100px] sm:h-[500px] sm:w-[500px] dark:bg-blue-500/20"
-        />
-        <motion.div
-          initial={{ opacity: 0.3, x: 0, y: 0, scale: 1 }}
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.5, 0.3],
-            x: [0, 30, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 5,
-          }}
-          className="absolute top-[20%] right-[10%] h-[300px] w-[300px] rounded-full bg-purple-500/30 blur-[100px] sm:h-[400px] sm:w-[400px] dark:bg-purple-500/20"
-        />
+        {/* Animated Glow Orbs (bypassed if reduced motion is active) */}
+        {!shouldReduceMotion && (
+          <>
+            <motion.div
+              initial={{ opacity: 0.3, x: 0, y: 0, scale: 1 }}
+              animate={{
+                scale: [1, 1.15, 1],
+                opacity: [0.3, 0.5, 0.3],
+                x: [0, 40, 0],
+                y: [0, -20, 0],
+              }}
+              transition={orbTransition1}
+              className="bg-primary/30 absolute -top-[10%] -left-[10%] h-[400px] w-[400px] rounded-full blur-[100px] sm:h-[500px] sm:w-[500px]"
+            />
+            <motion.div
+              initial={{ opacity: 0.25, x: 0, y: 0, scale: 1 }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.25, 0.4, 0.25],
+                x: [0, -40, 0],
+                y: [0, 40, 0],
+              }}
+              transition={orbTransition2}
+              className="absolute -right-[10%] -bottom-[10%] h-[400px] w-[400px] rounded-full bg-blue-500/20 blur-[100px] sm:h-[500px] sm:w-[500px]"
+            />
+            <motion.div
+              initial={{ opacity: 0.2, x: 0, y: 0, scale: 1 }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.2, 0.35, 0.2],
+                x: [0, 20, 0],
+                y: [0, 20, 0],
+              }}
+              transition={orbTransition3}
+              className="absolute top-[20%] right-[10%] h-[300px] w-[300px] rounded-full bg-purple-500/20 blur-[100px] sm:h-[400px] sm:w-[400px]"
+            />
+          </>
+        )}
       </div>
 
       {/* Top Navigation Bar: Absolute Positioning */}
       <div className="absolute top-4 z-10 mx-auto flex w-full items-center justify-between px-10">
         <Link
           href="/"
-          className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-medium transition-colors"
+          className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm font-medium transition-colors duration-200"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 hover:-translate-x-0.5" />
           <span>Back to site</span>
         </Link>
         <ThemeToggleButton />

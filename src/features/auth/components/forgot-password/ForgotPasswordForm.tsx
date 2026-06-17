@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ArrowLeft, KeyRound, Loader, Mail } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader, Mail, AlertCircle } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 
 type ResetPasswordActionState = {
@@ -19,14 +19,17 @@ type ResetPasswordActionState = {
   };
 };
 
+const MotionButton = motion(Button);
+
 function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button
+    <MotionButton
       type="submit"
       disabled={pending}
-      className="group mt-2 h-11 w-full rounded-xl font-medium text-white shadow-sm transition-all active:scale-[0.98]"
+      whileTap={{ scale: 0.98 }}
+      className="group mt-2 h-11 w-full rounded-xl font-medium text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out"
     >
       {pending ? (
         <>
@@ -36,7 +39,7 @@ function SubmitButton() {
       ) : (
         "Send reset link"
       )}
-    </Button>
+    </MotionButton>
   );
 }
 
@@ -66,7 +69,7 @@ export function ForgotPasswordForm() {
           },
         },
       }}
-      className="bg-background relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 shadow-2xl backdrop-blur-xl sm:p-10"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/80 p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:shadow-black/40"
     >
       {/* Decorative top gradient line */}
       <div className="via-primary/50 absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent to-transparent opacity-80" />
@@ -134,26 +137,39 @@ export function ForgotPasswordForm() {
                   type="email"
                   placeholder="name@company.com"
                   required
-                  className="bg-muted/40 hover:bg-muted/80 focus-visible:bg-background focus-visible:ring-primary/40 focus-visible:border-primary/50 h-11 items-center rounded-xl border-transparent pr-3 pl-10 shadow-sm transition-all focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 focus-visible:bg-background focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:border-primary/40 h-11 items-center rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 pr-3 pl-10 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                   aria-invalid={!!state?.fieldErrors?.email}
                 />
               </div>
               {state?.fieldErrors?.email && (
-                <p className="text-destructive text-xs">
+                <motion.p
+                  initial={{ opacity: 0, height: 0, y: -4 }}
+                  animate={{ opacity: 1, height: "auto", y: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="text-red-500 dark:text-red-400 mt-1.5 flex items-center gap-1.5 text-xs font-medium"
+                >
+                  <AlertCircle className="h-3.5 w-3.5" />
                   {state.fieldErrors.email[0]}
-                </p>
+                </motion.p>
               )}
             </div>
 
             <SubmitButton />
 
             {state?.error && (
-              <Alert
-                variant="error"
-                className="bg-destructive/10 border-destructive/20 text-destructive mt-4"
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
-                {state.error}
-              </Alert>
+                <Alert
+                  variant="error"
+                  className="bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 mt-4 flex items-center gap-2 rounded-xl"
+                >
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{state.error}</span>
+                </Alert>
+              </motion.div>
             )}
           </form>
 
@@ -161,9 +177,9 @@ export function ForgotPasswordForm() {
           <div className="mt-8 flex w-full flex-col items-center">
             <Link
               href="/login"
-              className="text-muted-foreground hover:text-foreground group flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+              className="text-muted-foreground hover:text-foreground group flex items-center justify-center gap-2 text-sm font-medium transition-colors hover:underline underline-offset-4"
             >
-              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
               <span>Back to login</span>
             </Link>
           </div>

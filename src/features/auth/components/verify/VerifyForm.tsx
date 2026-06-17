@@ -10,6 +10,8 @@ interface VerifyFormProps {
   desc?: string;
 }
 
+const MotionButton = motion(Button);
+
 function VerifyForm({ heading, desc }: VerifyFormProps) {
   return (
     <motion.div
@@ -29,7 +31,7 @@ function VerifyForm({ heading, desc }: VerifyFormProps) {
           },
         },
       }}
-      className="bg-background relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 shadow-2xl backdrop-blur-xl sm:p-10"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/80 p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:shadow-black/40 sm:p-10"
     >
       {/* Decorative top gradient line */}
       <div className="via-primary/50 absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent to-transparent opacity-80" />
@@ -86,22 +88,24 @@ function VerifyForm({ heading, desc }: VerifyFormProps) {
           }}
           className="mt-10 flex w-full flex-col items-center gap-3"
         >
-          <Button
+          <MotionButton
             variant="outline"
-            className="group h-11 w-full rounded-xl transition-all hover:bg-white/5"
+            whileTap={{ scale: 0.98 }}
+            className="group h-11 w-full rounded-xl transition-all duration-300 ease-out"
+            asChild
           >
             <Link
               href="/login"
               className="flex items-center justify-center gap-2"
             >
-              <ArrowLeft className="text-muted-foreground h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              <ArrowLeft className="text-muted-foreground h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
               <span>Back to login</span>
             </Link>
-          </Button>
+          </MotionButton>
 
-          <p className="text-muted-foreground mt-4 text-xs">
+          <p className="text-muted-foreground mt-4 text-xs font-medium">
             Didn&apos;t receive it?{" "}
-            <button className="text-primary hover:text-primary/80 font-medium transition-colors">
+            <button className="text-primary hover:text-primary/80 font-medium transition-colors hover:underline underline-offset-4">
               Click to resend
             </button>
           </p>

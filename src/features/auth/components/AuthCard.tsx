@@ -35,12 +35,12 @@ const AuthCard = ({ children, formType }: AuthCardProps) => {
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-background border-border/40 w-full overflow-hidden rounded-2xl border border-2 border-white/10 bg-transparent shadow-xl shadow-black/5 backdrop-blur-md transition-colors duration-300 hover:border-white/30"
+      className="w-full overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/10 dark:shadow-black/40"
     >
       <div className="flex flex-col p-6 sm:p-8">
         {/* Header section */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="bg-primary/5 ring-primary/10 mb-4 rounded-xl p-2.5 ring-1">
+          <div className="bg-primary/5 ring-primary/10 mb-4 rounded-xl p-2.5 ring-1 transition-all duration-300 hover:scale-105">
             <Image
               src="/logo.svg"
               alt="Logo"
@@ -52,7 +52,7 @@ const AuthCard = ({ children, formType }: AuthCardProps) => {
           <h1 className="text-foreground text-2xl font-semibold tracking-tight">
             {heading}
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm">{description}</p>
+          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{description}</p>
         </div>
 
         {/* Form content injected from parent */}
@@ -63,7 +63,7 @@ const AuthCard = ({ children, formType }: AuthCardProps) => {
           {footerText}{" "}
           <Link
             href={footerHref}
-            className="text-primary hover:text-primary/80 transition-colors"
+            className="text-primary hover:text-primary/80 transition-colors hover:underline underline-offset-4"
           >
             {footerLinkText}
           </Link>

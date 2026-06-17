@@ -1,13 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useLoginForm from "./useLoginForm";
-import { Loader, Lock, Mail } from "lucide-react";
+import { Loader, Lock, Mail, AlertCircle } from "lucide-react";
 import { PasswordField } from "../PasswordField";
 import { useEffect } from "react";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { gooeyToast } from "@/components/ui/goey-toaster";
+import { motion } from "framer-motion";
+
+const MotionButton = motion(Button);
 
 function LoginFormFields() {
   const {
@@ -50,14 +53,20 @@ function LoginFormFields() {
               type="email"
               placeholder="name@company.com"
               required
-              className="bg-muted/40 hover:bg-muted/80 focus-visible:bg-background focus-visible:ring-primary/40 focus-visible:border-primary/50 h-11 items-center rounded-xl border-transparent pr-3 pl-10 shadow-sm transition-all focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 focus-visible:bg-background focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:border-primary/40 h-11 items-center rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 pr-3 pl-10 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
               aria-invalid={!!formState.errors.email}
             />
           </div>
           {formState.errors.email && (
-            <p className="text-destructive text-xs">
+            <motion.p
+              initial={{ opacity: 0, height: 0, y: -4 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="text-red-500 dark:text-red-400 mt-1.5 flex items-center gap-1.5 text-xs font-medium"
+            >
+              <AlertCircle className="h-3.5 w-3.5" />
               {formState.errors.email.message}
-            </p>
+            </motion.p>
           )}
         </div>
 
@@ -69,7 +78,7 @@ function LoginFormFields() {
             </Label>
             <Link
               href="/forgot-password"
-              className="text-muted-foreground hover:text-primary text-xs font-medium transition-colors"
+              className="text-muted-foreground hover:text-primary text-xs font-medium transition-colors hover:underline underline-offset-4"
             >
               Forgot password?
             </Link>
@@ -79,17 +88,24 @@ function LoginFormFields() {
             leftIcon={<Lock className="h-4 w-4" />}
           />
           {formState.errors.password && (
-            <p className="text-destructive text-xs">
+            <motion.p
+              initial={{ opacity: 0, height: 0, y: -4 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="text-red-500 dark:text-red-400 mt-1.5 flex items-center gap-1.5 text-xs font-medium"
+            >
+              <AlertCircle className="h-3.5 w-3.5" />
               {formState.errors.password.message}
-            </p>
+            </motion.p>
           )}
         </div>
 
         {/* Submit */}
-        <Button
+        <MotionButton
           type="submit"
           disabled={isSubmitting}
-          className="group mt-2 h-11 w-full rounded-xl font-medium text-white shadow-sm transition-all active:scale-[0.98]"
+          whileTap={{ scale: 0.98 }}
+          className="group mt-2 h-11 w-full rounded-xl font-medium text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out"
         >
           {isSubmitting ? (
             <>
@@ -99,15 +115,22 @@ function LoginFormFields() {
           ) : (
             "Sign in"
           )}
-        </Button>
+        </MotionButton>
 
         {state?.error && (
-          <Alert
-            variant="error"
-            className="bg-destructive/10 border-destructive/20 text-destructive mt-4"
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            {state.error}
-          </Alert>
+            <Alert
+              variant="error"
+              className="bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 mt-4 flex items-center gap-2 rounded-xl"
+            >
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{state.error}</span>
+            </Alert>
+          </motion.div>
         )}
       </form>
     </>

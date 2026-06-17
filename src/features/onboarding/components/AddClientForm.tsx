@@ -21,7 +21,7 @@ function SubmitButton() {
     <Button
       type="submit"
       size="lg"
-      className="group relative w-full overflow-hidden"
+      className="group relative w-full overflow-hidden shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out"
       disabled={pending}
     >
       <span className="relative z-10 flex items-center justify-center gap-2 font-medium text-white">
@@ -74,7 +74,7 @@ export function AddClientForm() {
       {/* Decorative background glow behind the form itself */}
       <div className="from-primary/20 absolute -inset-1 z-0 rounded-3xl bg-linear-to-tr via-indigo-500/20 to-purple-500/20 opacity-50 blur-2xl" />
 
-      <div className="sm:bg-background/70 relative z-10 flex min-h-[460px] flex-col overflow-hidden p-6 transition-all duration-500 hover:border-white/20 sm:rounded-4xl sm:border sm:border-white/10 sm:p-10 sm:shadow-2xl sm:shadow-black/20 sm:backdrop-blur-2xl">
+      <div className="sm:bg-background/70 relative z-10 flex min-h-[460px] flex-col overflow-hidden p-6 transition-all duration-500 sm:rounded-4xl sm:border sm:border-white/10 sm:p-10 sm:shadow-2xl sm:shadow-black/20 sm:backdrop-blur-2xl">
         <form
           action={formAction}
           className="flex h-full flex-1 flex-col justify-center"
@@ -84,9 +84,9 @@ export function AddClientForm() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               role="alert"
-              className="bg-destructive/10 border-destructive/20 text-destructive mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium"
+              className="bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all duration-300"
             >
-              <span className="bg-destructive h-1.5 w-1.5 animate-pulse rounded-full" />
+              <span className="bg-red-500 h-1.5 w-1.5 animate-pulse rounded-full" />
               {state.error}
             </motion.div>
           )}
@@ -129,13 +129,18 @@ export function AddClientForm() {
                     type="text"
                     placeholder="Company Name (e.g. Acme Corp)"
                     required
-                    className="bg-background/40 focus:bg-background/80 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all hover:border-white/20"
+                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-300 ease-out"
                   />
                 </div>
                 {state.fieldErrors?.companyName && (
-                  <p className="text-destructive px-1 text-xs" role="alert">
+                  <motion.p
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="text-red-500 dark:text-red-400 mt-1.5 px-1 text-xs font-medium" role="alert"
+                  >
                     {state.fieldErrors.companyName[0]}
-                  </p>
+                  </motion.p>
                 )}
               </motion.div>
 
@@ -148,13 +153,18 @@ export function AddClientForm() {
                     type="text"
                     placeholder="Primary Contact (e.g. Jane Doe)"
                     required
-                    className="bg-background/40 focus:bg-background/80 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all hover:border-white/20"
+                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-300 ease-out"
                   />
                 </div>
                 {state.fieldErrors?.contactName && (
-                  <p className="text-destructive px-1 text-xs" role="alert">
+                  <motion.p
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="text-red-500 dark:text-red-400 mt-1.5 px-1 text-xs font-medium" role="alert"
+                  >
                     {state.fieldErrors.contactName[0]}
-                  </p>
+                  </motion.p>
                 )}
               </motion.div>
 
@@ -167,13 +177,18 @@ export function AddClientForm() {
                     type="email"
                     placeholder="Client Email (e.g. jane@acme.com)"
                     required
-                    className="bg-background/40 focus:bg-background/80 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all hover:border-white/20"
+                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-300 ease-out"
                   />
                 </div>
                 {state.fieldErrors?.email && (
-                  <p className="text-destructive px-1 text-xs" role="alert">
+                  <motion.p
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="text-red-500 dark:text-red-400 mt-1.5 px-1 text-xs font-medium" role="alert"
+                  >
                     {state.fieldErrors.email[0]}
-                  </p>
+                  </motion.p>
                 )}
               </motion.div>
             </div>

@@ -9,6 +9,7 @@ import {
   Sparkles,
   Building2,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import {
   createOrganizationAction,
@@ -18,6 +19,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SubmitButton from "./SubmitButton";
+import { cn } from "@/lib/utils";
+
+const MotionButton = motion(Button);
+const MotionIconButton = motion.button;
 
 const initialState: CreateOrgState = {};
 
@@ -91,7 +96,7 @@ export function CreateOrganizationForm() {
     >
       <div className="from-primary/20 absolute -inset-1 z-0 rounded-3xl bg-gradient-to-tr via-indigo-500/20 to-purple-500/20 opacity-50 blur-2xl" />
 
-      <div className="sm:bg-background/70 relative z-10 flex min-h-[460px] flex-col overflow-hidden p-6 transition-all duration-500 hover:border-white/20 sm:rounded-[2rem] sm:border sm:border-white/10 sm:p-10 sm:shadow-2xl sm:shadow-black/20 sm:backdrop-blur-2xl">
+      <div className="relative z-10 flex min-h-[460px] flex-col overflow-hidden p-6 transition-all duration-500 sm:rounded-[2rem] border border-zinc-200/80 bg-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:shadow-black/40 sm:p-10">
         <form
           action={formAction}
           className="flex h-full flex-1 flex-col justify-center"
@@ -102,13 +107,13 @@ export function CreateOrganizationForm() {
 
           {state.error && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
+              initial={{ opacity: 0, height: 0, scale: 0.98 }}
+              animate={{ opacity: 1, height: "auto", scale: 1 }}
               role="alert"
-              className="bg-destructive/10 border-destructive/20 text-destructive mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium"
+              className="bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all duration-300 ease-out"
             >
-              <span className="bg-destructive h-1.5 w-1.5 animate-pulse rounded-full" />
-              {state.error}
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{state.error}</span>
             </motion.div>
           )}
 
@@ -156,15 +161,16 @@ export function CreateOrganizationForm() {
                   variants={itemVariants}
                   className="mt-auto w-full pt-4"
                 >
-                  <Button
+                  <MotionButton
                     type="button"
                     size="lg"
-                    className="group shadow-primary/25 hover:shadow-primary/40 h-12 w-full rounded-xl text-base text-white shadow-lg transition-all"
+                    whileTap={{ scale: 0.98 }}
+                    className="group shadow-primary/20 hover:shadow-primary/30 h-12 w-full rounded-xl text-base text-white shadow-lg transition-all duration-300 ease-out"
                     onClick={goToNextStep}
                   >
                     Get Started
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
-                  </Button>
+                  </MotionButton>
                 </motion.div>
               </motion.div>
             )}
@@ -184,8 +190,8 @@ export function CreateOrganizationForm() {
                     variants={itemVariants}
                     className="flex items-center gap-2"
                   >
-                    <div className="bg-primary h-1.5 flex-1 rounded-full" />
-                    <div className="bg-primary/20 h-1.5 flex-1 rounded-full" />
+                    <div className="bg-primary h-1.5 flex-1 rounded-full transition-all duration-300" />
+                    <div className="bg-primary/20 dark:bg-primary/10 h-1.5 flex-1 rounded-full transition-all duration-300" />
                   </motion.div>
                   <motion.h2
                     variants={itemVariants}
@@ -204,22 +210,29 @@ export function CreateOrganizationForm() {
 
                 <motion.div variants={itemVariants} className="space-y-2">
                   <div className="group relative">
-                    <Building2 className="text-muted-foreground group-focus-within:text-primary absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transition-colors" />
+                    <Building2 className="text-muted-foreground group-focus-within:text-primary absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 transition-colors duration-200" />
                     <Input
                       id="name-input"
-                      type="text" // Removed name="name" to rely purely on the hidden input and state
+                      type="text"
                       placeholder="e.g. Acme Design Studio"
                       value={orgName}
                       onChange={(e) => setOrgName(e.target.value)}
                       onKeyDown={handleInputKeyDown}
                       autoFocus
-                      className="bg-background/40 focus:bg-background/80 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 text-lg font-medium transition-all hover:border-white/20"
+                      className="bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 focus-visible:bg-background focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:border-primary/40 h-12 items-center rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 pr-4 pl-12 text-lg font-medium transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                     />
                   </div>
                   {state.fieldErrors?.name && (
-                    <p className="text-destructive text-sm" role="alert">
+                    <motion.p
+                      initial={{ opacity: 0, height: 0, y: -4 }}
+                      animate={{ opacity: 1, height: "auto", y: 0 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="text-red-500 dark:text-red-400 flex items-center gap-1.5 mt-2 text-sm font-medium"
+                      role="alert"
+                    >
+                      <AlertCircle className="h-4 w-4 shrink-0" />
                       {state.fieldErrors.name[0]}
-                    </p>
+                    </motion.p>
                   )}
                 </motion.div>
 
@@ -227,23 +240,25 @@ export function CreateOrganizationForm() {
                   variants={itemVariants}
                   className="mt-auto flex flex-col space-y-3 pt-4"
                 >
-                  <Button
+                  <MotionButton
                     type="button"
                     size="lg"
-                    className="h-12 w-full rounded-xl text-base text-white"
+                    whileTap={{ scale: 0.98 }}
+                    className="h-12 w-full rounded-xl text-base text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out disabled:shadow-none"
                     onClick={goToNextStep}
                     disabled={orgName.trim().length < 2}
                   >
                     Continue
-                  </Button>
-                  <Button
+                  </MotionButton>
+                  <MotionButton
                     type="button"
                     variant="ghost"
-                    className="text-muted-foreground hover:text-foreground w-full rounded-xl"
+                    whileTap={{ scale: 0.98 }}
+                    className="text-muted-foreground hover:text-foreground w-full rounded-xl transition-all duration-300 ease-out"
                     onClick={() => setStep(0)}
                   >
                     Back
-                  </Button>
+                  </MotionButton>
                 </motion.div>
               </motion.div>
             )}
@@ -263,8 +278,8 @@ export function CreateOrganizationForm() {
                     variants={itemVariants}
                     className="flex items-center gap-2"
                   >
-                    <div className="bg-primary h-1.5 flex-1 rounded-full transition-all" />
-                    <div className="bg-primary h-1.5 flex-1 rounded-full transition-all" />
+                    <div className="bg-primary h-1.5 flex-1 rounded-full transition-all duration-300" />
+                    <div className="bg-primary h-1.5 flex-1 rounded-full transition-all duration-300" />
                   </motion.div>
                   <motion.h2
                     variants={itemVariants}
@@ -285,23 +300,35 @@ export function CreateOrganizationForm() {
                   variants={itemVariants}
                   className="grid grid-cols-2 gap-4"
                 >
-                  <button
+                  <MotionIconButton
                     type="button"
                     onClick={() => setOrgType("freelancer")}
-                    className={`group relative flex flex-col items-start justify-center space-y-3 rounded-2xl border p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className={cn(
+                      "group relative flex flex-col items-start justify-center space-y-3 rounded-2xl border p-5 text-left transition-all duration-300 shadow-xs cursor-pointer select-none",
                       orgType === "freelancer"
-                        ? "border-primary bg-primary/5 shadow-primary/10 ring-primary/30 shadow-lg ring-1"
-                        : "border-border/50 bg-background/30 hover:border-border hover:bg-zinc-50 dark:hover:bg-zinc-900/60"
-                    }`}
+                        ? "border-primary bg-primary/5 shadow-primary/10 ring-primary/30 ring-1"
+                        : "border-zinc-200 dark:border-zinc-800/80 bg-background/30 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/40"
+                    )}
                   >
                     <div
-                      className={`rounded-xl p-2 transition-colors ${orgType === "freelancer" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground group-hover:text-foreground"}`}
+                      className={cn(
+                        "rounded-xl p-2 transition-colors duration-200",
+                        orgType === "freelancer" 
+                          ? "bg-primary/20 text-primary" 
+                          : "bg-secondary text-muted-foreground group-hover:text-foreground"
+                      )}
                     >
                       <User className="h-6 w-6" />
                     </div>
                     <div>
                       <h3
-                        className={`font-semibold ${orgType === "freelancer" ? "text-primary" : "text-foreground"}`}
+                        className={cn(
+                          "font-semibold transition-colors duration-200",
+                          orgType === "freelancer" ? "text-primary" : "text-foreground"
+                        )}
                       >
                         Freelancer
                       </h3>
@@ -312,25 +339,37 @@ export function CreateOrganizationForm() {
                     {orgType === "freelancer" && (
                       <CheckCircle2 className="text-primary animate-in zoom-in absolute top-4 right-4 h-5 w-5" />
                     )}
-                  </button>
+                  </MotionIconButton>
 
-                  <button
+                  <MotionIconButton
                     type="button"
                     onClick={() => setOrgType("agency")}
-                    className={`group relative flex flex-col items-start justify-center space-y-3 rounded-2xl border p-5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className={cn(
+                      "group relative flex flex-col items-start justify-center space-y-3 rounded-2xl border p-5 text-left transition-all duration-300 shadow-xs cursor-pointer select-none",
                       orgType === "agency"
-                        ? "border-primary bg-primary/5 shadow-primary/10 ring-primary/30 shadow-lg ring-1"
-                        : "border-border/50 bg-background/30 hover:border-border hover:bg-zinc-50 dark:hover:bg-zinc-900/60"
-                    }`}
+                        ? "border-primary bg-primary/5 shadow-primary/10 ring-primary/30 ring-1"
+                        : "border-zinc-200 dark:border-zinc-800/80 bg-background/30 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/40"
+                    )}
                   >
                     <div
-                      className={`rounded-xl p-2 transition-colors ${orgType === "agency" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground group-hover:text-foreground"}`}
+                      className={cn(
+                        "rounded-xl p-2 transition-colors duration-200",
+                        orgType === "agency" 
+                          ? "bg-primary/20 text-primary" 
+                          : "bg-secondary text-muted-foreground group-hover:text-foreground"
+                      )}
                     >
                       <Briefcase className="h-6 w-6" />
                     </div>
                     <div>
                       <h3
-                        className={`font-semibold ${orgType === "agency" ? "text-primary" : "text-foreground"}`}
+                        className={cn(
+                          "font-semibold transition-colors duration-200",
+                          orgType === "agency" ? "text-primary" : "text-foreground"
+                        )}
                       >
                         Agency / Team
                       </h3>
@@ -341,15 +380,18 @@ export function CreateOrganizationForm() {
                     {orgType === "agency" && (
                       <CheckCircle2 className="text-primary animate-in zoom-in absolute top-4 right-4 h-5 w-5" />
                     )}
-                  </button>
+                  </MotionIconButton>
                 </motion.div>
 
                 {state.fieldErrors?.type && (
                   <motion.p
-                    variants={itemVariants}
-                    className="text-destructive text-sm"
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="text-red-500 dark:text-red-400 flex items-center gap-1.5 mt-2 text-sm font-medium"
                     role="alert"
                   >
+                    <AlertCircle className="h-4 w-4 shrink-0" />
                     {state.fieldErrors.type[0]}
                   </motion.p>
                 )}
@@ -359,14 +401,15 @@ export function CreateOrganizationForm() {
                   className="mt-auto flex flex-col space-y-3 pt-4"
                 >
                   <SubmitButton disabled={orgType === ""} />
-                  <Button
+                  <MotionButton
                     type="button"
                     variant="ghost"
-                    className="text-muted-foreground hover:text-foreground w-full rounded-xl"
+                    whileTap={{ scale: 0.98 }}
+                    className="text-muted-foreground hover:text-foreground w-full rounded-xl transition-all duration-300 ease-out"
                     onClick={() => setStep(1)}
                   >
                     Back
-                  </Button>
+                  </MotionButton>
                 </motion.div>
               </motion.div>
             )}

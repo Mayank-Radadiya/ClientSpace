@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowLeft, KeyRound, Loader2 } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import {
   resendOtpAction,
@@ -20,6 +20,8 @@ interface VerifyOtpFormProps {
   email: string;
   type: "signup" | "recovery";
 }
+
+const MotionButton = motion(Button);
 
 export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
   const [state, action, isPending] = useActionState(verifyOtpAction, {});
@@ -54,7 +56,7 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
           },
         },
       }}
-      className="bg-background relative mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/10 p-8 shadow-2xl backdrop-blur-xl sm:p-10"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/80 p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-300 dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:shadow-black/40 sm:p-10"
     >
       {/* Decorative top gradient line */}
       <div className="via-primary/50 absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent to-transparent opacity-80" />
@@ -109,7 +111,7 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
             hidden: { opacity: 0, y: 15 },
             visible: { opacity: 1, y: 0 },
           }}
-          className="mt-8 flex w-full justify-center"
+          className="mt-8 flex w-full justify-center animate-in fade-in-50 duration-500"
         >
           <form action={action} className="w-full space-y-6">
             <input type="hidden" name="email" value={email} />
@@ -137,21 +139,34 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
             </div>
 
             {state?.error && (
-              <p className="text-destructive mt-2 text-center text-sm">
-                {state.error}
-              </p>
+              <motion.p
+                initial={{ opacity: 0, height: 0, y: -4 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="text-red-500 dark:text-red-400 mt-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium"
+              >
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>{state.error}</span>
+              </motion.p>
             )}
 
             {state?.fieldErrors?.token && (
-              <p className="text-destructive mt-2 text-center text-sm">
-                {state.fieldErrors.token[0]}
-              </p>
+              <motion.p
+                initial={{ opacity: 0, height: 0, y: -4 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="text-red-500 dark:text-red-400 mt-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium"
+              >
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>{state.fieldErrors.token[0]}</span>
+              </motion.p>
             )}
 
-            <Button
+            <MotionButton
               type="submit"
               disabled={isPending || !isComplete}
-              className="mt-4 h-11 w-full rounded-xl"
+              whileTap={{ scale: 0.98 }}
+              className="group mt-4 h-11 w-full rounded-xl font-medium text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out"
             >
               {isPending ? (
                 <>
@@ -160,7 +175,7 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
               ) : (
                 "Verify Code"
               )}
-            </Button>
+            </MotionButton>
           </form>
         </motion.div>
 
@@ -181,12 +196,20 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
             <button
               type="submit"
               disabled={isResending}
-              className="text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-50"
+              className="text-primary hover:text-primary/80 font-medium transition-colors hover:underline underline-offset-4 disabled:opacity-50"
             >
               {isResending ? "Resending..." : "Click to resend"}
             </button>
             {resendState?.error && (
-              <p className="text-destructive mt-1 block">{resendState.error}</p>
+              <motion.p
+                initial={{ opacity: 0, height: 0, y: -4 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="text-red-500 dark:text-red-400 mt-1.5 flex items-center justify-center gap-1 text-center text-xs font-medium"
+              >
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                {resendState.error}
+              </motion.p>
             )}
           </form>
         </motion.div>
