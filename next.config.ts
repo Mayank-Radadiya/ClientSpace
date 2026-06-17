@@ -31,10 +31,10 @@ const nextConfig: NextConfig = {
         key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
-          isDev ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'" : "script-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
           isDev
-            ? `connect-src 'self' ${supabaseUrl} wss://*.supabase.co https://api.resend.com https://*.s3.amazonaws.com https://*.r2.cloudflarestorage.com ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:*`
-            : `connect-src 'self' ${supabaseUrl} wss://*.supabase.co https://api.resend.com https://*.s3.amazonaws.com https://*.r2.cloudflarestorage.com`,
+            ? `connect-src 'self' ${supabaseUrl} wss://*.supabase.co https://api.resend.com https://*.s3.amazonaws.com https://*.r2.cloudflarestorage.com ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://cloudflareinsights.com`
+            : `connect-src 'self' ${supabaseUrl} wss://*.supabase.co https://api.resend.com https://*.s3.amazonaws.com https://*.r2.cloudflarestorage.com https://cloudflareinsights.com`,
           "style-src 'self' 'unsafe-inline'",
           `img-src 'self' data: blob: ${supabaseUrl} https://*.s3.amazonaws.com https://*.r2.cloudflarestorage.com`,
           "font-src 'self'",
