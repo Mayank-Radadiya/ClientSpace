@@ -119,7 +119,16 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
             <input type="hidden" name="token" value={otp} />
 
             <div className="flex w-full justify-center">
-              <InputOTP maxLength={8} value={otp} onChange={setOtp}>
+              <motion.div
+                animate={
+                  isComplete
+                    ? { boxShadow: ["0 0 0 0 rgba(99,102,241,0)", "0 0 0 8px rgba(99,102,241,0.08)", "0 0 0 0 rgba(99,102,241,0)"] }
+                    : {}
+                }
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="rounded-2xl"
+              >
+                <InputOTP maxLength={8} value={otp} onChange={setOtp}>
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />
                   <InputOTPSlot index={1} />
@@ -136,6 +145,7 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
                   <InputOTPSlot index={7} />
                 </InputOTPGroup>
               </InputOTP>
+              </motion.div>
             </div>
 
             {state?.error && (
@@ -143,7 +153,7 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
                 initial={{ opacity: 0, height: 0, y: -4 }}
                 animate={{ opacity: 1, height: "auto", y: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="text-red-500 dark:text-red-400 mt-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium"
+                className="text-destructive mt-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium"
               >
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                 <span>{state.error}</span>
@@ -155,7 +165,7 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
                 initial={{ opacity: 0, height: 0, y: -4 }}
                 animate={{ opacity: 1, height: "auto", y: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="text-red-500 dark:text-red-400 mt-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium"
+                className="text-destructive mt-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium"
               >
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                 <span>{state.fieldErrors.token[0]}</span>
@@ -165,8 +175,9 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
             <MotionButton
               type="submit"
               disabled={isPending || !isComplete}
+              whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="group mt-4 h-11 w-full rounded-xl font-medium text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out"
+              className="group mt-4 h-11 w-full rounded-xl font-medium text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 ease-out"
             >
               {isPending ? (
                 <>
@@ -205,7 +216,7 @@ export default function VerifyOtpForm({ email, type }: VerifyOtpFormProps) {
                 initial={{ opacity: 0, height: 0, y: -4 }}
                 animate={{ opacity: 1, height: "auto", y: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="text-red-500 dark:text-red-400 mt-1.5 flex items-center justify-center gap-1 text-center text-xs font-medium"
+                className="text-destructive mt-1.5 flex items-center justify-center gap-1 text-center text-xs font-medium"
               >
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                 {resendState.error}

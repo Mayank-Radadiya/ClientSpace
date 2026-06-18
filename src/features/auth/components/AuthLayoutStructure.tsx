@@ -46,7 +46,7 @@ const AuthLayoutStructure = ({ children }: AuthLayoutProps) => {
       } as const);
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-zinc-50/40 p-4 transition-colors duration-300 dark:bg-zinc-950/40">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-linear-to-b from-zinc-50/60 via-zinc-50/40 to-zinc-100/40 p-4 transition-colors duration-300 dark:from-zinc-950/60 dark:via-zinc-950/40 dark:to-zinc-900/40">
       {/* Background Elements: Dynamic Aurora Orbs and Subtle Grid */}
       <div className="bg-background absolute inset-0 z-0 overflow-hidden transition-colors duration-300">
         {/* Subtle Grid with safari mask support */}
@@ -70,10 +70,10 @@ const AuthLayoutStructure = ({ children }: AuthLayoutProps) => {
         {!shouldReduceMotion && (
           <>
             <motion.div
-              initial={{ opacity: 0.3, x: 0, y: 0, scale: 1 }}
+              initial={{ opacity: 0.2, x: 0, y: 0, scale: 1 }}
               animate={{
                 scale: [1, 1.15, 1],
-                opacity: [0.3, 0.5, 0.3],
+                opacity: [0.2, 0.3, 0.2],
                 x: [0, 40, 0],
                 y: [0, -20, 0],
               }}
@@ -81,10 +81,10 @@ const AuthLayoutStructure = ({ children }: AuthLayoutProps) => {
               className="bg-primary/30 absolute -top-[10%] -left-[10%] h-[400px] w-[400px] rounded-full blur-[100px] sm:h-[500px] sm:w-[500px]"
             />
             <motion.div
-              initial={{ opacity: 0.25, x: 0, y: 0, scale: 1 }}
+              initial={{ opacity: 0.15, x: 0, y: 0, scale: 1 }}
               animate={{
                 scale: [1, 1.3, 1],
-                opacity: [0.25, 0.4, 0.25],
+                opacity: [0.15, 0.25, 0.15],
                 x: [0, -40, 0],
                 y: [0, 40, 0],
               }}
@@ -92,10 +92,10 @@ const AuthLayoutStructure = ({ children }: AuthLayoutProps) => {
               className="absolute -right-[10%] -bottom-[10%] h-[400px] w-[400px] rounded-full bg-blue-500/20 blur-[100px] sm:h-[500px] sm:w-[500px]"
             />
             <motion.div
-              initial={{ opacity: 0.2, x: 0, y: 0, scale: 1 }}
+              initial={{ opacity: 0.12, x: 0, y: 0, scale: 1 }}
               animate={{
                 scale: [1, 1.2, 1],
-                opacity: [0.2, 0.35, 0.2],
+                opacity: [0.12, 0.2, 0.12],
                 x: [0, 20, 0],
                 y: [0, 20, 0],
               }}

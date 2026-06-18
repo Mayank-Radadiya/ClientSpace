@@ -38,7 +38,7 @@ const containerVariants: Variants = {
     opacity: 0,
     x: -20,
     filter: "blur(4px)",
-    transition: { duration: 0.2 },
+    transition: { duration: 0.15 },
   },
 };
 
@@ -48,7 +48,7 @@ const itemVariants: Variants = {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { type: "spring", stiffness: 350, damping: 25 },
+    transition: { type: "spring", stiffness: 300, damping: 28 },
   },
 };
 
@@ -110,7 +110,7 @@ export function CreateOrganizationForm() {
               initial={{ opacity: 0, height: 0, scale: 0.98 }}
               animate={{ opacity: 1, height: "auto", scale: 1 }}
               role="alert"
-              className="bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all duration-300 ease-out"
+              className="bg-destructive/10 border-destructive/20 text-destructive mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all duration-300 ease-out"
             >
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{state.error}</span>
@@ -164,12 +164,13 @@ export function CreateOrganizationForm() {
                   <MotionButton
                     type="button"
                     size="lg"
+                    whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group shadow-primary/20 hover:shadow-primary/30 h-12 w-full rounded-xl text-base text-white shadow-lg transition-all duration-300 ease-out"
+                    className="group shadow-primary/20 hover:shadow-primary/30 h-12 w-full rounded-xl text-base text-white shadow-lg transition-all duration-200 ease-out"
                     onClick={goToNextStep}
                   >
                     Get Started
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1.5" />
                   </MotionButton>
                 </motion.div>
               </motion.div>
@@ -219,7 +220,7 @@ export function CreateOrganizationForm() {
                       onChange={(e) => setOrgName(e.target.value)}
                       onKeyDown={handleInputKeyDown}
                       autoFocus
-                      className="bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 focus-visible:bg-background focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:border-primary/40 h-12 items-center rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 pr-4 pl-12 text-lg font-medium transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-50 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                      className="bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 focus-visible:bg-background focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:border-primary/40 focus-visible:shadow-[0_0_0_1px_theme(colors.primary/40%)] h-12 items-center rounded-xl border border-zinc-200/50 dark:border-zinc-800/50 pr-4 pl-12 text-lg font-medium transition-all duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 placeholder:text-zinc-300 dark:placeholder:text-zinc-500"
                     />
                   </div>
                   {state.fieldErrors?.name && (
@@ -227,7 +228,7 @@ export function CreateOrganizationForm() {
                       initial={{ opacity: 0, height: 0, y: -4 }}
                       animate={{ opacity: 1, height: "auto", y: 0 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="text-red-500 dark:text-red-400 flex items-center gap-1.5 mt-2 text-sm font-medium"
+                      className="text-destructive flex items-center gap-1.5 mt-2 text-sm font-medium"
                       role="alert"
                     >
                       <AlertCircle className="h-4 w-4 shrink-0" />
@@ -243,8 +244,9 @@ export function CreateOrganizationForm() {
                   <MotionButton
                     type="button"
                     size="lg"
+                    whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
-                    className="h-12 w-full rounded-xl text-base text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out disabled:shadow-none"
+                    className="h-12 w-full rounded-xl text-base text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 ease-out disabled:shadow-none"
                     onClick={goToNextStep}
                     disabled={orgName.trim().length < 2}
                   >
@@ -253,8 +255,9 @@ export function CreateOrganizationForm() {
                   <MotionButton
                     type="button"
                     variant="ghost"
+                    whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
-                    className="text-muted-foreground hover:text-foreground w-full rounded-xl transition-all duration-300 ease-out"
+                    className="text-muted-foreground hover:text-foreground w-full rounded-xl transition-all duration-200 ease-out"
                     onClick={() => setStep(0)}
                   >
                     Back
@@ -388,7 +391,7 @@ export function CreateOrganizationForm() {
                     initial={{ opacity: 0, height: 0, y: -4 }}
                     animate={{ opacity: 1, height: "auto", y: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="text-red-500 dark:text-red-400 flex items-center gap-1.5 mt-2 text-sm font-medium"
+                    className="text-destructive flex items-center gap-1.5 mt-2 text-sm font-medium"
                     role="alert"
                   >
                     <AlertCircle className="h-4 w-4 shrink-0" />
@@ -404,8 +407,9 @@ export function CreateOrganizationForm() {
                   <MotionButton
                     type="button"
                     variant="ghost"
+                    whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
-                    className="text-muted-foreground hover:text-foreground w-full rounded-xl transition-all duration-300 ease-out"
+                    className="text-muted-foreground hover:text-foreground w-full rounded-xl transition-all duration-200 ease-out"
                     onClick={() => setStep(1)}
                   >
                     Back

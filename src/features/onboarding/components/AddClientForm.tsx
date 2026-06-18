@@ -84,9 +84,9 @@ export function AddClientForm() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               role="alert"
-              className="bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all duration-300"
+              className="bg-destructive/10 border-destructive/20 text-destructive mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-all duration-300"
             >
-              <span className="bg-red-500 h-1.5 w-1.5 animate-pulse rounded-full" />
+              <span className="bg-destructive h-1.5 w-1.5 animate-pulse rounded-full" />
               {state.error}
             </motion.div>
           )}
@@ -129,7 +129,7 @@ export function AddClientForm() {
                     type="text"
                     placeholder="Company Name (e.g. Acme Corp)"
                     required
-                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-300 ease-out"
+                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:shadow-[0_0_0_1px_theme(colors.primary/40%)] h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-200 ease-out placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                   />
                 </div>
                 {state.fieldErrors?.companyName && (
@@ -137,7 +137,7 @@ export function AddClientForm() {
                     initial={{ opacity: 0, height: 0, y: -4 }}
                     animate={{ opacity: 1, height: "auto", y: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="text-red-500 dark:text-red-400 mt-1.5 px-1 text-xs font-medium" role="alert"
+                    className="text-destructive mt-1.5 px-1 text-xs font-medium" role="alert"
                   >
                     {state.fieldErrors.companyName[0]}
                   </motion.p>
@@ -153,7 +153,7 @@ export function AddClientForm() {
                     type="text"
                     placeholder="Primary Contact (e.g. Jane Doe)"
                     required
-                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-300 ease-out"
+                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:shadow-[0_0_0_1px_theme(colors.primary/40%)] h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-200 ease-out placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                   />
                 </div>
                 {state.fieldErrors?.contactName && (
@@ -161,7 +161,7 @@ export function AddClientForm() {
                     initial={{ opacity: 0, height: 0, y: -4 }}
                     animate={{ opacity: 1, height: "auto", y: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="text-red-500 dark:text-red-400 mt-1.5 px-1 text-xs font-medium" role="alert"
+                    className="text-destructive mt-1.5 px-1 text-xs font-medium" role="alert"
                   >
                     {state.fieldErrors.contactName[0]}
                   </motion.p>
@@ -177,7 +177,7 @@ export function AddClientForm() {
                     type="email"
                     placeholder="Client Email (e.g. jane@acme.com)"
                     required
-                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-300 ease-out"
+                    className="bg-background/40 hover:bg-background/60 focus:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-primary/20 focus-visible:shadow-[0_0_0_1px_theme(colors.primary/40%)] h-12 items-center rounded-xl border-white/10 pr-4 pl-12 font-medium transition-all duration-200 ease-out placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                   />
                 </div>
                 {state.fieldErrors?.email && (
@@ -185,7 +185,7 @@ export function AddClientForm() {
                     initial={{ opacity: 0, height: 0, y: -4 }}
                     animate={{ opacity: 1, height: "auto", y: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="text-red-500 dark:text-red-400 mt-1.5 px-1 text-xs font-medium" role="alert"
+                    className="text-destructive mt-1.5 px-1 text-xs font-medium" role="alert"
                   >
                     {state.fieldErrors.email[0]}
                   </motion.p>

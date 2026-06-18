@@ -40,7 +40,7 @@ const AuthCard = ({ children, formType }: AuthCardProps) => {
       <div className="flex flex-col p-6 sm:p-8">
         {/* Header section */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="bg-primary/5 ring-primary/10 mb-4 rounded-xl p-2.5 ring-1 transition-all duration-300 hover:scale-105">
+          <div className="bg-primary/5 ring-primary/10 mb-4 rounded-xl p-2.5 ring-1 transition-all duration-300 hover:scale-110">
             <Image
               src="/logo.svg"
               alt="Logo"

@@ -7,12 +7,13 @@ import { updatePasswordAction } from "../server/actions";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { KeyRound, Loader, Lock, ArrowLeft, AlertCircle } from "lucide-react";
+import { KeyRound, Loader, Lock, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { PasswordField } from "./PasswordField";
 
 type PasswordActionState = {
   error?: string;
+  success?: boolean;
   fieldErrors?: {
     password?: string[];
     confirmPassword?: string[];
@@ -153,8 +154,9 @@ export function UpdatePasswordForm() {
             <MotionButton
               type="submit"
               disabled={pending}
+              whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="group mt-2 h-11 w-full rounded-xl font-medium text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 ease-out"
+              className="group mt-2 h-11 w-full rounded-xl font-medium text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 ease-out"
             >
               {pending ? (
                 <>
@@ -174,11 +176,29 @@ export function UpdatePasswordForm() {
               >
                 <Alert
                   variant="error"
-                  className="bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400 mt-4 flex items-center gap-2 rounded-xl"
+                  className="bg-destructive/10 border-destructive/20 text-destructive mt-4 flex items-center gap-2 rounded-xl"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{state.error}</span>
                 </Alert>
+              </motion.div>
+            )}
+
+            {state?.success && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="bg-success/10 border-success/20 text-success mt-4 flex items-center gap-2.5 rounded-xl border p-3 text-sm font-medium"
+              >
+                <motion.span
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                >
+                  <CheckCircle2 className="h-5 w-5 shrink-0" />
+                </motion.span>
+                <span>Password updated successfully!</span>
               </motion.div>
             )}
           </form>
