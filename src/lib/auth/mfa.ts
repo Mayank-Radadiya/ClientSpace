@@ -1,14 +1,13 @@
 // src/lib/auth/mfa.ts
 // MFA/TOTP enforcement for admin and owner roles using Supabase native MFA.
-//
-// MFA must also be enabled in Supabase project settings (Auth > Multi-Factor Auth)
-// for these checks to take effect.
 
 import { createClient } from "@/lib/supabase/server";
 
+// ponytail: enum replaces the boolean that collapsed 3 states into 1
+export type MfaState = "not_required" | "not_enrolled" | "enrolled_unverified" | "satisfied";
+
 export interface MFAStatus {
-  mfaRequired: boolean;
-  mfaSatisfied: boolean;
+  state: MfaState;
   /** All verified TOTP factor IDs (for management UI) */
   factors?: Array<{ id: string; friendlyName: string | null; createdAt: string }>;
 }
@@ -21,11 +20,11 @@ export interface MFAStatus {
  */
 export async function checkMFARequirement(
   role: string,
-  userId: string,
+  _userId: string,
 ): Promise<MFAStatus | null> {
   const mfaRequired = role === "owner" || role === "admin";
   if (!mfaRequired) {
-    return { mfaRequired: false, mfaSatisfied: true };
+    return { state: "not_required" };
   }
 
   try {
@@ -44,12 +43,14 @@ export async function checkMFARequirement(
         (f) => f.factor_type === "totp" && f.status === "verified",
       ) ?? [];
 
+    const mappedFactors = verifiedFactors.map((f) => ({
+      id: f.id,
+      friendlyName: f.friendly_name ?? null,
+      createdAt: f.created_at,
+    }));
+
     if (verifiedFactors.length === 0) {
-      return {
-        mfaRequired: true,
-        mfaSatisfied: false,
-        factors: [],
-      };
+      return { state: "not_enrolled", factors: [] };
     }
 
     // Check current AAL
@@ -58,16 +59,30 @@ export async function checkMFARequirement(
     const currentLevel = aalData?.currentLevel ?? "aal1";
 
     return {
-      mfaRequired: true,
-      mfaSatisfied: currentLevel === "aal2",
-      factors: verifiedFactors.map((f) => ({
-        id: f.id,
-        friendlyName: f.friendly_name ?? null,
-        createdAt: f.created_at,
-      })),
+      state: currentLevel === "aal2" ? "satisfied" : "enrolled_unverified",
+      factors: mappedFactors,
     };
   } catch (error) {
     console.error("[MFA] Check failed:", error);
     return null;
+  }
+}
+
+/**
+ * Shared guard — throws if MFA is required but not satisfied.
+ * Callers catch the error and route appropriately.
+ */
+export class MfaRequiredError extends Error {
+  constructor(public readonly mfaState: "not_enrolled" | "enrolled_unverified") {
+    super(`MFA required: ${mfaState}`);
+    this.name = "MfaRequiredError";
+  }
+}
+
+export async function requireMfaSatisfied(role: string, userId: string): Promise<void> {
+  const status = await checkMFARequirement(role, userId);
+  if (!status) return; // ponytail: if check fails, don't block — fail open to avoid lockout
+  if (status.state === "not_enrolled" || status.state === "enrolled_unverified") {
+    throw new MfaRequiredError(status.state);
   }
 }

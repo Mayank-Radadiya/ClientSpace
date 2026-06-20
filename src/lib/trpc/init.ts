@@ -1,14 +1,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { cache } from "react";
-import { headers, cookies } from "next/headers";
-import { withRLS } from "@/db/createDrizzleClient";
-import { orgMemberships } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { getActiveOrgId } from "@/lib/auth/orgSwitcher";
 import { getCachedUser } from "@/lib/auth/getCachedUser";
 import { createClient } from "@/lib/supabase/server";
-import { checkMFARequirement } from "@/lib/auth/mfa";
+import { checkMFARequirement, type MfaState } from "@/lib/auth/mfa";
+import { getOrgMemberships } from "@/lib/auth/getOrgMemberships";
 
 
 // Context shape available in all procedures
@@ -16,6 +14,7 @@ export type TRPCContext = {
   userId: string;
   orgId: string;
   role: string;
+  mfaState: MfaState; // ponytail: expose state so callers can route
   availableOrgs: Array<{
     orgId: string;
     orgName: string;
@@ -68,25 +67,8 @@ export const createTRPCContext = cache(
 
     const userId = user.id;
 
-    // Fetch all memberships with minimal org data
-    const memberships = await withRLS(
-      { userId, orgId: "SYSTEM" },
-      async (tx) => {
-        return tx.query.orgMemberships.findMany({
-          where: eq(orgMemberships.userId, userId),
-          columns: { orgId: true, role: true },
-          with: {
-            organization: {
-              columns: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        });
-      },
-    );
+    // ponytail: shared cached query — same request won't hit DB twice
+    const memberships = await getOrgMemberships(userId);
 
     if (!memberships || memberships.length === 0) return null;
 
@@ -103,16 +85,15 @@ export const createTRPCContext = cache(
       activeMembership = memberships[0]!; // Safe: we already checked memberships.length > 0
     }
 
-    // MFA enforcement: admin/owner roles must have AAL2
+    // MFA enforcement: check status, include in context
     const mfaResult = await checkMFARequirement(activeMembership.role, userId);
-    if (mfaResult && mfaResult.mfaRequired && !mfaResult.mfaSatisfied) {
-      return null; // Require MFA — treat as unauthenticated
-    }
+    const mfaState: MfaState = mfaResult?.state ?? "not_required";
 
     return {
       userId,
       orgId: activeMembership.orgId,
       role: activeMembership.role,
+      mfaState,
       availableOrgs: memberships.map((m) => ({
         orgId: m.orgId,
         orgName: m.organization.name,
@@ -153,6 +134,13 @@ export const protectedProcedure = t.procedure
   .use(async ({ next }) => {
     const ctx = await createTRPCContext();
     if (!ctx) throw new TRPCError({ code: "UNAUTHORIZED" });
+    // ponytail: MFA gate — reject if enrolled but unverified
+    if (ctx.mfaState === "not_enrolled" || ctx.mfaState === "enrolled_unverified") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `MFA required: ${ctx.mfaState}`,
+      });
+    }
     return next({ ctx });
   });
 
