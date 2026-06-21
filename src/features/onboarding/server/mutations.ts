@@ -1,8 +1,7 @@
 import { count, eq } from "drizzle-orm";
 import { withRLS } from "@/db/createDrizzleClient";
-import { clients } from "@/db/schema";
+import { clients, invitations, organizations, orgMemberships } from "@/db/schema";
 import type { OnboardClientInput } from "../schemas";
-import { organizations, orgMemberships } from "@/db/schema";
 import { generateSlug } from "../utils/slug";
 import { setActiveOrg } from "@/lib/auth/orgSwitcher";
 
@@ -15,6 +14,10 @@ export async function createClientInDb(
   userId: string,
   orgId: string,
   clientData: OnboardClientInput,
+  invitationData?: {
+    tokenHash: string;
+    expiresAt: Date;
+  },
 ) {
   return await withRLS({ userId, orgId }, async (tx) => {
     const clientCountRows = await tx
@@ -23,15 +26,38 @@ export async function createClientInDb(
       .where(eq(clients.orgId, orgId));
     const totalClients = clientCountRows[0]?.totalClients ?? 0;
 
-    await tx.insert(clients).values({
-      orgId,
-      companyName: clientData.companyName,
-      contactName: clientData.contactName,
-      email: clientData.email,
-      status: "active", // Consider making this a default value at the DB schema level
+    const [newClient] = await tx
+      .insert(clients)
+      .values({
+        orgId,
+        companyName: clientData.companyName,
+        contactName: clientData.contactName,
+        email: clientData.email,
+        status: "active", // Consider making this a default value at the DB schema level
+      })
+      .returning({ id: clients.id });
+
+    if (newClient && invitationData) {
+      await tx.insert(invitations).values({
+        orgId,
+        clientId: newClient.id,
+        email: clientData.email.toLowerCase(),
+        type: "client",
+        tokenHash: invitationData.tokenHash,
+        status: "pending",
+        expiresAt: invitationData.expiresAt,
+      });
+    }
+
+    const org = await tx.query.organizations.findFirst({
+      where: eq(organizations.id, orgId),
+      columns: { name: true },
     });
 
-    return { isFirstClient: totalClients === 0 };
+    return {
+      isFirstClient: totalClients === 0,
+      orgName: org?.name ?? "ClientSpace",
+    };
   });
 }
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
@@ -9,7 +10,7 @@ import { onboardClientSchema, type OnboardClientInput } from "../schemas";
 import { createClientInDb, createOrganizationInDb } from "./mutations";
 import { getUserExistingMembership } from "./queries";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendFirstClientAddedEmail } from "@/emails/send";
+import { sendFirstClientAddedEmail, sendClientInviteEmail } from "@/emails/send";
 
 export type CreateOrgState = {
   error?: string;
@@ -126,20 +127,56 @@ export async function onboardClientAction(
       return { error: "No organization found for this account." };
     }
 
-    // Call our abstracted mutation
-    const { isFirstClient } = await createClientInDb(
+    const email = validationResult.data.email.toLowerCase();
+    const companyName = validationResult.data.companyName;
+    const contactName = validationResult.data.contactName;
+
+    // Generate client invitation token
+    const rawToken = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+    const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
+
+    // Call our abstracted mutation, passing the invitation metadata
+    const { isFirstClient, orgName } = await createClientInDb(
       user.id,
       membership.orgId,
       validationResult.data,
+      { tokenHash, expiresAt },
     );
+
+    // Send invitation email to the newly created client
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (appUrl) {
+      const inviteUrl = `${appUrl}/client/auth?token=${rawToken}`;
+      try {
+        await sendClientInviteEmail({
+          to: email,
+          contactName,
+          companyName,
+          inviterName: orgName,
+          inviteUrl,
+          orgId: membership.orgId,
+        });
+      } catch (emailError) {
+        console.error(
+          "onboardClientAction warning: client invitation email failed:",
+          emailError,
+        );
+      }
+    } else {
+      console.warn(
+        "onboardClientAction warning: NEXT_PUBLIC_APP_URL is missing, client invite email not sent.",
+      );
+    }
 
     if (isFirstClient && user.email) {
       try {
         await sendFirstClientAddedEmail({
           to: user.email,
-          clientCompanyName: validationResult.data.companyName,
-          clientContactName: validationResult.data.contactName,
-          clientEmail: validationResult.data.email,
+          clientCompanyName: companyName,
+          clientContactName: contactName,
+          clientEmail: email,
+          orgId: membership.orgId,
         });
       } catch (emailError) {
         console.error(
