@@ -10,7 +10,10 @@ import { onboardClientSchema, type OnboardClientInput } from "../schemas";
 import { createClientInDb, createOrganizationInDb } from "./mutations";
 import { getUserExistingMembership } from "./queries";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendFirstClientAddedEmail, sendClientInviteEmail } from "@/emails/send";
+import {
+  sendFirstClientAddedEmail,
+  sendClientInviteEmail,
+} from "@/emails/send";
 
 export type CreateOrgState = {
   error?: string;
@@ -186,7 +189,12 @@ export async function onboardClientAction(
       }
     }
   } catch (err) {
-    console.error("onboardClientAction error:", err);
+    console.error("onboardClientAction error:", {
+      error: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+      userId: user.id,
+      input: validationResult.data.email,
+    });
     return {
       error: "Something went wrong creating the client. Please try again.",
     };

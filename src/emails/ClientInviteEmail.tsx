@@ -28,7 +28,9 @@ export function ClientInviteEmail({
   return (
     <Html lang="en">
       <Head />
-      <Preview>Welcome to your client portal.</Preview>
+      <Preview>
+        {inviterName} invited you to their client portal on ClientSpace.
+      </Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
@@ -36,42 +38,36 @@ export function ClientInviteEmail({
           </Section>
 
           <Section style={content}>
-            <Heading style={heading}>
-              Welcome to ClientSpace
-            </Heading>
+            <Heading style={heading}>Welcome to ClientSpace</Heading>
 
             <Text style={paragraph}>Hello {contactName},</Text>
             <Text style={paragraph}>
-              <strong>{inviterName}</strong> has set up an account for you on their client portal.
+              <strong>{inviterName}</strong> has set up an account for you on
+              their client portal.
             </Text>
             <Text style={paragraph}>
-              You can now log in to view your projects, access shared documents, and manage invoices.
+              You can now log in to view your projects, access shared documents,
+              and manage invoices.
             </Text>
-            
+
             <Section style={buttonContainer}>
               <Button href={inviteUrl} style={button}>
-                Access Your Account
+                Sign in to your portal
               </Button>
             </Section>
 
             <Text style={muted}>
-              This secure access link will remain active for <strong>72 hours</strong>.
+              This link expires in <strong>72 hours</strong>.
             </Text>
             <Hr style={contentDivider} />
             <Text style={subMuted}>
-              If you have any questions, you can reply directly to this email to reach {inviterName}.
+              Questions? Reply to reach {inviterName} directly.
             </Text>
           </Section>
 
           <Section style={footer}>
             <Text style={footerText}>
-              © {new Date().getFullYear()} ClientSpace Inc. All rights reserved.
-            </Text>
-            <Text style={footerText}>
-              123 Business Avenue, Suite 100 • New York, NY 10001
-            </Text>
-            <Text style={footerText}>
-              If you did not expect this email, you can safely ignore it.
+              © {new Date().getFullYear()} ClientSpace Inc.
             </Text>
           </Section>
         </Container>

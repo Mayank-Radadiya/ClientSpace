@@ -134,8 +134,8 @@ export const protectedProcedure = t.procedure
   .use(async ({ next }) => {
     const ctx = await createTRPCContext();
     if (!ctx) throw new TRPCError({ code: "UNAUTHORIZED" });
-    // ponytail: MFA gate — reject if enrolled but unverified
-    if (ctx.mfaState === "not_enrolled" || ctx.mfaState === "enrolled_unverified") {
+    // ponytail: MFA gate — reject only if enrolled but session isn't AAL2. not_enrolled is allowed for new owner onboarding.
+    if (ctx.mfaState === "enrolled_unverified") {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: `MFA required: ${ctx.mfaState}`,

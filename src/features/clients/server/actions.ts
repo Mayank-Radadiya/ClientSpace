@@ -196,6 +196,7 @@ export async function inviteClientAction(
       companyName,
       inviterName,
       inviteUrl,
+      orgId: ctx.orgId,
     });
   } catch (err) {
     console.error("[inviteClientAction] Email delivery failed:", err);
@@ -256,7 +257,10 @@ export async function resendInviteAction(
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
-      return { success: true, warning: "Token updated but NEXT_PUBLIC_APP_URL is missing." };
+      return {
+        success: true,
+        warning: "Token updated but NEXT_PUBLIC_APP_URL is missing.",
+      };
     }
 
     const inviteUrl = `${appUrl}/client/auth?token=${rawToken}`;
@@ -267,6 +271,7 @@ export async function resendInviteAction(
       companyName: (invitation.client as any)?.companyName ?? "Company",
       inviterName: "ClientSpace",
       inviteUrl,
+      orgId: ctx.orgId,
     });
 
     return { success: true };

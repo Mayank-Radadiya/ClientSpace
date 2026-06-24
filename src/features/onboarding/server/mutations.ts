@@ -1,6 +1,11 @@
 import { count, eq } from "drizzle-orm";
 import { withRLS } from "@/db/createDrizzleClient";
-import { clients, invitations, organizations, orgMemberships } from "@/db/schema";
+import {
+  clients,
+  invitations,
+  organizations,
+  orgMemberships,
+} from "@/db/schema";
 import type { OnboardClientInput } from "../schemas";
 import { generateSlug } from "../utils/slug";
 import { setActiveOrg } from "@/lib/auth/orgSwitcher";
@@ -19,46 +24,59 @@ export async function createClientInDb(
     expiresAt: Date;
   },
 ) {
-  return await withRLS({ userId, orgId }, async (tx) => {
-    const clientCountRows = await tx
-      .select({ totalClients: count() })
-      .from(clients)
-      .where(eq(clients.orgId, orgId));
-    const totalClients = clientCountRows[0]?.totalClients ?? 0;
+  try {
+    return await withRLS({ userId, orgId }, async (tx) => {
+      const clientCountRows = await tx
+        .select({ totalClients: count() })
+        .from(clients)
+        .where(eq(clients.orgId, orgId));
+      const totalClients = clientCountRows[0]?.totalClients ?? 0;
 
-    const [newClient] = await tx
-      .insert(clients)
-      .values({
-        orgId,
-        companyName: clientData.companyName,
-        contactName: clientData.contactName,
-        email: clientData.email,
-        status: "active", // Consider making this a default value at the DB schema level
-      })
-      .returning({ id: clients.id });
+      const [newClient] = await tx
+        .insert(clients)
+        .values({
+          orgId,
+          companyName: clientData.companyName,
+          contactName: clientData.contactName,
+          email: clientData.email,
+          status: "active", // Consider making this a default value at the DB schema level
+        })
+        .returning({ id: clients.id });
 
-    if (newClient && invitationData) {
-      await tx.insert(invitations).values({
-        orgId,
-        clientId: newClient.id,
-        email: clientData.email.toLowerCase(),
-        type: "client",
-        tokenHash: invitationData.tokenHash,
-        status: "pending",
-        expiresAt: invitationData.expiresAt,
+      if (newClient && invitationData) {
+        await tx.insert(invitations).values({
+          orgId,
+          clientId: newClient.id,
+          email: clientData.email.toLowerCase(),
+          type: "client",
+          tokenHash: invitationData.tokenHash,
+          status: "pending",
+          expiresAt: invitationData.expiresAt,
+        });
+      }
+
+      const org = await tx.query.organizations.findFirst({
+        where: eq(organizations.id, orgId),
+        columns: { name: true },
       });
-    }
 
-    const org = await tx.query.organizations.findFirst({
-      where: eq(organizations.id, orgId),
-      columns: { name: true },
+      return {
+        isFirstClient: totalClients === 0,
+        orgName: org?.name ?? "ClientSpace",
+      };
     });
-
-    return {
-      isFirstClient: totalClients === 0,
-      orgName: org?.name ?? "ClientSpace",
-    };
-  });
+  } catch (err) {
+    console.error("[createClientInDb] Database error:", {
+      error: err instanceof Error ? err.message : String(err),
+      code: (err as any)?.code,
+      detail: (err as any)?.detail,
+      constraint: (err as any)?.constraint,
+      table: (err as any)?.table_name,
+      userId,
+      orgId,
+    });
+    throw err;
+  }
 }
 
 export async function createOrganizationInDb(

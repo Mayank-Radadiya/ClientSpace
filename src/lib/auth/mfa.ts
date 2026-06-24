@@ -4,12 +4,20 @@
 import { createClient } from "@/lib/supabase/server";
 
 // ponytail: enum replaces the boolean that collapsed 3 states into 1
-export type MfaState = "not_required" | "not_enrolled" | "enrolled_unverified" | "satisfied";
+export type MfaState =
+  | "not_required"
+  | "not_enrolled"
+  | "enrolled_unverified"
+  | "satisfied";
 
 export interface MFAStatus {
   state: MfaState;
   /** All verified TOTP factor IDs (for management UI) */
-  factors?: Array<{ id: string; friendlyName: string | null; createdAt: string }>;
+  factors?: Array<{
+    id: string;
+    friendlyName: string | null;
+    createdAt: string;
+  }>;
 }
 
 /**
@@ -73,16 +81,23 @@ export async function checkMFARequirement(
  * Callers catch the error and route appropriately.
  */
 export class MfaRequiredError extends Error {
-  constructor(public readonly mfaState: "not_enrolled" | "enrolled_unverified") {
+  constructor(
+    public readonly mfaState: "not_enrolled" | "enrolled_unverified",
+  ) {
     super(`MFA required: ${mfaState}`);
     this.name = "MfaRequiredError";
   }
 }
 
-export async function requireMfaSatisfied(role: string, userId: string): Promise<void> {
+export async function requireMfaSatisfied(
+  role: string,
+  userId: string,
+): Promise<void> {
   const status = await checkMFARequirement(role, userId);
   if (!status) return; // ponytail: if check fails, don't block — fail open to avoid lockout
-  if (status.state === "not_enrolled" || status.state === "enrolled_unverified") {
+  // ponytail: only block enrolled_unverified (has factors but no AAL2 session),
+  // not not_enrolled — new owners can't onboard if MFA is mandatory from the start.
+  if (status.state === "enrolled_unverified") {
     throw new MfaRequiredError(status.state);
   }
 }
