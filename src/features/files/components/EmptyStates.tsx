@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { FolderOpen, SearchX, UploadCloud } from "lucide-react";
 
 type EmptyStateProps = {

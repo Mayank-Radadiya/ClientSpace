@@ -3,7 +3,7 @@
 // Invoices list for a project with status badges and totals.
 
 import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { DollarSign, ExternalLink, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";

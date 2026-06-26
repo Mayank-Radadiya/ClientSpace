@@ -4,7 +4,7 @@
 // Fix 1: PDF generation happens in reportActions.ts which has `export const runtime = "nodejs"`.
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { X, FileDown, Mail, Check, Loader2 } from "lucide-react";
 import { generateProjectPdf, sendReportToClient } from "@/features/projects/server/reportActions";
 import type { Project, Milestone, Invoice } from "./types";

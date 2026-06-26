@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Maximize2, Loader2, Info } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { trpc } from "@/lib/trpc/client";

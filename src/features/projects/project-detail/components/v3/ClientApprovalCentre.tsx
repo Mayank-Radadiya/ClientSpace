@@ -6,7 +6,7 @@
 // Uses pd-* design tokens for visual consistency.
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { formatDistanceToNow } from "date-fns";
 import { updateAssetStatusAction } from "@/features/portal/server/actions";
 import { createCommentAction } from "@/features/comments/server/actions";

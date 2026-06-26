@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants } from "motion/react";
 import { ArrowRight, Building2, Mail, User } from "lucide-react";
 import {
   onboardClientAction,

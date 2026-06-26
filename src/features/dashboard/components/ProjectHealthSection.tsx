@@ -5,7 +5,7 @@
 // Calls trpc.projects.getHealthSummaries and renders DashboardRiskBanner cards.
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   ChevronDown,
   ChevronUp,

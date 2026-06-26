@@ -2,12 +2,16 @@
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════════
+   ClientSpace Design System — Unified Token Set (v2)
+   Primary brand: Indigo-Violet (#6C63FF)
+   ═══════════════════════════════════════════════════════════════ */
+
 html,
 body {
   transition:
     background-color 0.4s ease,
     color 0.3s ease;
-  /* font-family: var(--font-sans); */
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-gutter: stable;
@@ -162,7 +166,7 @@ body {
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
   --primary: oklch(0.623 0.214 259.815);
-  --primary-foreground: oklch(0.2147 0.0058 285.9);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.967 0.001 286.375);
@@ -198,9 +202,9 @@ body {
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
-  --shadow-glow-sm: 0 0 20px rgba(139, 92, 246, 0.15);
-  --shadow-glow-md: 0 0 40px rgba(139, 92, 246, 0.2);
-  --shadow-glow-lg: 0 0 60px rgba(139, 92, 246, 0.25);
+  --shadow-glow-sm: 0 0 20px rgba(108, 99, 255, 0.15);
+  --shadow-glow-md: 0 0 40px rgba(108, 99, 255, 0.2);
+  --shadow-glow-lg: 0 0 60px rgba(108, 99, 255, 0.25);
   --shadow-color: hsl(0 0% 0%);
   --shadow-opacity: 0.1;
   --shadow-blur: 3px;
@@ -231,15 +235,15 @@ body {
   --inv-surface: #ffffff;
   --inv-surface-elevated: #fafafa;
   --inv-border: rgba(0, 0, 0, 0.07);
-  --inv-accent-primary: #3b6fef;
-  --inv-accent-hover: #2d5fdf;
-  --inv-accent-subtle: rgba(59, 111, 239, 0.08);
+  --inv-accent-primary: #6c63ff;
+  --inv-accent-hover: #5b54ee;
+  --inv-accent-subtle: rgba(108, 99, 255, 0.08);
   --inv-text-primary: #0d0d14;
   --inv-text-secondary: #6b6b7e;
   --inv-text-muted: #a0a0b0;
 
   --inv-status-draft: #6b6b7e;
-  --inv-status-sent: #4f7fff;
+  --inv-status-sent: #6c63ff;
   --inv-status-paid: #22c55e;
   --inv-status-overdue: #ef4444;
   --inv-status-pending: #f59e0b;
@@ -249,10 +253,34 @@ body {
   --inv-modal-section: #f8f8fc;
   --inv-input-bg: #ffffff;
   --inv-input-border: rgba(0, 0, 0, 0.1);
-  --inv-input-border-focus: #3b6fef;
-  --inv-input-glow: 0 0 0 3px rgba(59, 111, 239, 0.12);
+  --inv-input-border-focus: #6c63ff;
+  --inv-input-glow: 0 0 0 3px rgba(108, 99, 255, 0.12);
   --inv-divider: rgba(0, 0, 0, 0.06);
   --inv-backdrop: rgba(15, 15, 25, 0.6);
+
+  /* ═══ ClientSpace Design System ═══ */
+  --cs-primary: #6C63FF;
+  --cs-primary-light: #8B85FF;
+  --cs-accent-teal: #00F5D4;
+  --cs-surface-page: #F0F0F5;
+  --cs-radius-card: 16px;
+  --cs-shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+  --cs-shadow-elevated: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+
+  /* Semantic colors */
+  --cs-success: #22c55e;
+  --cs-success-subtle: rgba(34, 197, 94, 0.1);
+  --cs-warning: #f59e0b;
+  --cs-warning-subtle: rgba(245, 158, 11, 0.1);
+  --cs-danger: #ef4444;
+  --cs-danger-subtle: rgba(239, 68, 68, 0.1);
+  --cs-info: #3b82f6;
+  --cs-info-subtle: rgba(59, 130, 246, 0.1);
+
+  /* Animation easings */
+  --cs-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --cs-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --cs-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark {
@@ -271,9 +299,9 @@ body {
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7);
-  --shadow-glow-sm: 0 0 20px rgba(139, 92, 246, 0.3);
-  --shadow-glow-md: 0 0 40px rgba(139, 92, 246, 0.4);
-  --shadow-glow-lg: 0 0 60px rgba(139, 92, 246, 0.5);
+  --shadow-glow-sm: 0 0 20px rgba(108, 99, 255, 0.3);
+  --shadow-glow-md: 0 0 40px rgba(108, 99, 255, 0.4);
+  --shadow-glow-lg: 0 0 60px rgba(108, 99, 255, 0.5);
   --background: oklch(0.1815 0 0);
   --foreground: oklch(0.9219 0 0);
   --card: oklch(18.674% 0.00002 271.152);
@@ -336,9 +364,9 @@ body {
   --inv-surface: #111118;
   --inv-surface-elevated: #16161f;
   --inv-border: rgba(255, 255, 255, 0.06);
-  --inv-accent-primary: #4f7fff;
-  --inv-accent-hover: #6b95ff;
-  --inv-accent-subtle: rgba(79, 127, 255, 0.12);
+  --inv-accent-primary: #8b85ff;
+  --inv-accent-hover: #a09aff;
+  --inv-accent-subtle: rgba(108, 99, 255, 0.12);
   --inv-text-primary: #f2f2f5;
   --inv-text-secondary: #6b6b7e;
   --inv-text-muted: #3d3d4e;
@@ -348,10 +376,13 @@ body {
   --inv-modal-section: #16161f;
   --inv-input-bg: rgba(255, 255, 255, 0.04);
   --inv-input-border: rgba(255, 255, 255, 0.08);
-  --inv-input-border-focus: #4f7fff;
-  --inv-input-glow: 0 0 0 3px rgba(79, 127, 255, 0.15);
+  --inv-input-border-focus: #8b85ff;
+  --inv-input-glow: 0 0 0 3px rgba(108, 99, 255, 0.15);
   --inv-divider: rgba(255, 255, 255, 0.06);
   --inv-backdrop: rgba(0, 0, 0, 0.75);
+
+  /* ═══ ClientSpace Design System (dark) ═══ */
+  --cs-surface-page: #08090D;
 }
 
 :root {
@@ -507,33 +538,18 @@ body {
 
 @keyframes inv-pulse-sent {
   0% {
-    box-shadow: 0 0 0 0 rgba(79, 127, 255, 0.4);
+    box-shadow: 0 0 0 0 rgba(108, 99, 255, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 4px rgba(79, 127, 255, 0);
+    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(79, 127, 255, 0);
+    box-shadow: 0 0 0 0 rgba(108, 99, 255, 0);
   }
 }
 
 .inv-animate-pulse-sent {
   animation: inv-pulse-sent 2s infinite cubic-bezier(0.66, 0, 0, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html,
-  body,
-  * {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.001ms !important;
-  }
-
-  .invoice-overdue-pulse {
-    animation: none !important;
-  }
 }
 
 /* Modal specific animations */
@@ -624,7 +640,7 @@ body {
   background-color: #f4f4f8;
   background-image: radial-gradient(
     600px circle at 100% 0%,
-    rgba(79, 127, 255, 0.04),
+    rgba(108, 99, 255, 0.04),
     transparent
   );
 }
@@ -632,7 +648,7 @@ body {
   background-color: #0a0a0f;
   background-image: radial-gradient(
     800px circle at 100% 100%,
-    rgba(79, 127, 255, 0.06),
+    rgba(108, 99, 255, 0.06),
     transparent
   );
 }
@@ -647,7 +663,6 @@ body {
 
 /* ═══════════════════════════════════════════════════════════════
    PROJECT DETAIL v5 — Unified Violet Accent System
-   Consistent with projects list, cards, and shared components
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
@@ -893,17 +908,87 @@ body {
   background: transparent;
 }
 
-/* ── Reduced motion ────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .pd-animate-fade-up,
-  .pd-animate-slide-in,
-  .pd-animate-backdrop,
-  .pd-pulse-critical,
-  .pd-animate-tab-enter,
-  .pd-animate-health-seg {
-    animation: none !important;
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL ADDITIONS — Design System v2
+   New utilities added for premium UX polish
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Page entrance animation ───────────────────────────────── */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  .pd-progress-fill {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Skeleton shimmer ──────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    color-mix(in oklab, var(--muted) 60%, var(--background)) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Animation stagger delays ──────────────────────────────── */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+
+/* ── Focus ring utility ────────────────────────────────────── */
+.focus-ring:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* ── Remove number input arrows ────────────────────────────── */
+.no-spinners::-webkit-outer-spin-button,
+.no-spinners::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinners[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ─── Reduced Motion ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .invoice-overdue-pulse,
+  .pd-pulse-critical {
     animation: none !important;
   }
 }

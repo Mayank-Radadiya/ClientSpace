@@ -19,7 +19,7 @@
  */
 
 import { useMemo, useState, useRef, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { X, MessageSquare } from "lucide-react";
 import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 import { Badge } from "@/components/ui/badge";

@@ -5,7 +5,7 @@
 // Uses existing useProjectNotes hook and projectNotesRouter.
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { trpc } from "@/lib/trpc/client";
 
 type SaveState = "idle" | "saving" | "saved" | "error";

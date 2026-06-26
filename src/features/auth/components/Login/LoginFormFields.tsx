@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
 import { gooeyToast } from "@/components/ui/goey-toaster";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const MotionButton = motion(Button);
 

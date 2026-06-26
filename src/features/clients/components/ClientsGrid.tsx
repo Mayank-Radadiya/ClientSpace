@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
+import { AnimatedListItem, listContainerVariants } from "@/components/AnimatedListItem";
 import {
   Edit2,
   FileText,
@@ -161,14 +162,11 @@ function GridCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, delay: index * 0.04, ease: CUBIC_BEZIER }}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-[16px] border bg-white transition-all duration-180 ease-out dark:bg-[#111118]",
         selected
           ? "border-[rgba(79,127,255,0.4)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]"
-          : "border-[rgba(0,0,0,0.07)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-[rgba(79,127,255,0.4)] dark:border-[rgba(255,255,255,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]",
+          : "border-border shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-[rgba(79,127,255,0.4)] dark:border-border dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]",
         hovered && "translate-y-[-2px]",
         client.displayStatus === "archived" && "opacity-60",
       )}
@@ -178,7 +176,7 @@ function GridCard({
     >
       {/* Selection left border accent */}
       {selected && (
-        <div className="absolute top-0 left-0 h-full w-[3px] bg-[#3B6FEF] dark:bg-[#4F7FFF]" />
+        <div className="absolute top-0 left-0 h-full w-[3px] bg-[var(--primary)] dark:bg-[var(--primary)]" />
       )}
 
       {/* ROW 1: Top Meta */}
@@ -197,8 +195,8 @@ function GridCard({
             className={cn(
               "flex h-4 w-4 cursor-pointer items-center justify-center rounded-[4px] border transition-all duration-150 active:scale-95",
               selected
-                ? "scale-110 border-[#3B6FEF] bg-[#3B6FEF] dark:border-[#4F7FFF] dark:bg-[#4F7FFF]"
-                : "border-[rgba(0,0,0,0.3)] hover:border-[#3B6FEF] dark:border-[rgba(255,255,255,0.3)] dark:hover:border-[#4F7FFF]",
+                ? "scale-110 border-[var(--primary)] bg-[var(--primary)] dark:border-[var(--primary)] dark:bg-[var(--primary)]"
+                : "border-[rgba(0,0,0,0.3)] hover:border-[var(--primary)] dark:border-[rgba(255,255,255,0.3)] dark:hover:border-[var(--primary)]",
             )}
           >
             {selected && (
@@ -268,10 +266,10 @@ function GridCard({
 
         {/* ROW 4: Tags */}
         <div className="mb-4 flex flex-wrap justify-start gap-1.5">
-          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[#3B6FEF] dark:text-[#4F7FFF]">
+          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[var(--primary)] dark:text-[var(--primary)]">
             VIP
           </span>
-          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[#3B6FEF] dark:text-[#4F7FFF]">
+          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[var(--primary)] dark:text-[var(--primary)]">
             Tech
           </span>
         </div>
@@ -280,7 +278,7 @@ function GridCard({
 
         {/* ROW 5: KPI Cells */}
         <div className="mb-4 grid grid-cols-2 gap-2">
-          <div className="rounded-[8px] border border-[rgba(0,0,0,0.07)] px-3 py-2.5 dark:border-[rgba(255,255,255,0.06)]">
+          <div className="rounded-[8px] border border-border px-3 py-2.5 dark:border-border">
             <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
               Projects
             </p>
@@ -288,7 +286,7 @@ function GridCard({
               {client.activeProjectCount}
             </p>
           </div>
-          <div className="rounded-[8px] border border-[rgba(0,0,0,0.07)] px-3 py-2.5 dark:border-[rgba(255,255,255,0.06)]">
+          <div className="rounded-[8px] border border-border px-3 py-2.5 dark:border-border">
             <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
               Outstanding
             </p>
@@ -317,7 +315,7 @@ function GridCard({
       {/* ROW 7: Hover quick actions */}
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x divide-[rgba(0,0,0,0.07)] border-t border-[rgba(0,0,0,0.07)] bg-[#F8F8FC] transition-all duration-180 ease-out dark:divide-[rgba(255,255,255,0.06)] dark:border-[rgba(255,255,255,0.06)] dark:bg-[#1A1A24]",
+          "absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x divide-border border-t border-border bg-[#F8F8FC] transition-all duration-180 ease-out dark:divide-border dark:border-border dark:bg-[#1A1A24]",
           hovered
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-2 opacity-0",
@@ -331,7 +329,7 @@ function GridCard({
           disabled={role !== "owner" && role !== "admin"}
           className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] disabled:opacity-50 dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
         >
-          <Edit2 className="h-4 w-4 transition-colors group-hover/btn:text-[#3B6FEF] dark:group-hover/btn:text-[#4F7FFF]" />
+          <Edit2 className="h-4 w-4 transition-colors group-hover/btn:text-[var(--primary)] dark:group-hover/btn:text-[var(--primary)]" />
           <span className="text-[11px] uppercase">Edit</span>
         </button>
         <button
@@ -341,7 +339,7 @@ function GridCard({
           }}
           className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
         >
-          <FileText className="h-4 w-4 transition-colors group-hover/btn:text-[#3B6FEF] dark:group-hover/btn:text-[#4F7FFF]" />
+          <FileText className="h-4 w-4 transition-colors group-hover/btn:text-[var(--primary)] dark:group-hover/btn:text-[var(--primary)]" />
           <span className="text-[11px] uppercase">Invoice</span>
         </button>
         <button
@@ -349,7 +347,7 @@ function GridCard({
             e.stopPropagation();
             router.push(`/clients/${client.id}`);
           }}
-          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#3B6FEF] transition-colors hover:bg-[#3B6FEF]/10 dark:text-[#4F7FFF] dark:hover:bg-[#4F7FFF]/10"
+          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[var(--primary)] transition-colors hover:bg-[var(--primary)]/10 dark:text-[var(--primary)] dark:hover:bg-[var(--primary)]/10"
         >
           <Eye className="h-4 w-4" />
           <span className="text-[11px] uppercase">View</span>
@@ -381,21 +379,27 @@ export function ClientsGrid({
   role,
 }: ClientsGridProps) {
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-4">
+    <motion.div
+      variants={listContainerVariants}
+      initial="hidden"
+      animate="show"
+      className="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-4"
+    >
       {clients.map((client, index) => (
-        <GridCard
-          key={client.id}
-          client={client}
-          index={index}
-          selected={selected.has(client.id)}
-          onToggle={onToggle}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onArchive={onArchive}
-          onStatusChange={onStatusChange}
-          role={role}
-        />
+        <AnimatedListItem key={client.id}>
+          <GridCard
+            client={client}
+            index={index}
+            selected={selected.has(client.id)}
+            onToggle={onToggle}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onArchive={onArchive}
+            onStatusChange={onStatusChange}
+            role={role}
+          />
+        </AnimatedListItem>
       ))}
-    </div>
+    </motion.div>
   );
 }

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "motion/react";
 import { ThemeToggleButton } from "@/components/global/ThemeToggleButton";
 
 export function Nav() {

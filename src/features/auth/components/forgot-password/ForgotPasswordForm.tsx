@@ -7,7 +7,7 @@ import { resetPasswordAction } from "../../server/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { ArrowLeft, KeyRound, Loader, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 

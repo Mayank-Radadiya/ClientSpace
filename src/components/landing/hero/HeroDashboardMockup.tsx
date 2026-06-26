@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Grid, Folder, Users, Receipt, Paperclip, Activity, Settings, Bell, CheckCircle2 } from "lucide-react";
 

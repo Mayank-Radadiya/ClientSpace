@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useProjectDetail } from "./hooks/useProjectDetail";
 import { useProjectPermissions } from "./hooks/useProjectPermissions";
 import { useReducedMotion } from "./hooks/useReducedMotion";

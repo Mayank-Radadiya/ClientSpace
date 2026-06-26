@@ -5,7 +5,7 @@
 // Renders nothing when risk is low or dismissed.
 
 import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, Zap, X } from "lucide-react";
 import type { Milestone } from "../../types";
 

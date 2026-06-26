@@ -6,7 +6,7 @@ import Link from "next/link";
 import { updatePasswordAction } from "../server/actions";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { KeyRound, Loader, Lock, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { PasswordField } from "./PasswordField";

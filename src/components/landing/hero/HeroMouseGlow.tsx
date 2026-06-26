@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useMotionValue, useSpring, motion } from "framer-motion";
+import { useMotionValue, useSpring, motion } from "motion/react";
 
 export function HeroMouseGlow() {
   const [isFine, setIsFine] = useState(false);

@@ -9,7 +9,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "motion/react";
 import { ThemeToggleButton } from "@/components/global/ThemeToggleButton";
 
 interface AuthLayoutProps {

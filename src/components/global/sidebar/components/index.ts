@@ -34,6 +34,6 @@ export { UpgradeProButton } from "./UpgradeProButton";
 export { SidebarUserContainer } from "./SidebarUserContainer";
 
 // Constants
-export { NAV_ITEMS } from "./Constants";
+export { NAV_ITEMS, NAV_SECONDARY_ITEMS } from "./Constants";
 
 export { ThemeToggle } from "./ThemeToggle";

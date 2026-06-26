@@ -19,6 +19,8 @@ import Sidebar from "@/components/global/sidebar/Sidebar";
 import { SidebarProvider } from "@/components/global/sidebar/components";
 import MainContentWrapper from "./MainContentWrapper";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { PageTransition } from "@/components/PageTransition";
+import { CommandPalette } from "@/components/global/CommandPalette";
 
 type Organization = {
   orgId: string;
@@ -53,17 +55,9 @@ export default function WorkspaceShell({
       />
 
       <div className="pointer-events-none fixed inset-0">
-        {/* Top-right ambient glow */}
-        <div className="absolute top-0 -right-40 h-[500px] w-[500px] rounded-full bg-violet-500/15 blur-[120px]" />
-
-        {/* Bottom-left ambient glow */}
-        <div className="absolute -bottom-20 -left-40 h-[400px] w-[400px] rounded-full bg-blue-500/10 blur-[100px]" />
-
-        {/* Center-left accent glow */}
-        <div className="absolute top-1/3 left-1/4 h-[300px] w-[300px] rounded-full bg-cyan-500/8 blur-[80px]" />
-
-        {/* Bottom-right accent glow */}
-        <div className="absolute right-1/4 bottom-1/4 h-[350px] w-[350px] rounded-full bg-purple-500/10 blur-[90px]" />
+        {/* Ambient glows — using theme primary color */}
+        <div className="absolute top-0 -right-40 h-[500px] w-[500px] rounded-full" style={{ background: 'color-mix(in oklab, var(--primary) 12%, transparent)', filter: 'blur(120px)' }} />
+        <div className="absolute -bottom-20 -left-40 h-[400px] w-[400px] rounded-full" style={{ background: 'color-mix(in oklab, var(--primary) 8%, transparent)', filter: 'blur(100px)' }} />
       </div>
 
       {/* Main scrollable content area */}
@@ -74,8 +68,11 @@ export default function WorkspaceShell({
           </div>
         }
       >
-        {children}
+        <PageTransition>{children}</PageTransition>
       </MainContentWrapper>
+
+      {/* Global command palette — Cmd+K / Ctrl+K */}
+      <CommandPalette />
     </SidebarProvider>
   );
 }

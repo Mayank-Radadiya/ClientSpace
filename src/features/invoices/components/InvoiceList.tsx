@@ -8,7 +8,8 @@ import {
   ArrowUpDown,
   FileText,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { AnimatedListItem, listContainerVariants } from "@/components/AnimatedListItem";
 import { gooeyToast } from "goey-toast";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -651,20 +652,21 @@ export function InvoiceList({
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
+        variants={listContainerVariants}
+        initial="hidden"
+        animate="show"
         className="grid gap-3 md:hidden"
       >
         {showEmpty ? (
           <EmptyTabState status={statusFilter} onCreateClick={onCreateClick} />
         ) : (
           sortedData.map((invoice) => (
-            <InvoiceCard
-              key={invoice.id}
-              invoice={invoice}
-              onStatusUpdate={() => void refetch()}
-            />
+            <AnimatedListItem key={invoice.id}>
+              <InvoiceCard
+                invoice={invoice}
+                onStatusUpdate={() => void refetch()}
+              />
+            </AnimatedListItem>
           ))
         )}
       </motion.div>

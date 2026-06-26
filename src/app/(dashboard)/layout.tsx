@@ -5,6 +5,7 @@ import { getUser } from "@/lib/auth/getUser";
 import { requireOrg } from "@/lib/auth/requireOrg";
 import { createTRPCContext } from "@/lib/trpc/init";
 import { GlobalRealtimeProvider } from "@/lib/realtimeProvider";
+import { CommandPalette } from "@/components/global/CommandPalette";
 
 export const dynamic = "force-dynamic";
 
@@ -33,14 +34,7 @@ export default async function DashboardLayout({
 
   return (
     <GlobalRealtimeProvider orgId={ctx?.orgId ?? ""}>
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")',
-        }}
-      />
-      <div className="relative h-full min-h-screen w-full overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-950/20 dark:text-neutral-100 ">
+      <div className="relative h-full min-h-screen w-full overflow-hidden bg-muted">
         <WorkspaceShell
           organizations={ctx?.availableOrgs ?? []}
           currentOrgId={ctx?.orgId ?? ""}
@@ -51,6 +45,7 @@ export default async function DashboardLayout({
         </WorkspaceShell>
         <DashboardClientExtras />
       </div>
+      <CommandPalette />
     </GlobalRealtimeProvider>
   );
 }

@@ -4,12 +4,13 @@
 // Client-side wrapper for invoices page with state management and layout.
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { CreateInvoiceDialog } from "./CreateInvoiceDialog";
 import { InvoiceToolbar } from "./InvoiceToolbar";
 import { InvoiceList } from "./InvoiceList";
 import { useInvoiceFilters } from "../hooks/useInvoiceFilters";
 import type { StatusCount } from "./InvoiceToolbar";
+import { PageLayout } from "@/app/(dashboard)/_components/PageLayout";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,52 +78,47 @@ export function InvoicesPageClient({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15, ease: "easeOut" }}
-      className="mx-auto max-w-[1400px] space-y-8 p-6 md:p-8"
-    >
-      <InvoiceToolbar
-        title="Invoices"
-        subtitle={`${totalCount} invoices`}
-        search={search}
-        onSearchChange={setSearch}
-        status={status}
-        onStatusChange={setStatus}
-        hasActiveFilters={hasActiveFilters}
-        onResetFilters={resetFilters}
-        totalCount={totalCount}
-        filteredCount={filteredCount}
-        statusCounts={statusCounts}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSortByChange={toggleSort}
-      >
-        {isOwnerOrAdmin && (
-          <CreateInvoiceDialog
-            clients={clients}
-            projects={projects}
-            triggerId="create-invoice-toolbar"
-          />
-        )}
-      </InvoiceToolbar>
+    <PageLayout bleed>
+        <InvoiceToolbar
+          title="Invoices"
+          subtitle={`${totalCount} invoices`}
+          search={search}
+          onSearchChange={setSearch}
+          status={status}
+          onStatusChange={setStatus}
+          hasActiveFilters={hasActiveFilters}
+          onResetFilters={resetFilters}
+          totalCount={totalCount}
+          filteredCount={filteredCount}
+          statusCounts={statusCounts}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSortByChange={toggleSort}
+        >
+          {isOwnerOrAdmin && (
+            <CreateInvoiceDialog
+              clients={clients}
+              projects={projects}
+              triggerId="create-invoice-toolbar"
+            />
+          )}
+        </InvoiceToolbar>
 
-      <InvoiceList
-        statusFilter={status}
-        searchQuery={debouncedSearch}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSortChange={toggleSort}
-        userRole={userRole}
-        onCreateClick={
-          isOwnerOrAdmin
-            ? () => document.getElementById("create-invoice-toolbar")?.click()
-            : undefined
-        }
-        onCountsChange={handleCountsChange}
-        initialInvoices={initialInvoices}
-      />
-    </motion.div>
+        <InvoiceList
+          statusFilter={status}
+          searchQuery={debouncedSearch}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSortChange={toggleSort}
+          userRole={userRole}
+          onCreateClick={
+            isOwnerOrAdmin
+              ? () => document.getElementById("create-invoice-toolbar")?.click()
+              : undefined
+          }
+          onCountsChange={handleCountsChange}
+          initialInvoices={initialInvoices}
+        />
+    </PageLayout>
   );
 }

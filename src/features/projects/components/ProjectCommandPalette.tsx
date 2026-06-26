@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Command } from "cmdk";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Plus, Flag, LayoutGrid, FileText, DollarSign, Activity, Search } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 

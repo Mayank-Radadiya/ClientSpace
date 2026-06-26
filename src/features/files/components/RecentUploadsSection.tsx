@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { formatDistanceToNow } from "date-fns";
 import { Clock, Download, FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";

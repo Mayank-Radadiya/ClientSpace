@@ -19,7 +19,7 @@ import {
   useMotionValue,
   useTransform,
   animate,
-} from "framer-motion";
+} from "motion/react";
 import { cn } from "@/lib/utils";
 import { gooeyToast as toast } from "@/components/ui/goey-toaster";
 

@@ -14,6 +14,7 @@ import {
 } from "@/features/projects/components/ProjectsStats";
 import { CreateProjectDialog } from "@/features/projects/components/createProject/CreateProjectDialog";
 import { EmptyProjects } from "@/features/projects/components/EmptyProjects";
+import { PlanLimitBanner } from "@/features/projects/components/PlanLimitBanner";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -143,6 +144,14 @@ export function ProjectList({ clients, userRole, initialProjects }: ProjectListP
         overdueCount={stats.overdue}
         statusCounts={statusCounts}
         onCreateClick={() => setCreateOpen(true)}
+      />
+
+      {/* Plan limit banner — shows at ≥80% of free-tier project limit */}
+      <PlanLimitBanner
+        current={projects.length}
+        limit={3}
+        feature="Projects"
+        className="mb-4"
       />
 
       {/* Create dialog */}

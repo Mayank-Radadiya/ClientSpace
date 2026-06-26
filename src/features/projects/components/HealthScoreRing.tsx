@@ -4,7 +4,7 @@
 // Fix 12: Tailwind semantic classes only — no --pd-* tokens.
 
 import { useEffect, useRef } from "react";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "motion/react";
 import { cn } from "@/lib/utils";
 
 const RADIUS = 40;

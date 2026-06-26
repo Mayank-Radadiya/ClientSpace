@@ -1,7 +1,7 @@
 "use client";
 
 import { Upload } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { FilterPanel } from "./FilterPanel";
 import { StatusFilterPanel } from "./StatusFilterPanel";

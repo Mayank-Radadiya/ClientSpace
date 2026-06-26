@@ -5,7 +5,7 @@
 // Opens on row click in the KanbanBoard / MilestonesTab.
 
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   X,
   ChevronRight,

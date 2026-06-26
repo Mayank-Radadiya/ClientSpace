@@ -121,9 +121,12 @@ const timingMiddleware = t.middleware(async ({ path, next }) => {
   const start = performance.now();
   const result = await next();
   const ms = (performance.now() - start).toFixed(1);
-  console.log(`[tRPC] ${path} — ${ms}ms`);
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[tRPC] ${path} — ${ms}ms`);
+  }
   return result;
 });
+
 
 /**
  * Protected procedure — requires an authenticated session.

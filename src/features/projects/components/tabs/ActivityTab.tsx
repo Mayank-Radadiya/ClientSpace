@@ -2,7 +2,7 @@
 // src/features/projects/components/tabs/ActivityTab.tsx
 // Project activity feed with categorized events.
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Loader2, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { trpc } from "@/lib/trpc/client";

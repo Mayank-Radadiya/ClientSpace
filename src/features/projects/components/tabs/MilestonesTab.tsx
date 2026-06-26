@@ -4,7 +4,7 @@
 // Click a row to open MilestoneCommandPanel.
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Plus, Circle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useMilestones } from "../hooks/useMilestones";

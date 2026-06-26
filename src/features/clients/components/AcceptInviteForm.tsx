@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants } from "motion/react";
 import { Building2, Lock, Mail, User } from "lucide-react";
 import Image from "next/image";
 import type { InvitationWithDetails } from "../server/queries";

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useFormStatus } from "react-dom";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const MotionButton = motion(Button);
 

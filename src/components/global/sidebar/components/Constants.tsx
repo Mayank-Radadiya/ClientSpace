@@ -15,17 +15,15 @@ import {
   ReceiptText,
   FileSignature,
   Settings,
+  BarChart3,
+  Activity,
+  Bell,
 } from "lucide-react";
 
 /**
  * NAV_ITEMS
  * ---------
- * Array of navigation definitions used by the sidebar.
- *
- * Each object represents one navigational destination and includes:
- *  - label → Human-readable name shown in the UI
- *  - href  → Route path used for navigation
- *  - icon  → Visual indicator to improve recognition and UX
+ * Primary navigation destinations — shown prominently in the sidebar.
  */
 export const NAV_ITEMS = [
   {
@@ -52,6 +50,30 @@ export const NAV_ITEMS = [
     label: "Contracts",
     href: "/contracts",
     icon: <FileSignature size={18} strokeWidth={1.7} />,
+  },
+];
+
+/**
+ * NAV_SECONDARY_ITEMS
+ * -------------------
+ * Secondary navigation — analytics, activity, notifications, settings.
+ * Rendered below a divider in the sidebar.
+ */
+export const NAV_SECONDARY_ITEMS = [
+  {
+    label: "Analytics",
+    href: "/analytics",
+    icon: <BarChart3 size={18} strokeWidth={1.7} />,
+  },
+  {
+    label: "Activity",
+    href: "/activity",
+    icon: <Activity size={18} strokeWidth={1.7} />,
+  },
+  {
+    label: "Notifications",
+    href: "/notifications",
+    icon: <Bell size={18} strokeWidth={1.7} />,
   },
   {
     label: "Settings",

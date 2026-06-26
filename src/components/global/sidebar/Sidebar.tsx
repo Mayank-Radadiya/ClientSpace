@@ -23,8 +23,8 @@ import {
   SidebarNav,
   UpgradeProButton,
   NAV_ITEMS,
+  NAV_SECONDARY_ITEMS,
   SidebarUserContainer,
-  ThemeToggle,
 } from "./components";
 import { OrgDropdown } from "../org-switcher/OrgDropdown";
 
@@ -66,6 +66,16 @@ function Sidebar({
       {/* Main navigation section */}
       <SidebarNav title="Main">
         {NAV_ITEMS.map((item) => (
+          <SidebarLink key={item.href} {...item} />
+        ))}
+      </SidebarNav>
+
+      {/* Divider */}
+      <div className="mx-3 h-px bg-border/50" />
+
+      {/* Secondary navigation: analytics, activity, settings */}
+      <SidebarNav title="More">
+        {NAV_SECONDARY_ITEMS.map((item) => (
           <SidebarLink key={item.href} {...item} />
         ))}
       </SidebarNav>

@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Command } from "cmdk";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Plus,
   Flag,

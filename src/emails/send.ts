@@ -136,7 +136,12 @@ export async function sendClientInviteEmail(opts: SendClientInviteOptions) {
     from: fromAddress,
     to: opts.to,
     ...(replyTo ? { replyTo } : {}),
-    subject: `Access your client portal`,
+    subject: `You've been invited to ${opts.companyName}'s client portal`,
+    headers: {
+      'X-Priority': '3',
+      'X-Mailer': 'ClientSpace',
+      'List-Unsubscribe': `<mailto:unsubscribe@clientspace.qzz.io>`,
+    },
     react: ClientInviteEmail({
       contactName: opts.contactName,
       companyName: opts.companyName,

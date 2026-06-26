@@ -6,7 +6,7 @@
 // Uses pd-* design tokens.
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { X, FileDown, Mail, Check, Loader2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { generateProjectPdf, sendReportToClient } from "@/features/projects/server/reportActions";

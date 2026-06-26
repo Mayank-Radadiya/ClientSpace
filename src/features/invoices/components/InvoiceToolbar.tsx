@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { InvoiceFilterStatus } from "../hooks/useInvoiceFilters";
 import { STATUS_LABELS } from "../schemas";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
