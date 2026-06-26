@@ -79,46 +79,46 @@ export function InvoicesPageClient({
 
   return (
     <PageLayout bleed>
-        <InvoiceToolbar
-          title="Invoices"
-          subtitle={`${totalCount} invoices`}
-          search={search}
-          onSearchChange={setSearch}
-          status={status}
-          onStatusChange={setStatus}
-          hasActiveFilters={hasActiveFilters}
-          onResetFilters={resetFilters}
-          totalCount={totalCount}
-          filteredCount={filteredCount}
-          statusCounts={statusCounts}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSortByChange={toggleSort}
-        >
-          {isOwnerOrAdmin && (
-            <CreateInvoiceDialog
-              clients={clients}
-              projects={projects}
-              triggerId="create-invoice-toolbar"
-            />
-          )}
-        </InvoiceToolbar>
+      <InvoiceToolbar
+        title="Invoices"
+        subtitle={`${totalCount} invoices`}
+        search={search}
+        onSearchChange={setSearch}
+        status={status}
+        onStatusChange={setStatus}
+        hasActiveFilters={hasActiveFilters}
+        onResetFilters={resetFilters}
+        totalCount={totalCount}
+        filteredCount={filteredCount}
+        statusCounts={statusCounts}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSortByChange={toggleSort}
+      >
+        {isOwnerOrAdmin && (
+          <CreateInvoiceDialog
+            clients={clients}
+            projects={projects}
+            triggerId="create-invoice-toolbar"
+          />
+        )}
+      </InvoiceToolbar>
 
-        <InvoiceList
-          statusFilter={status}
-          searchQuery={debouncedSearch}
-          sortBy={sortBy}
-          sortDir={sortDir}
-          onSortChange={toggleSort}
-          userRole={userRole}
-          onCreateClick={
-            isOwnerOrAdmin
-              ? () => document.getElementById("create-invoice-toolbar")?.click()
-              : undefined
-          }
-          onCountsChange={handleCountsChange}
-          initialInvoices={initialInvoices}
-        />
+      <InvoiceList
+        statusFilter={status}
+        searchQuery={debouncedSearch}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSortChange={toggleSort}
+        userRole={userRole}
+        onCreateClick={
+          isOwnerOrAdmin
+            ? () => document.getElementById("create-invoice-toolbar")?.click()
+            : undefined
+        }
+        onCountsChange={handleCountsChange}
+        initialInvoices={initialInvoices}
+      />
     </PageLayout>
   );
 }

@@ -59,45 +59,61 @@ export function StatCard({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{
+        duration: 0.3,
+        delay: index * 0.07,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }}
       whileHover={{ y: -2, transition: { duration: 0.15 } }}
       className={cn("group", className)}
     >
-      <div className={cn(
-        "relative overflow-hidden rounded-2xl border p-6",
-        "bg-white dark:bg-neutral-900",
-        "border-neutral-100 dark:border-neutral-800",
-        "shadow-[0_1px_3px_rgba(0,0,0,0.04),_0_4px_16px_rgba(0,0,0,0.04)]",
-        "dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),_0_4px_16px_rgba(0,0,0,0.2)]",
-        "transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
-      )}>
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-2xl border p-6",
+          "bg-white dark:bg-neutral-900",
+          "border-neutral-100 dark:border-neutral-800",
+          "shadow-[0_1px_3px_rgba(0,0,0,0.04),_0_4px_16px_rgba(0,0,0,0.04)]",
+          "dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),_0_4px_16px_rgba(0,0,0,0.2)]",
+          "transition-shadow duration-300 hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
+        )}
+      >
         {/* Subtle top gradient line */}
-        <div className={cn(
-          "absolute inset-x-0 top-0 h-px bg-gradient-to-r opacity-60",
-          gradient
-        )} />
+        <div
+          className={cn(
+            "absolute inset-x-0 top-0 h-px bg-gradient-to-r opacity-60",
+            gradient,
+          )}
+        />
 
         {/* Background glow on hover */}
-        <div className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{ background: `radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--primary) 8%, transparent) 0%, transparent 60%)` }}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--primary) 8%, transparent) 0%, transparent 60%)`,
+          }}
         />
 
         <div className="relative flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold tracking-widest text-neutral-500 uppercase dark:text-neutral-400">
               {title}
             </p>
             <div className="mt-3 flex items-baseline gap-2.5">
-              <h3 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 tabular-nums">
+              <h3 className="text-2xl font-bold tracking-tight text-neutral-900 tabular-nums dark:text-neutral-50">
                 {value}
               </h3>
               {change && (
-                <span className={cn(
-                  "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold",
-                  trend === "up" && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
-                  trend === "down" && "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400",
-                  trend === "neutral" && "bg-neutral-50 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
-                )}>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold",
+                    trend === "up" &&
+                      "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
+                    trend === "down" &&
+                      "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-400",
+                    trend === "neutral" &&
+                      "bg-neutral-50 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
+                  )}
+                >
                   {trend === "up" && <TrendingUp className="h-2.5 w-2.5" />}
                   {trend === "down" && <TrendingDown className="h-2.5 w-2.5" />}
                   {trend === "neutral" && <Minus className="h-2.5 w-2.5" />}
@@ -113,11 +129,13 @@ export function StatCard({
           </div>
 
           {Icon && (
-            <div className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-              "bg-gradient-to-br shadow-md",
-              gradient,
-            )}>
+            <div
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                "bg-gradient-to-br shadow-md",
+                gradient,
+              )}
+            >
               <Icon className="h-5 w-5 text-white" />
             </div>
           )}
@@ -131,11 +149,13 @@ export function StatCard({
 
 export function StatCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-2xl border p-6",
-      "bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800",
-      className
-    )}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border p-6",
+        "border-neutral-100 bg-white dark:border-neutral-800 dark:bg-neutral-900",
+        className,
+      )}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1 space-y-3">
           <Skeleton className="h-3 w-20 rounded-full" />

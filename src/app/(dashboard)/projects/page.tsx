@@ -29,9 +29,10 @@ export default async function ProjectsPage() {
 
   const hasMore = rawProjects.length > 50;
   const resultItems = hasMore ? rawProjects.slice(0, 50) : rawProjects;
-  const nextCursor = hasMore && resultItems.length > 0
-    ? resultItems[resultItems.length - 1]!.id
-    : undefined;
+  const nextCursor =
+    hasMore && resultItems.length > 0
+      ? resultItems[resultItems.length - 1]!.id
+      : undefined;
 
   const initialProjects = {
     pages: [{ projects: resultItems, nextCursor }],

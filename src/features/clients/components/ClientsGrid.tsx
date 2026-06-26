@@ -2,7 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { AnimatedListItem, listContainerVariants } from "@/components/AnimatedListItem";
+import {
+  AnimatedListItem,
+  listContainerVariants,
+} from "@/components/AnimatedListItem";
 import {
   Edit2,
   FileText,
@@ -166,7 +169,7 @@ function GridCard({
         "group relative flex flex-col overflow-hidden rounded-[16px] border bg-white transition-all duration-180 ease-out dark:bg-[#111118]",
         selected
           ? "border-[rgba(79,127,255,0.4)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]"
-          : "border-border shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-[rgba(79,127,255,0.4)] dark:border-border dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]",
+          : "border-border dark:border-border shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-[rgba(79,127,255,0.4)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]",
         hovered && "translate-y-[-2px]",
         client.displayStatus === "archived" && "opacity-60",
       )}
@@ -278,7 +281,7 @@ function GridCard({
 
         {/* ROW 5: KPI Cells */}
         <div className="mb-4 grid grid-cols-2 gap-2">
-          <div className="rounded-[8px] border border-border px-3 py-2.5 dark:border-border">
+          <div className="border-border dark:border-border rounded-[8px] border px-3 py-2.5">
             <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
               Projects
             </p>
@@ -286,7 +289,7 @@ function GridCard({
               {client.activeProjectCount}
             </p>
           </div>
-          <div className="rounded-[8px] border border-border px-3 py-2.5 dark:border-border">
+          <div className="border-border dark:border-border rounded-[8px] border px-3 py-2.5">
             <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
               Outstanding
             </p>
@@ -315,7 +318,7 @@ function GridCard({
       {/* ROW 7: Hover quick actions */}
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x divide-border border-t border-border bg-[#F8F8FC] transition-all duration-180 ease-out dark:divide-border dark:border-border dark:bg-[#1A1A24]",
+          "divide-border border-border dark:divide-border dark:border-border absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x border-t bg-[#F8F8FC] transition-all duration-180 ease-out dark:bg-[#1A1A24]",
           hovered
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-2 opacity-0",

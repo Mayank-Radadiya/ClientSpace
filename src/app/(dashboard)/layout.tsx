@@ -34,7 +34,7 @@ export default async function DashboardLayout({
 
   return (
     <GlobalRealtimeProvider orgId={ctx?.orgId ?? ""}>
-      <div className="relative h-full min-h-screen w-full overflow-hidden bg-muted">
+      <div className="bg-muted relative h-full min-h-screen w-full overflow-hidden">
         <WorkspaceShell
           organizations={ctx?.availableOrgs ?? []}
           currentOrgId={ctx?.orgId ?? ""}

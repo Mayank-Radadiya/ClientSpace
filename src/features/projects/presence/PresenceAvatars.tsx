@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // src/features/projects/presence/PresenceAvatars.tsx
 // Figma/Linear-style live presence avatar stack.
@@ -13,11 +13,11 @@
 // - "Live" green dot indicator with CSS pulse animation
 // - Empty state renders null
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { getAvatarColor, getInitials } from './presenceTypes';
-import type { PresenceUser } from './presenceTypes';
-import { cn } from '@/lib/utils';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { getAvatarColor, getInitials } from "./presenceTypes";
+import type { PresenceUser } from "./presenceTypes";
+import { cn } from "@/lib/utils";
 
 /* ── Constants ──────────────────────────────────────────────── */
 const SIZE_CONFIG = {
@@ -41,10 +41,10 @@ const PULSE_STYLE = `
 `;
 
 function injectStyles() {
-  if (typeof document === 'undefined') return;
-  if (document.getElementById('presence-styles')) return;
-  const el = document.createElement('style');
-  el.id = 'presence-styles';
+  if (typeof document === "undefined") return;
+  if (document.getElementById("presence-styles")) return;
+  const el = document.createElement("style");
+  el.id = "presence-styles";
   el.textContent = PULSE_STYLE;
   document.head.appendChild(el);
 }
@@ -52,7 +52,7 @@ function injectStyles() {
 /* ── Individual Avatar ───────────────────────────────────────── */
 interface PresenceAvatarProps {
   user: PresenceUser;
-  size: 'sm' | 'md';
+  size: "sm" | "md";
   index: number;
 }
 
@@ -61,7 +61,7 @@ function PresenceAvatar({ user, size, index }: PresenceAvatarProps) {
   const bgColor = getAvatarColor(user.userId);
   const initials = getInitials(user.name);
 
-  const tabLabel = user.activeTab.replace(/_/g, ' ');
+  const tabLabel = user.activeTab.replace(/_/g, " ");
   const tooltipText = user.isClient
     ? `${user.name} (client) · viewing ${tabLabel}`
     : `${user.name} · viewing ${tabLabel}`;
@@ -72,8 +72,8 @@ function PresenceAvatar({ user, size, index }: PresenceAvatarProps) {
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-      className="relative shrink-0 group"
+      transition={{ type: "spring", stiffness: 500, damping: 28 }}
+      className="group relative shrink-0"
       style={{
         width: px,
         height: px,
@@ -88,7 +88,7 @@ function PresenceAvatar({ user, size, index }: PresenceAvatarProps) {
         style={{
           // Green online ring
           boxShadow: `0 0 0 2px var(--pd-body, #fff), 0 0 0 4px #22c55e`,
-          background: user.avatarUrl ? 'transparent' : bgColor,
+          background: user.avatarUrl ? "transparent" : bgColor,
         }}
       >
         {user.avatarUrl ? (
@@ -111,27 +111,22 @@ function PresenceAvatar({ user, size, index }: PresenceAvatarProps) {
 
       {/* Tooltip — CSS only for performance, no JS delay needed */}
       <div
-        className="
-          pointer-events-none absolute bottom-full left-1/2 z-50 mb-2
-          -translate-x-1/2 whitespace-nowrap rounded-lg px-2.5 py-1.5
-          text-xs font-medium shadow-lg
-          opacity-0 transition-opacity delay-300 group-hover:opacity-100
-        "
+        className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 rounded-lg px-2.5 py-1.5 text-xs font-medium whitespace-nowrap opacity-0 shadow-lg transition-opacity delay-300 group-hover:opacity-100"
         style={{
-          background: 'var(--pd-surface, #fff)',
-          border: '1px solid var(--pd-border, #e5e7eb)',
-          color: 'var(--pd-text-secondary, #374151)',
-          maxWidth: 'calc(100vw - 32px)',
+          background: "var(--pd-surface, #fff)",
+          border: "1px solid var(--pd-border, #e5e7eb)",
+          color: "var(--pd-text-secondary, #374151)",
+          maxWidth: "calc(100vw - 32px)",
         }}
         role="tooltip"
       >
         {tooltipText}
         {user.isClient && (
           <span
-            className="ml-1.5 rounded px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+            className="ml-1.5 rounded px-1 py-0.5 text-[10px] font-semibold tracking-wide uppercase"
             style={{
-              background: 'var(--pd-accent-subtle, #ede9fe)',
-              color: 'var(--pd-accent, #7c3aed)',
+              background: "var(--pd-accent-subtle, #ede9fe)",
+              color: "var(--pd-accent, #7c3aed)",
             }}
           >
             Client
@@ -139,8 +134,8 @@ function PresenceAvatar({ user, size, index }: PresenceAvatarProps) {
         )}
         {/* Tooltip caret */}
         <span
-          className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent"
-          style={{ borderTopColor: 'var(--pd-border, #e5e7eb)' }}
+          className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent"
+          style={{ borderTopColor: "var(--pd-border, #e5e7eb)" }}
         />
       </div>
     </motion.div>
@@ -150,7 +145,7 @@ function PresenceAvatar({ user, size, index }: PresenceAvatarProps) {
 /* ── Overflow Dropdown ───────────────────────────────────────── */
 interface OverflowDropdownProps {
   users: PresenceUser[];
-  size: 'sm' | 'md';
+  size: "sm" | "md";
   onClose: () => void;
 }
 
@@ -161,10 +156,10 @@ function OverflowDropdown({ users, size, onClose }: OverflowDropdownProps) {
   // Close on Escape key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
   // Close on outside click
@@ -172,8 +167,8 @@ function OverflowDropdown({ users, size, onClose }: OverflowDropdownProps) {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
   return (
@@ -182,31 +177,31 @@ function OverflowDropdown({ users, size, onClose }: OverflowDropdownProps) {
       initial={{ opacity: 0, y: -4, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -4, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className="absolute top-full right-0 z-50 mt-2 w-60 rounded-xl py-2 shadow-lg"
       style={{
-        background: 'var(--pd-surface, #fff)',
-        border: '1px solid var(--pd-border, #e5e7eb)',
+        background: "var(--pd-surface, #fff)",
+        border: "1px solid var(--pd-border, #e5e7eb)",
       }}
       role="listbox"
       aria-label="All online users"
     >
       <p
-        className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider"
-        style={{ color: 'var(--pd-text-muted, #9ca3af)' }}
+        className="px-3 pb-2 text-[11px] font-semibold tracking-wider uppercase"
+        style={{ color: "var(--pd-text-muted, #9ca3af)" }}
       >
         Also viewing
       </p>
       {users.map((user) => {
         const bgColor = getAvatarColor(user.userId);
         const initials = getInitials(user.name);
-        const tabLabel = user.activeTab.replace(/_/g, ' ');
+        const tabLabel = user.activeTab.replace(/_/g, " ");
 
         return (
           <div
             key={user.userId}
             className="flex items-center gap-2.5 px-3 py-2"
-            style={{ fontFamily: 'var(--font-data, sans-serif)' }}
+            style={{ fontFamily: "var(--font-data, sans-serif)" }}
             role="option"
             aria-selected={false}
           >
@@ -216,17 +211,20 @@ function OverflowDropdown({ users, size, onClose }: OverflowDropdownProps) {
               style={{
                 width: 24,
                 height: 24,
-                background: user.avatarUrl ? 'transparent' : bgColor,
-                boxShadow: '0 0 0 1.5px var(--pd-body, #fff), 0 0 0 3px #22c55e',
+                background: user.avatarUrl ? "transparent" : bgColor,
+                boxShadow:
+                  "0 0 0 1.5px var(--pd-body, #fff), 0 0 0 3px #22c55e",
               }}
             >
               {user.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                <span
-                  className="flex h-full w-full items-center justify-center text-[9px] font-semibold text-white"
-                >
+                <span className="flex h-full w-full items-center justify-center text-[9px] font-semibold text-white">
                   {initials}
                 </span>
               )}
@@ -236,15 +234,15 @@ function OverflowDropdown({ users, size, onClose }: OverflowDropdownProps) {
             <div className="min-w-0 flex-1">
               <div
                 className="flex items-center gap-1.5 truncate text-xs font-medium"
-                style={{ color: 'var(--pd-text-primary, #111827)' }}
+                style={{ color: "var(--pd-text-primary, #111827)" }}
               >
                 {user.name}
                 {user.isClient && (
                   <span
-                    className="shrink-0 rounded px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                    className="shrink-0 rounded px-1 py-0.5 text-[9px] font-semibold tracking-wide uppercase"
                     style={{
-                      background: 'var(--pd-accent-subtle, #ede9fe)',
-                      color: 'var(--pd-accent, #7c3aed)',
+                      background: "var(--pd-accent-subtle, #ede9fe)",
+                      color: "var(--pd-accent, #7c3aed)",
                     }}
                   >
                     Client
@@ -253,7 +251,7 @@ function OverflowDropdown({ users, size, onClose }: OverflowDropdownProps) {
               </div>
               <div
                 className="truncate text-[11px]"
-                style={{ color: 'var(--pd-text-muted, #9ca3af)' }}
+                style={{ color: "var(--pd-text-muted, #9ca3af)" }}
               >
                 viewing {tabLabel}
               </div>
@@ -261,8 +259,8 @@ function OverflowDropdown({ users, size, onClose }: OverflowDropdownProps) {
 
             {/* Online dot */}
             <div
-              className="shrink-0 h-2 w-2 rounded-full"
-              style={{ background: '#22c55e' }}
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ background: "#22c55e" }}
               aria-label="Online"
             />
           </div>
@@ -278,20 +276,22 @@ export interface PresenceAvatarsProps {
   /** Max avatars shown before +N overflow. Default: 4 */
   maxVisible?: number;
   /** Size variant. Default: 'md' */
-  size?: 'sm' | 'md';
+  size?: "sm" | "md";
   className?: string;
 }
 
 export function PresenceAvatars({
   onlineUsers,
   maxVisible = 4,
-  size = 'md',
+  size = "md",
   className,
 }: PresenceAvatarsProps) {
   const [overflowOpen, setOverflowOpen] = useState(false);
 
   // Inject CSS keyframes once on mount
-  useEffect(() => { injectStyles(); }, []);
+  useEffect(() => {
+    injectStyles();
+  }, []);
 
   const handleOverflowClose = useCallback(() => setOverflowOpen(false), []);
 
@@ -305,16 +305,19 @@ export function PresenceAvatars({
   const { px, fontSize } = SIZE_CONFIG[size];
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn("flex items-center gap-2", className)}>
       {/* ── Mobile: "N online" text badge (hidden on md+) ── */}
       <div className="flex items-center gap-1.5 md:hidden">
         <span
           className="h-2 w-2 rounded-full"
-          style={{ background: '#22c55e', animation: 'live-dot-pulse 2s ease-in-out infinite' }}
+          style={{
+            background: "#22c55e",
+            animation: "live-dot-pulse 2s ease-in-out infinite",
+          }}
         />
         <span
           className="text-xs font-medium"
-          style={{ color: 'var(--pd-text-secondary, #6b7280)' }}
+          style={{ color: "var(--pd-text-secondary, #6b7280)" }}
         >
           {onlineUsers.length} online
         </span>
@@ -327,8 +330,8 @@ export function PresenceAvatars({
           <span
             className="h-2 w-2 rounded-full"
             style={{
-              background: '#22c55e',
-              animation: 'live-dot-pulse 2s ease-in-out infinite',
+              background: "#22c55e",
+              animation: "live-dot-pulse 2s ease-in-out infinite",
               flexShrink: 0,
             }}
             aria-label="Live"
@@ -336,8 +339,8 @@ export function PresenceAvatars({
           <span
             className="text-xs font-medium"
             style={{
-              color: 'var(--pd-text-muted, #9ca3af)',
-              fontFamily: 'var(--font-data, sans-serif)',
+              color: "var(--pd-text-muted, #9ca3af)",
+              fontFamily: "var(--font-data, sans-serif)",
             }}
           >
             Live
@@ -348,18 +351,21 @@ export function PresenceAvatars({
         <div
           className="relative flex flex-row-reverse items-center"
           role="group"
-          aria-label={`${onlineUsers.length} user${onlineUsers.length !== 1 ? 's' : ''} viewing this project`}
+          aria-label={`${onlineUsers.length} user${onlineUsers.length !== 1 ? "s" : ""} viewing this project`}
         >
           {/* Overflow "+N" button (rightmost) */}
           {overflowCount > 0 && (
-            <div className="relative" style={{ marginLeft: SIZE_CONFIG[size].marginLeft, zIndex: 0 }}>
+            <div
+              className="relative"
+              style={{ marginLeft: SIZE_CONFIG[size].marginLeft, zIndex: 0 }}
+            >
               <button
                 onClick={() => setOverflowOpen((o) => !o)}
                 className="flex items-center justify-center rounded-full font-semibold text-white transition-transform hover:scale-105 active:scale-95"
                 style={{
                   width: px,
                   height: px,
-                  background: 'var(--pd-surface-hover, #6366f1)',
+                  background: "var(--pd-surface-hover, #6366f1)",
                   boxShadow: `0 0 0 2px var(--pd-body, #fff)`,
                   fontSize,
                 }}

@@ -29,12 +29,12 @@ export function PageLayout({
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             {title && (
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              <h1 className="text-foreground text-2xl font-semibold tracking-tight">
                 {title}
               </h1>
             )}
             {subtitle && (
-              <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{subtitle}</p>
             )}
           </div>
           {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -45,15 +45,23 @@ export function PageLayout({
   );
 }
 
-function StandardWrapper({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={cn("space-y-6", className)}>
-      {children}
-    </div>
-  );
+function StandardWrapper({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={cn("space-y-6", className)}>{children}</div>;
 }
 
-function FullBleedWrapper({ children, className }: { children: ReactNode; className?: string }) {
+function FullBleedWrapper({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <div
       className={cn("-m-4 min-h-screen md:-m-6", className)}

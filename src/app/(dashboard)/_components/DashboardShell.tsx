@@ -56,8 +56,20 @@ export default function WorkspaceShell({
 
       <div className="pointer-events-none fixed inset-0">
         {/* Ambient glows — using theme primary color */}
-        <div className="absolute top-0 -right-40 h-[500px] w-[500px] rounded-full" style={{ background: 'color-mix(in oklab, var(--primary) 12%, transparent)', filter: 'blur(120px)' }} />
-        <div className="absolute -bottom-20 -left-40 h-[400px] w-[400px] rounded-full" style={{ background: 'color-mix(in oklab, var(--primary) 8%, transparent)', filter: 'blur(100px)' }} />
+        <div
+          className="absolute top-0 -right-40 h-[500px] w-[500px] rounded-full"
+          style={{
+            background: "color-mix(in oklab, var(--primary) 12%, transparent)",
+            filter: "blur(120px)",
+          }}
+        />
+        <div
+          className="absolute -bottom-20 -left-40 h-[400px] w-[400px] rounded-full"
+          style={{
+            background: "color-mix(in oklab, var(--primary) 8%, transparent)",
+            filter: "blur(100px)",
+          }}
+        />
       </div>
 
       {/* Main scrollable content area */}

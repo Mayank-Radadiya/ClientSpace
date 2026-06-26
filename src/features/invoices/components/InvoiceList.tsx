@@ -9,7 +9,10 @@ import {
   FileText,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { AnimatedListItem, listContainerVariants } from "@/components/AnimatedListItem";
+import {
+  AnimatedListItem,
+  listContainerVariants,
+} from "@/components/AnimatedListItem";
 import { gooeyToast } from "goey-toast";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
