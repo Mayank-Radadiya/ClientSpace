@@ -35,6 +35,7 @@ import {
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { PageLayout } from "@/app/(dashboard)/_components/PageLayout";
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
 
@@ -169,7 +170,7 @@ interface KpiCardProps {
   label: string;
   value: string | number;
   sub: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   gradient: string;
   trend?: number;
   delay?: number;
@@ -597,7 +598,7 @@ export function DashboardPageClient({ userName }: DashboardPageClientProps) {
                   id: string;
                   eventType: string;
                   metadata: Record<string, unknown>;
-                  createdAt: string;
+                  createdAt: Date;
                 }) => {
                   const { Icon, color, bg } = eventIcon(act.eventType);
                   return (
