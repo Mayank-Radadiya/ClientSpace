@@ -169,6 +169,42 @@ export const createInvoiceSchema = z
 
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 
+export const editInvoiceSchema = z
+  .object({
+    id: z.string().uuid("Invalid invoice ID"),
+    clientId: z.string().uuid("Invalid client ID"),
+    projectId: z.string().uuid("Invalid project ID").optional().nullable(),
+    currency: z.enum(CURRENCIES),
+    taxRateBasisPoints: z
+      .number()
+      .int("Tax rate must be a whole number of basis points")
+      .min(0, "Tax rate cannot be negative")
+      .max(10000, "Tax rate cannot exceed 100%"),
+    dueDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
+      .optional()
+      .nullable(),
+    notes: z
+      .string()
+      .max(1000, "Notes must be at most 1000 characters")
+      .optional()
+      .nullable(),
+    items: z
+      .array(invoiceLineItemSchema)
+      .min(1, "At least one line item is required")
+      .max(50, "Maximum 50 line items allowed"),
+  })
+  .refine(
+    (data) => {
+      const { total } = calculateTotals(data.items, data.taxRateBasisPoints);
+      return total > 0;
+    },
+    { message: "Invoice total must be greater than zero", path: ["items"] },
+  );
+
+export type EditInvoiceInput = z.infer<typeof editInvoiceSchema>;
+
 export const updateInvoiceStatusSchema = z.object({
   invoiceId: z
     .string()

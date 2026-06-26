@@ -222,3 +222,104 @@ export async function updateInvoicePdfStatus(
   }
 }
 
+/**
+ * Updates an existing invoice, deleting and rewriting its line items in a transaction.
+ */
+export async function updateInvoiceInDb(
+  orgId: string,
+  invoiceId: string,
+  input: {
+    clientId: string;
+    projectId?: string | null;
+    dueDate?: Date | null;
+    currency: "USD" | "EUR" | "GBP" | "CAD" | "AUD";
+    taxRateBasisPoints?: number;
+    notes?: string | null;
+    items: Array<{
+      description: string;
+      quantity: number;
+      unitPriceCents: number;
+    }>;
+  }
+) {
+  try {
+    const db = await createDrizzleClient();
+
+    return await db.transaction(async (tx) => {
+      // 1. Fetch current invoice to verify ownership
+      const existing = await tx.query.invoices.findFirst({
+        where: and(eq(invoices.id, invoiceId), eq(invoices.orgId, orgId)),
+      });
+      if (!existing) {
+        throw new Error("Invoice not found or unauthorized.");
+      }
+
+      // 2. Calculate totals
+      const totalCents = input.items.reduce((sum, item) => {
+        const itemTotal = Math.round(item.quantity * item.unitPriceCents);
+        return sum + itemTotal;
+      }, 0);
+
+      const taxAmount = Math.round((totalCents * (input.taxRateBasisPoints ?? 0)) / 10000);
+      const grandTotalCents = totalCents + taxAmount;
+
+      const toDateString = (date: Date): string => {
+        return date.toISOString().split("T")[0]!;
+      };
+
+      // 3. Update invoice header
+      const [updatedInvoice] = await tx
+        .update(invoices)
+        .set({
+          clientId: input.clientId,
+          projectId: input.projectId ?? null,
+          dueDate: input.dueDate ? toDateString(input.dueDate) : null,
+          currency: input.currency,
+          amountCents: grandTotalCents,
+          taxRateBasisPoints: input.taxRateBasisPoints ?? 0,
+          notes: input.notes ?? null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(invoices.id, invoiceId), eq(invoices.orgId, orgId)))
+        .returning({
+          id: invoices.id,
+          orgId: invoices.orgId,
+          clientId: invoices.clientId,
+          projectId: invoices.projectId,
+          number: invoices.number,
+          status: invoices.status,
+          dueDate: invoices.dueDate,
+          currency: invoices.currency,
+          amountCents: invoices.amountCents,
+          taxRateBasisPoints: invoices.taxRateBasisPoints,
+          notes: invoices.notes,
+          pdfUrl: invoices.pdfUrl,
+          createdAt: invoices.createdAt,
+          updatedAt: invoices.updatedAt,
+        });
+
+      if (!updatedInvoice) throw new Error("Failed to update invoice.");
+
+      // 4. Delete old line items
+      await tx
+        .delete(invoiceLineItems)
+        .where(eq(invoiceLineItems.invoiceId, invoiceId));
+
+      // 5. Insert new line items
+      await tx.insert(invoiceLineItems).values(
+        input.items.map((item) => ({
+          invoiceId: invoiceId,
+          description: item.description,
+          quantity: item.quantity.toString(),
+          unitPriceCents: item.unitPriceCents,
+        }))
+      );
+
+      return updatedInvoice;
+    });
+  } catch (error) {
+    console.error("[updateInvoiceInDb] Database update failed:", error);
+    throw error;
+  }
+}
+

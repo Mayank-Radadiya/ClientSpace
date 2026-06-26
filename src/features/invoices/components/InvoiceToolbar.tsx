@@ -39,6 +39,7 @@ interface InvoiceToolbarProps {
   sortBy?: "number" | "issued" | "due" | "amount";
   sortDir?: "asc" | "desc";
   onSortByChange?: (value: "number" | "issued" | "due" | "amount") => void;
+  onExportCSV?: () => void;
   children?: React.ReactNode;
 }
 
@@ -70,6 +71,7 @@ export function InvoiceToolbar({
   sortBy = "due",
   sortDir = "desc",
   onSortByChange,
+  onExportCSV,
   children,
 }: InvoiceToolbarProps) {
   const resolvedSubtitle =
@@ -105,7 +107,10 @@ export function InvoiceToolbar({
               align="end"
               className="w-40 border-(--inv-border) bg-[var(--inv-surface)]"
             >
-              <DropdownMenuItem className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-(--inv-accent-primary)">
+              <DropdownMenuItem
+                className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-(--inv-accent-primary)"
+                onClick={onExportCSV}
+              >
                 Export as CSV
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-(--inv-accent-primary)">

@@ -127,6 +127,13 @@ export const milestonePriorityEnum = pgEnum("milestone_priority", [
   "urgent",
 ]);
 
+export const contactCategoryEnum = pgEnum("contact_category", [
+  "lead",
+  "vendor",
+  "partner",
+  "other",
+]);
+
 // ─── Core Tables ──────────────────────────────────────────────────────────────
 
 // Users (Profile Table)
@@ -151,6 +158,8 @@ export const organizations = pgTable(
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
     logoUrl: text("logo_url"),
+    address: text("address"),
+    taxNumber: text("tax_number"),
     // ── White-label branding ───────────────────────────────────────────────────
     logoMarkUrl: text("logo_mark_url"), // Square icon/mark version for favicon and small placements
     accentColor: text("accent_color").default("#3b82f6"), // hex or oklch string
@@ -240,6 +249,23 @@ export const clients = pgTable("clients", {
   status: clientStatusEnum("status").default("active").notNull(),
   // Lifecycle state for the 5-state relationship selector (prospect → active → on_hold → churned → archived)
   lifecycleStatus: clientLifecycleStatusEnum("lifecycle_status").default("active").notNull(),
+}).enableRLS();
+
+// Contacts (Contact Book)
+export const contacts = pgTable("contacts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id")
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .notNull(),
+  clientId: uuid("client_id")
+    .references(() => clients.id, { onDelete: "set null" }), // Optional link to a client
+  name: text("name").notNull(),
+  company: text("company"),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  category: contactCategoryEnum("category").default("other").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }).enableRLS();
 
 // Projects

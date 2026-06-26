@@ -11,11 +11,13 @@ import {
   canTransition,
   createInvoiceSchema,
   type CreateInvoiceInput,
+  editInvoiceSchema,
+  type EditInvoiceInput,
   type InvoiceStatus,
   updateInvoiceStatusSchema,
   type UpdateInvoiceStatusInput,
 } from "../schemas";
-import { createInvoiceInDb, updateInvoiceStatusInDb, deleteInvoicesInDb } from "./mutations";
+import { createInvoiceInDb, updateInvoiceInDb, updateInvoiceStatusInDb, deleteInvoicesInDb } from "./mutations";
 
 export type ActionState<T = undefined> = {
   success?: boolean;
@@ -128,6 +130,96 @@ export async function createInvoice(
   } catch (err: any) {
     console.error("[createInvoice] Action error:", err);
     return { error: err.message || "Failed to save invoice. Please try again." };
+  }
+}
+
+/**
+ * Server Action to edit an existing invoice.
+ */
+export async function updateInvoice(
+  input: EditInvoiceInput,
+): Promise<ActionState<CreateInvoiceResult>> {
+  const ctx = await getSessionContext();
+  if (!ctx) return { error: "You must be logged in." };
+  if (ctx.role !== "owner" && ctx.role !== "admin") {
+    return { error: "Only Admins and Owners can edit invoices." };
+  }
+
+  const parsed = editInvoiceSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      error: "Validation failed",
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+  const data = parsed.data;
+
+  // Verify invoice existence and client/project ownership
+  const checkResult = await withRLS(ctx, async (tx) => {
+    const existing = await tx.query.invoices.findFirst({
+      where: and(eq(invoices.id, data.id), eq(invoices.orgId, ctx.orgId)),
+      columns: { id: true, status: true },
+    });
+    if (!existing) return { error: "Invoice not found or unauthorized." };
+
+    const client = await tx.query.clients.findFirst({
+      where: and(eq(clients.id, data.clientId), eq(clients.orgId, ctx.orgId)),
+      columns: { id: true },
+    });
+    if (!client) return { error: "Client not found in your organization." };
+
+    if (data.projectId) {
+      const project = await tx.query.projects.findFirst({
+        where: and(eq(projects.id, data.projectId), eq(projects.orgId, ctx.orgId)),
+        columns: { id: true },
+      });
+      if (!project) return { error: "Project not found in your organization." };
+    }
+
+    return { status: existing.status };
+  });
+
+  if ("error" in checkResult) {
+    return { error: checkResult.error };
+  }
+
+  const existingInvoiceStatus = checkResult.status;
+
+  try {
+    const updated = await updateInvoiceInDb(ctx.orgId, data.id, {
+      clientId: data.clientId,
+      projectId: data.projectId,
+      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+      currency: data.currency,
+      taxRateBasisPoints: data.taxRateBasisPoints,
+      notes: data.notes,
+      items: data.items,
+    });
+
+    // If already sent or paid, trigger PDF regeneration
+    if (existingInvoiceStatus === "sent" || existingInvoiceStatus === "paid" || existingInvoiceStatus === "overdue") {
+      await inngest.send({
+        name: "invoices/generate.pdf.requested",
+        data: { invoiceId: data.id, orgId: ctx.orgId },
+      });
+    }
+
+    // Invalidate list & detail cache
+    revalidateTag(`org-${ctx.orgId}-invoices`, "max");
+    revalidateTag(`org-${ctx.orgId}-invoice-${data.id}`, "max");
+
+    return {
+      success: true,
+      data: {
+        invoiceId: updated.id,
+        invoiceNumber: updated.number,
+        formattedNumber: `INV-${updated.number}`,
+        totalCents: updated.amountCents,
+      },
+    };
+  } catch (err: any) {
+    console.error("[updateInvoice] Action error:", err);
+    return { error: err.message || "Failed to update invoice. Please try again." };
   }
 }
 

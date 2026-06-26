@@ -1,5 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { inter, jetbrainsMono } from "@/lib/fonts";
+import {
+  inter,
+  jetbrainsMono,
+  jakarta,
+  dmSans,
+  dmMono,
+  barlowCondensed,
+} from "@/lib/fonts";
 import "./globals.css";
 import Provider from "@/provider/Provider";
 import { TRPCProvider } from "@/lib/trpc/provider";
@@ -77,7 +84,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${jakarta.variable} ${dmSans.variable} ${dmMono.variable} ${barlowCondensed.variable}`}
       lang="en"
       suppressHydrationWarning
     >

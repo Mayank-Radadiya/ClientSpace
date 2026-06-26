@@ -70,17 +70,17 @@ function MoreMenu({
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-black/5 text-[#6B6B7E] transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
+        className="text-muted-foreground flex h-7 w-7 items-center justify-center rounded-[8px] bg-black/5 transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
       >
         <MoreHorizontal className="h-4 w-4" />
       </button>
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-full right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border border-[rgba(0,0,0,0.08)] bg-white py-1 shadow-[0_8px_32px_rgba(0,0,0,0.2)] dark:border-[rgba(255,255,255,0.08)] dark:bg-[#16161F]"
+          className="border-border bg-card dark:border-border dark:bg-card absolute top-full right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border py-1 shadow-lg"
         >
           <button
-            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
+            className="text-muted-foreground hover:text-foreground dark:hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide transition-colors hover:bg-black/5 dark:hover:bg-white/5"
             onClick={() => {
               router.push(`/clients/${client.id}`);
               setOpen(false);
@@ -90,7 +90,7 @@ function MoreMenu({
           </button>
           {(role === "owner" || role === "admin") && (
             <button
-              className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
+              className="text-muted-foreground hover:text-foreground dark:hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide transition-colors hover:bg-black/5 dark:hover:bg-white/5"
               onClick={() => {
                 onEdit(client);
                 setOpen(false);
@@ -100,7 +100,7 @@ function MoreMenu({
             </button>
           )}
           <button
-            className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
+            className="text-muted-foreground hover:text-foreground dark:hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide transition-colors hover:bg-black/5 dark:hover:bg-white/5"
             onClick={() => {
               router.push(`/invoices/new?clientId=${client.id}`);
               setOpen(false);
@@ -111,7 +111,7 @@ function MoreMenu({
           {(role === "owner" || role === "admin") &&
             client.displayStatus !== "archived" && (
               <button
-                className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
+                className="text-muted-foreground hover:text-foreground dark:hover:text-foreground flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                 onClick={() => {
                   onArchive(client);
                   setOpen(false);
@@ -122,7 +122,7 @@ function MoreMenu({
             )}
           {(role === "owner" || role === "admin") && (
             <>
-              <div className="my-1 border-t border-[rgba(0,0,0,0.05)] dark:border-[rgba(255,255,255,0.05)]" />
+              <div className="border-border my-1 border-t" />
               <button
                 className="flex w-full items-center gap-2 px-3 py-2 text-[11px] tracking-wide text-[#EF4444] transition-colors hover:bg-[rgba(239,68,68,0.06)]"
                 onClick={() => {
@@ -166,10 +166,10 @@ function GridCard({
   return (
     <motion.div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-[16px] border bg-white transition-all duration-180 ease-out dark:bg-[#111118]",
+        "group bg-card relative flex flex-col overflow-hidden rounded-[16px] border transition-all duration-180 ease-out",
         selected
-          ? "border-[rgba(79,127,255,0.4)] shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]"
-          : "border-border dark:border-border shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:border-[rgba(79,127,255,0.4)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)]",
+          ? "border-primary/40 shadow-md"
+          : "border-border hover:border-primary/40 shadow-sm",
         hovered && "translate-y-[-2px]",
         client.displayStatus === "archived" && "opacity-60",
       )}
@@ -179,7 +179,7 @@ function GridCard({
     >
       {/* Selection left border accent */}
       {selected && (
-        <div className="absolute top-0 left-0 h-full w-[3px] bg-[var(--primary)] dark:bg-[var(--primary)]" />
+        <div className="bg-primary absolute top-0 left-0 h-full w-[3px]" />
       )}
 
       {/* ROW 1: Top Meta */}
@@ -198,8 +198,8 @@ function GridCard({
             className={cn(
               "flex h-4 w-4 cursor-pointer items-center justify-center rounded-[4px] border transition-all duration-150 active:scale-95",
               selected
-                ? "scale-110 border-[var(--primary)] bg-[var(--primary)] dark:border-[var(--primary)] dark:bg-[var(--primary)]"
-                : "border-[rgba(0,0,0,0.3)] hover:border-[var(--primary)] dark:border-[rgba(255,255,255,0.3)] dark:hover:border-[var(--primary)]",
+                ? "border-primary bg-primary scale-110"
+                : "border-muted-foreground/30 hover:border-primary dark:border-muted-foreground/30 dark:hover:border-primary",
             )}
           >
             {selected && (
@@ -245,15 +245,15 @@ function GridCard({
             size="lg" // Larger avatar size 48px
           />
           <div className="min-w-0">
-            <h3 className="truncate text-[17px] font-semibold tracking-tight text-[#0D0D14] dark:text-[#F2F2F5]">
+            <h3 className="text-foreground truncate text-[17px] font-semibold tracking-tight">
               {client.companyName || client.email}
             </h3>
-            <p className="truncate text-[12px] text-[#6B6B7E]">
+            <p className="text-muted-foreground truncate text-[12px]">
               {client.contactName
                 ? formatName(client.contactName)
                 : client.email}
             </p>
-            <p className="mt-0.5 max-w-[220px] truncate text-[11px] text-[#A0A0B0] dark:text-[#6B6B7E]">
+            <p className="text-muted-foreground/60 dark:text-muted-foreground/50 mt-0.5 max-w-[220px] truncate text-[11px]">
               {client.email}
             </p>
           </div>
@@ -269,10 +269,10 @@ function GridCard({
 
         {/* ROW 4: Tags */}
         <div className="mb-4 flex flex-wrap justify-start gap-1.5">
-          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[var(--primary)] dark:text-[var(--primary)]">
+          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px]">
             VIP
           </span>
-          <span className="rounded-full bg-[rgba(59,111,239,0.1)] px-2 py-0.5 text-[10px] text-[var(--primary)] dark:text-[var(--primary)]">
+          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px]">
             Tech
           </span>
         </div>
@@ -281,24 +281,24 @@ function GridCard({
 
         {/* ROW 5: KPI Cells */}
         <div className="mb-4 grid grid-cols-2 gap-2">
-          <div className="border-border dark:border-border rounded-[8px] border px-3 py-2.5">
-            <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
+          <div className="border-border rounded-[8px] border px-3 py-2.5">
+            <p className="text-muted-foreground mb-1 text-[10px] tracking-[0.08em] uppercase">
               Projects
             </p>
-            <p className="text-[22px] leading-none font-(--font-metrics) text-[#0D0D14] dark:text-[#F2F2F5]">
+            <p className="text-foreground text-[22px] leading-none font-(--font-metrics)">
               {client.activeProjectCount}
             </p>
           </div>
-          <div className="border-border dark:border-border rounded-[8px] border px-3 py-2.5">
-            <p className="mb-1 text-[10px] tracking-[0.08em] text-[#6B6B7E] uppercase">
+          <div className="border-border rounded-[8px] border px-3 py-2.5">
+            <p className="text-muted-foreground mb-1 text-[10px] tracking-[0.08em] uppercase">
               Outstanding
             </p>
             <p
               className={cn(
                 "text-[22px] leading-none font-(--font-metrics)",
                 client.outstandingAmountCents > 0
-                  ? "text-[#F59E0B]"
-                  : "text-[#0D0D14] dark:text-[#6B6B7E]",
+                  ? "text-warning"
+                  : "text-muted-foreground",
               )}
             >
               {client.outstandingAmountCents > 0
@@ -309,7 +309,7 @@ function GridCard({
         </div>
 
         {/* ROW 6: Footer Meta */}
-        <div className="mb-8 flex items-center gap-1.5 text-[11px] text-[#6B6B7E]">
+        <div className="text-muted-foreground mb-8 flex items-center gap-1.5 text-[11px]">
           <Clock className="h-3 w-3" />
           <span>{formatRelative(client.lastActivityAt)}</span>
         </div>
@@ -318,7 +318,7 @@ function GridCard({
       {/* ROW 7: Hover quick actions */}
       <div
         className={cn(
-          "divide-border border-border dark:divide-border dark:border-border absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x border-t bg-[#F8F8FC] transition-all duration-180 ease-out dark:bg-[#1A1A24]",
+          "divide-border border-border bg-muted/50 dark:bg-muted/30 absolute inset-x-0 bottom-0 grid grid-cols-3 divide-x border-t transition-all duration-180 ease-out",
           hovered
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-2 opacity-0",
@@ -330,7 +330,7 @@ function GridCard({
             if (role === "owner" || role === "admin") onEdit(client);
           }}
           disabled={role !== "owner" && role !== "admin"}
-          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] disabled:opacity-50 dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
+          className="group/btn text-muted-foreground hover:text-foreground dark:hover:text-foreground flex items-center justify-center gap-1.5 py-3 transition-colors hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/5"
         >
           <Edit2 className="h-4 w-4 transition-colors group-hover/btn:text-[var(--primary)] dark:group-hover/btn:text-[var(--primary)]" />
           <span className="text-[11px] uppercase">Edit</span>
@@ -340,7 +340,7 @@ function GridCard({
             e.stopPropagation();
             router.push(`/invoices/new?clientId=${client.id}`);
           }}
-          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[#6B6B7E] transition-colors hover:bg-black/5 hover:text-[#0D0D14] dark:hover:bg-white/5 dark:hover:text-[#F2F2F5]"
+          className="group/btn text-muted-foreground hover:text-foreground dark:hover:text-foreground flex items-center justify-center gap-1.5 py-3 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
         >
           <FileText className="h-4 w-4 transition-colors group-hover/btn:text-[var(--primary)] dark:group-hover/btn:text-[var(--primary)]" />
           <span className="text-[11px] uppercase">Invoice</span>
@@ -350,7 +350,7 @@ function GridCard({
             e.stopPropagation();
             router.push(`/clients/${client.id}`);
           }}
-          className="group/btn flex items-center justify-center gap-1.5 py-3 text-[var(--primary)] transition-colors hover:bg-[var(--primary)]/10 dark:text-[var(--primary)] dark:hover:bg-[var(--primary)]/10"
+          className="group/btn text-primary hover:bg-primary/10 flex items-center justify-center gap-1.5 py-3 transition-colors"
         >
           <Eye className="h-4 w-4" />
           <span className="text-[11px] uppercase">View</span>

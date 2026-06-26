@@ -8,5 +8,5 @@ import { redirect } from "next/navigation";
  * the /settings/billing sub-page.
  */
 export default function SettingsPage() {
-  redirect("/settings/billing");
+  redirect("/settings/profile");
 }

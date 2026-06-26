@@ -24,6 +24,7 @@ import {
   contracts,
   csatResponses,
   projectHealth,
+  contacts,
 } from "./schema";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ export const organizationsRelations = relations(
     clients: many(clients),
     projects: many(projects),
     invoices: many(invoices),
+    contacts: many(contacts),
   }),
 );
 
@@ -78,6 +80,7 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
   invitations: many(invitations),
   contracts: many(contracts),
   csatResponses: many(csatResponses),
+  contacts: many(contacts),
 }));
 
 // ─── Projects ─────────────────────────────────────────────────────────────────
@@ -349,5 +352,16 @@ export const projectHealthRelations = relations(projectHealth, ({ one }) => ({
   project: one(projects, {
     fields: [projectHealth.projectId],
     references: [projects.id],
+  }),
+}));
+
+export const contactsRelations = relations(contacts, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [contacts.orgId],
+    references: [organizations.id],
+  }),
+  client: one(clients, {
+    fields: [contacts.clientId],
+    references: [clients.id],
   }),
 }));

@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { gooeyToast } from "goey-toast";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -227,6 +228,7 @@ export function InvoiceRow({
   onStatusUpdate,
   onClickRow,
 }: InvoiceRowProps) {
+  const router = useRouter();
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isActionPending, startActionTransition] = useTransition();
   const [copied, setCopied] = useState(false);
@@ -462,7 +464,10 @@ export function InvoiceRow({
             >
               <DropdownMenuItem
                 className="cursor-pointer text-[var(--inv-text-primary)] focus:bg-[var(--inv-accent-subtle)] focus:text-(--inv-accent-primary)"
-                onClick={() => gooeyToast.info("Edit coming soon")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/invoices/${invoice.id}/edit`);
+                }}
               >
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit

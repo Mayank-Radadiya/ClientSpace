@@ -304,4 +304,35 @@ export const organizationsRouter = createTRPCRouter({
       status,
     };
   }),
+
+  updateBusiness: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1, "Company name is required").max(100),
+        address: z.string().max(500).optional().nullable(),
+        taxNumber: z.string().max(50).optional().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.role !== "owner" && ctx.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Admins and Owners can update business settings.",
+        });
+      }
+
+      await withRLS({ userId: ctx.userId, orgId: ctx.orgId }, async (tx) => {
+        await tx
+          .update(organizations)
+          .set({
+            name: input.name,
+            address: input.address || null,
+            taxNumber: input.taxNumber || null,
+            updatedAt: new Date(),
+          })
+          .where(eq(organizations.id, ctx.orgId));
+      });
+
+      return { success: true };
+    }),
 });

@@ -12,10 +12,12 @@ import {
   LayoutDashboard,
   FolderKanban,
   Users,
+  Contact,
   ReceiptText,
   FileSignature,
   Settings,
   BarChart3,
+  TrendingUp,
   Activity,
   Bell,
 } from "lucide-react";
@@ -42,6 +44,11 @@ export const NAV_ITEMS = [
     icon: <Users size={18} strokeWidth={1.7} />,
   },
   {
+    label: "Contacts",
+    href: "/contacts",
+    icon: <Contact size={18} strokeWidth={1.7} />,
+  },
+  {
     label: "Invoices",
     href: "/invoices",
     icon: <ReceiptText size={18} strokeWidth={1.7} />,
@@ -64,6 +71,11 @@ export const NAV_SECONDARY_ITEMS = [
     label: "Analytics",
     href: "/analytics",
     icon: <BarChart3 size={18} strokeWidth={1.7} />,
+  },
+  {
+    label: "Reports",
+    href: "/reports",
+    icon: <TrendingUp size={18} strokeWidth={1.7} />,
   },
   {
     label: "Activity",

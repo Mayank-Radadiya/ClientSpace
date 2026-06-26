@@ -35,9 +35,11 @@ import {
   calculateTotals,
   createInvoiceSchema,
   type CreateInvoiceInput,
+  editInvoiceSchema,
+  type EditInvoiceInput,
   formatCents,
 } from "../schemas";
-import { createInvoice } from "../server/actions";
+import { createInvoice, updateInvoice } from "../server/actions";
 import {
   Popover,
   PopoverContent,
@@ -68,6 +70,8 @@ interface InvoiceBuilderProps {
   onCancel?: () => void;
   previewOpen?: boolean;
   setIsDirty?: (dirty: boolean) => void;
+  invoiceId?: string;
+  initialData?: any;
 }
 
 // ─── Default Values ───────────────────────────────────────────────────────────
@@ -113,6 +117,13 @@ function FieldError({ message }: { message?: string }) {
   return <p className="font-dm-mono mt-1 text-xs text-red-500">{message}</p>;
 }
 
+// ─── Client Schema for both Edit and Create Form ──────────────────────────────
+import { z } from "zod";
+const clientInvoiceSchema = createInvoiceSchema.extend({
+  id: z.string().uuid().optional(),
+});
+type FormValues = CreateInvoiceInput & { id?: string };
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function InvoiceBuilder({
@@ -123,12 +134,21 @@ export function InvoiceBuilder({
   onCancel,
   previewOpen = false,
   setIsDirty,
+  invoiceId,
+  initialData,
 }: InvoiceBuilderProps) {
   const utils = trpc.useUtils();
   const [isPending, startTransition] = useTransition();
   const [dueDateOpen, setDueDateOpen] = useState(false);
   const [notesExpanded, setNotesExpanded] = useState(false);
   const { history, saveToHistory } = useDescriptionHistory();
+
+  // If notes exist in initialData, expand the notes field
+  useEffect(() => {
+    if (initialData?.notes) {
+      setNotesExpanded(true);
+    }
+  }, [initialData]);
 
   const {
     register,
@@ -139,9 +159,9 @@ export function InvoiceBuilder({
     setValue,
     setError,
     formState: { errors, isDirty },
-  } = useForm<CreateInvoiceInput>({
-    resolver: zodResolver(createInvoiceSchema),
-    defaultValues: {
+  } = useForm<FormValues>({
+    resolver: zodResolver(clientInvoiceSchema),
+    defaultValues: initialData || {
       clientId: "",
       projectId: "",
       currency: defaultCurrency,
@@ -233,8 +253,8 @@ export function InvoiceBuilder({
 
   // ── Submit ────────────────────────────────────────────────────────
 
-  const onSubmit = (data: CreateInvoiceInput) => {
-    const normalized: CreateInvoiceInput = {
+  const onSubmit = (data: FormValues) => {
+    const normalized = {
       ...data,
       projectId: data.projectId?.trim() ? data.projectId : undefined,
     };
@@ -246,28 +266,33 @@ export function InvoiceBuilder({
 
     startTransition(async () => {
       try {
-        const result = await createInvoice(normalized);
+        const result = invoiceId
+          ? await updateInvoice({ id: invoiceId, ...normalized } as any)
+          : await createInvoice(normalized as any);
+
         if (result.success && result.data) {
           await utils.invoice.getAll.invalidate();
           gooeyToast.success(
-            `Invoice ${result.data.formattedNumber} created successfully!`,
+            `Invoice ${result.data.formattedNumber} ${invoiceId ? "updated" : "created"} successfully!`,
           );
           setIsDirty?.(false);
-          reset({
-            clientId: "",
-            projectId: "",
-            currency: defaultCurrency,
-            taxRateBasisPoints: 0,
-            dueDate: undefined,
-            notes: "",
-            items: [{ ...DEFAULT_ITEM }],
-          });
+          if (!invoiceId) {
+            reset({
+              clientId: "",
+              projectId: "",
+              currency: defaultCurrency,
+              taxRateBasisPoints: 0,
+              dueDate: undefined,
+              notes: "",
+              items: [{ ...DEFAULT_ITEM }],
+            });
+          }
           onSuccess?.(result.data.invoiceId);
         } else {
-          gooeyToast.error(result.error ?? "Failed to create invoice.");
+          gooeyToast.error(result.error ?? "Failed to save invoice.");
           if (result.fieldErrors) {
             Object.entries(result.fieldErrors).forEach(([field, messages]) => {
-              setError(field as keyof CreateInvoiceInput, {
+              setError(field as keyof FormValues, {
                 message: messages?.[0] ?? "Invalid value",
               });
             });
@@ -847,7 +872,7 @@ export function InvoiceBuilder({
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  Create Invoice
+                  {invoiceId ? "Update Invoice" : "Create Invoice"}
                   <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-[3px]" />
                 </>
               )}
