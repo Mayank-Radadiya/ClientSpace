@@ -1,22 +1,39 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerCaller } from "@/lib/trpc/server";
 import { ClientProjectCard } from "@/features/portal/components/ClientProjectCard";
 import { ClientInvoiceList } from "@/features/portal/components/ClientInvoiceList";
 import { ActivityFeed } from "@/features/portal/components/ActivityFeed";
-import { WhatHappensNextBanner } from "@/features/portal/components/WhatHappensNextBanner";
+import { PortalDashboardClient } from "./PortalDashboardClient";
 
-export const metadata = { title: "Portal" };
+export const metadata = { title: "Dashboard" };
 
 export default async function PortalHomePage() {
   const caller = await getServerCaller();
   if (!caller) redirect("/login");
 
-  const [projects, openInvoices, recentActivity] = await Promise.all([
-    caller.portal.activeProjects(),
-    caller.portal.openInvoices(),
-    caller.portal.recentActivity(),
-  ]);
+  const [projects, openInvoices, allInvoices, recentActivity] =
+    await Promise.all([
+      caller.portal.activeProjects(),
+      caller.portal.openInvoices(),
+      caller.portal.allInvoices(),
+      caller.portal.recentActivity(),
+    ]);
+
+  const totalPaid = allInvoices
+    .filter((i) => i.status === "paid")
+    .reduce((s, i) => s + i.amountCents, 0);
+
+  const overviewCards = {
+    activeProjects: projects.filter(
+      (p) => p.status !== "completed" && p.status !== "archived",
+    ).length,
+    pendingInvoices: openInvoices.length,
+    completedMilestones: projects.reduce(
+      (s, p) => s + p.milestones.filter((m) => m.completed).length,
+      0,
+    ),
+    totalEarned: totalPaid,
+  };
 
   return (
     <div className="space-y-8">
@@ -27,13 +44,12 @@ export default async function PortalHomePage() {
         </p>
       </section>
 
-      <WhatHappensNextBanner projects={projects} />
+      <PortalDashboardClient cards={overviewCards} />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Active Projects</h2>
         </div>
-
         {projects.length === 0 ? (
           <div className="text-muted-foreground bg-card rounded-xl border p-6 text-sm">
             No active projects yet.
@@ -50,14 +66,14 @@ export default async function PortalHomePage() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Open Invoices</h2>
-          {openInvoices.length > 0 ? (
-            <Link
+          {openInvoices.length > 0 && (
+            <a
               href="/portal/invoices"
               className="text-primary text-sm font-medium"
             >
               View all
-            </Link>
-          ) : null}
+            </a>
+          )}
         </div>
         <ClientInvoiceList
           invoices={openInvoices}

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { withRLS } from "@/db/createDrizzleClient";
 import { clients, organizations } from "@/db/schema";
 import { ClientHeader } from "@/features/portal/components/ClientHeader";
+import { PortalSidebar } from "@/features/portal/components/PortalSidebar";
 import { PortalThemeProvider } from "@/features/portal/components/PortalThemeProvider";
 import { GlobalRealtimeProvider } from "@/lib/realtimeProvider";
 import "./portal.css";
@@ -110,15 +111,21 @@ export default async function ClientLayout({
         </head>
       )}
       <PortalThemeProvider theme={theme}>
-        <div className="bg-background min-h-screen" style={ssrAccentStyle}>
+        <div
+          className="bg-background flex min-h-screen flex-col"
+          style={ssrAccentStyle}
+        >
           <ClientHeader
             orgName={effectiveBrandName}
             orgLogoUrl={org.logoUrl ?? undefined}
             clientName={client.contactName ?? client.email}
           />
-          <main className="mx-auto max-w-5xl space-y-8 px-4 py-8">
-            {children}
-          </main>
+          <div className="flex flex-1">
+            <PortalSidebar />
+            <main className="min-h-0 flex-1 space-y-8 px-4 py-8 md:px-6 lg:px-8">
+              {children}
+            </main>
+          </div>
 
           {showPoweredBy ? (
             <footer className="text-muted-foreground py-6 text-center text-xs">
