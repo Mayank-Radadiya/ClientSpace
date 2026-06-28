@@ -84,8 +84,8 @@ export function FirstClientAddedEmail({
 
           <Section style={footer}>
             <Text style={footerText}>
-              ClientSpace Inc. • 123 Business Avenue, Suite 100 • New York, NY
-              10001
+              ClientSpace Inc. • 548 Market St, PMB 72285 • San Francisco, CA
+              94104
             </Text>
             <Text style={footerText}>
               You are receiving this confirmation email because you added your

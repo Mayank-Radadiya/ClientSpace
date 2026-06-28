@@ -7,11 +7,15 @@
  *
  * Fallback chain:
  *   1. org.customEmailVerified && org.customEmailDomain → "AgencyName <hello@theirdomain.com>"
- *   2. Otherwise → "Agency via ClientSpace <noreply@clientspace.qzz.io>"
+ *   2. Otherwise → "ClientSpace <onboarding@resend.dev>" (Resend default — good reputation)
  *
  * Reply-To is always set to the agency owner's email when orgId is provided.
+ *
+ * TEMP: using onboarding@resend.dev while clientspace.qzz.io builds Gmail reputation.
+ * Switch back to hello@clientspace.qzz.io once warmed up (2+ weeks).
  */
 
+import crypto from "crypto";
 import { Resend } from "resend";
 import { ClientInviteEmail } from "./ClientInviteEmail";
 import { FirstClientAddedEmail } from "./FirstClientAddedEmail";
@@ -19,6 +23,9 @@ import { pool } from "@/db/pool";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SENDING_EMAIL = "hello@clientspace.qzz.io";
+// ponytail: can't use onboarding@resend.dev — it's restricted to sender's own email on free plan
+const PHYSICAL_ADDRESS = "548 Market St, PMB 72285, San Francisco, CA 94104";
+// ponytail: physical address added for CAN-SPAM compliance — update if office moves
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type SendClientInviteOptions = {
@@ -108,15 +115,35 @@ async function resolveOrgEmailConfig(
       };
     }
 
-    // Unverified domain — fall back with transparent attribution
-    const fromName = fallbackFromName ?? org.name;
+    // Unverified domain — fall back to clean ClientSpace sender (no "via" — avoids spam filters)
     return {
-      fromAddress: `${fromName} via ClientSpace <${rawEmail}>`,
+      fromAddress: defaultFrom,
       replyTo: owner?.email,
     };
   } catch (err) {
     console.error("[send.ts] Failed to resolve org email config:", err);
     return { fromAddress: defaultFrom };
+  }
+}
+
+// ─── Bounce check ─────────────────────────────────────────────────────────────
+
+/**
+ * Check if an email address has previously bounced.
+ * Returns true if the address has at least one bounce record.
+ */
+async function hasBounced(email: string): Promise<boolean> {
+  try {
+    const rows = await pool`
+      SELECT 1 FROM bounced_emails
+      WHERE email = ${email.toLowerCase()}
+        AND bounce_type = 'permanent'
+      LIMIT 1
+    `;
+    return rows.length > 0;
+  } catch (err) {
+    console.error("[send.ts] Bounce check failed:", err);
+    return false; // fail open — don't block sends on DB error
   }
 }
 
@@ -132,15 +159,20 @@ export async function sendClientInviteEmail(opts: SendClientInviteOptions) {
     opts.companyName,
   );
 
+  if (await hasBounced(opts.to)) {
+    console.warn(
+      `[send.ts] Skipping invite to ${opts.to} — address has bounced previously`,
+    );
+    return;
+  }
+
   const { error } = await resend.emails.send({
     from: fromAddress,
     to: opts.to,
     ...(replyTo ? { replyTo } : {}),
     subject: `You've been invited to ${opts.companyName}'s client portal`,
     headers: {
-      'X-Priority': '3',
-      'X-Mailer': 'ClientSpace',
-      'List-Unsubscribe': `<mailto:unsubscribe@clientspace.qzz.io>`,
+      "X-Entity-Ref-ID": crypto.randomUUID(), // unique per send — reduces duplicate spam scoring
     },
     react: ClientInviteEmail({
       contactName: opts.contactName,
@@ -148,7 +180,22 @@ export async function sendClientInviteEmail(opts: SendClientInviteOptions) {
       inviterName: opts.inviterName,
       inviteUrl: opts.inviteUrl,
     }),
-    text: `Hello ${opts.contactName},\n\n${opts.inviterName} has set up an account for you on their client portal.\n\nYou can now log in to view your projects, access shared documents, and manage invoices.\n\nSign in to your portal: ${opts.inviteUrl}\n\nThis link expires in 72 hours.\n\nQuestions? Reply to reach ${opts.inviterName} directly.\n\n© ${new Date().getFullYear()} ClientSpace Inc.`,
+    text: [
+      `Hi ${opts.contactName},`,
+      ``,
+      `${opts.inviterName} has invited you to access the ${opts.companyName} client portal on ClientSpace.`,
+      ``,
+      `Click the link below to accept your invitation:`,
+      opts.inviteUrl,
+      ``,
+      `This link expires in 48 hours.`,
+      ``,
+      `If you didn't expect this email, you can safely ignore it.`,
+      ``,
+      `— The ClientSpace Team`,
+      `https://clientspace.qzz.io`,
+      PHYSICAL_ADDRESS,
+    ].join("\n"),
   });
 
   if (error) {
@@ -165,17 +212,38 @@ export async function sendFirstClientAddedEmail(
 
   const { fromAddress, replyTo } = await resolveOrgEmailConfig(opts.orgId);
 
+  if (await hasBounced(opts.to)) {
+    console.warn(
+      `[send.ts] Skipping notification to ${opts.to} — address has bounced previously`,
+    );
+    return;
+  }
+
   const { error } = await resend.emails.send({
     from: fromAddress,
     to: opts.to,
     ...(replyTo ? { replyTo } : {}),
-    subject: "Your first client has been added",
+    subject: `${opts.clientContactName} has been added to your ClientSpace workspace`,
+    headers: {
+      "X-Entity-Ref-ID": crypto.randomUUID(),
+    },
     react: FirstClientAddedEmail({
       clientCompanyName: opts.clientCompanyName,
       clientContactName: opts.clientContactName,
       clientEmail: opts.clientEmail,
     }),
-    text: `Your first client has been added!\n\nClient Name: ${opts.clientContactName}\nCompany: ${opts.clientCompanyName}\nEmail: ${opts.clientEmail}\n\nClientSpace Inc.`,
+    text: [
+      `${opts.clientContactName} (${opts.clientCompanyName}) has been added to your ClientSpace workspace.`,
+      ``,
+      `Client details:`,
+      `  Name: ${opts.clientContactName}`,
+      `  Company: ${opts.clientCompanyName}`,
+      `  Email: ${opts.clientEmail}`,
+      ``,
+      `— The ClientSpace Team`,
+      `https://clientspace.qzz.io`,
+      PHYSICAL_ADDRESS,
+    ].join("\n"),
   });
 
   if (error) {

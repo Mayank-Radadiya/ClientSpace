@@ -144,7 +144,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(), // Synced from auth.users via trigger
   name: text("name").notNull(),
   avatarUrl: text("avatar_url"),
-  phone: text("phone"),             // E.164 format e.g. +14155552671
+  phone: text("phone"), // E.164 format e.g. +14155552671
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -170,7 +170,9 @@ export const organizations = pgTable(
     // ── Custom email sending domain (Resend) ──────────────────────────────────
     customEmailDomain: text("custom_email_domain"), // e.g. "acmecreative.com"
     customEmailFromName: text("custom_email_from_name"), // e.g. "Acme Creative"
-    customEmailVerified: boolean("custom_email_verified").default(false).notNull(), // true once Resend verifies the domain
+    customEmailVerified: boolean("custom_email_verified")
+      .default(false)
+      .notNull(), // true once Resend verifies the domain
     customEmailDomainId: text("custom_email_domain_id"), // Resend's domain ID for verify/delete calls
     // ─────────────────────────────────────────────────────────────────────────
     plan: planEnum("plan").default("starter").notNull(),
@@ -183,15 +185,21 @@ export const organizations = pgTable(
     // Stored without protocol, lowercase. e.g. "portal.acmecreative.com"
     customDomain: text("custom_domain"),
     // true once Vercel confirms DNS has propagated
-    customDomainVerified: boolean("custom_domain_verified").default(false).notNull(),
+    customDomainVerified: boolean("custom_domain_verified")
+      .default(false)
+      .notNull(),
     // 'none' | 'pending' | 'verifying' | 'active' | 'error'
     customDomainStatus: text("custom_domain_status").default("none").notNull(),
     // Last error message from Vercel API — shown to user in settings
     customDomainError: text("custom_domain_error"),
     // When the domain was first submitted
-    customDomainAddedAt: timestamp("custom_domain_added_at", { withTimezone: true }),
+    customDomainAddedAt: timestamp("custom_domain_added_at", {
+      withTimezone: true,
+    }),
     // When DNS was confirmed active
-    customDomainVerifiedAt: timestamp("custom_domain_verified_at", { withTimezone: true }),
+    customDomainVerifiedAt: timestamp("custom_domain_verified_at", {
+      withTimezone: true,
+    }),
     // ─────────────────────────────────────────────────────────────────────────
     whatsappEnabled: boolean("whatsapp_enabled").default(false), // Phase 2
     aiSummariesOptIn: boolean("ai_summaries_opt_in").default(false), // Phase 2
@@ -201,8 +209,12 @@ export const organizations = pgTable(
     slackWebhookUrl: text("slack_webhook_url"), // Slack Incoming Webhook URL
     // Stripe Connect
     stripeAccountId: text("stripe_account_id"), // Connected Express account ID
-    stripeOnboardingComplete: boolean("stripe_onboarding_complete").default(false).notNull(),
-    stripeDefaultCurrency: text("stripe_default_currency").default("usd").notNull(),
+    stripeOnboardingComplete: boolean("stripe_onboarding_complete")
+      .default(false)
+      .notNull(),
+    stripeDefaultCurrency: text("stripe_default_currency")
+      .default("usd")
+      .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -248,7 +260,9 @@ export const clients = pgTable("clients", {
   invitedAt: timestamp("invited_at", { withTimezone: true }).defaultNow(),
   status: clientStatusEnum("status").default("active").notNull(),
   // Lifecycle state for the 5-state relationship selector (prospect → active → on_hold → churned → archived)
-  lifecycleStatus: clientLifecycleStatusEnum("lifecycle_status").default("active").notNull(),
+  lifecycleStatus: clientLifecycleStatusEnum("lifecycle_status")
+    .default("active")
+    .notNull(),
 }).enableRLS();
 
 // Contacts (Contact Book)
@@ -257,15 +271,20 @@ export const contacts = pgTable("contacts", {
   orgId: uuid("org_id")
     .references(() => organizations.id, { onDelete: "cascade" })
     .notNull(),
-  clientId: uuid("client_id")
-    .references(() => clients.id, { onDelete: "set null" }), // Optional link to a client
+  clientId: uuid("client_id").references(() => clients.id, {
+    onDelete: "set null",
+  }), // Optional link to a client
   name: text("name").notNull(),
   company: text("company"),
   email: text("email").notNull(),
   phone: text("phone"),
   category: contactCategoryEnum("category").default("other").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 }).enableRLS();
 
 // Projects
@@ -303,7 +322,11 @@ export const projects = pgTable(
       t.priority,
       t.createdAt,
     ), // Filtered getAll path
-    index("projects_org_status_created_idx").on(t.orgId, t.status, t.createdAt.desc()),
+    index("projects_org_status_created_idx").on(
+      t.orgId,
+      t.status,
+      t.createdAt.desc(),
+    ),
   ],
 ).enableRLS();
 
@@ -428,7 +451,11 @@ export const assets = pgTable(
       t.updatedAt,
     ),
     index("assets_auto_approve_idx").on(t.autoApproveAt), // Inngest cron hot path
-    index("assets_project_folder_created_idx").on(t.projectId, t.folderId, t.createdAt.desc()),
+    index("assets_project_folder_created_idx").on(
+      t.projectId,
+      t.folderId,
+      t.createdAt.desc(),
+    ),
   ],
 ).enableRLS();
 
@@ -603,7 +630,7 @@ export const notifications = pgTable(
     type: text("type").notNull(), // NotificationEventType e.g. 'invoice.paid'
     title: text("title").notNull(),
     body: text("body"),
-    actionUrl: text("action_url"),   // Deep link to the relevant resource
+    actionUrl: text("action_url"), // Deep link to the relevant resource
     actionLabel: text("action_label"), // CTA label e.g. "View invoice"
     read: boolean("read").default(false).notNull(),
     readAt: timestamp("read_at", { withTimezone: true }),
@@ -622,11 +649,23 @@ export const notifications = pgTable(
   },
   (t) => [
     // Primary in-app bell query: unread first, then recent
-    index("notifications_user_read_created_idx").on(t.userId, t.read, t.createdAt),
+    index("notifications_user_read_created_idx").on(
+      t.userId,
+      t.read,
+      t.createdAt,
+    ),
     // Org-wide notification history (admin view)
-    index("notifications_org_type_created_idx").on(t.orgId, t.type, t.createdAt),
+    index("notifications_org_type_created_idx").on(
+      t.orgId,
+      t.type,
+      t.createdAt,
+    ),
     // Per-channel delivery audit
-    index("notifications_user_channel_created_idx").on(t.userId, t.channel, t.createdAt),
+    index("notifications_user_channel_created_idx").on(
+      t.userId,
+      t.channel,
+      t.createdAt,
+    ),
   ],
 ).enableRLS();
 
@@ -648,9 +687,7 @@ export const notificationPreferences = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (t) => [
-    index("notif_prefs_user_org_idx").on(t.userId, t.orgId),
-  ],
+  (t) => [index("notif_prefs_user_org_idx").on(t.userId, t.orgId)],
 ).enableRLS();
 
 // Invitations
@@ -783,13 +820,15 @@ export const contracts = pgTable(
     // NOTE: Do NOT allow status to go backwards (e.g. signed → sent).
     // Enforced in tRPC mutation layer. A Postgres CHECK constraint can be added
     // manually in production: CHECK (status IN ('draft','sent','viewed','signed','declined','expired'))
-    bodyHtml: text("body_html").notNull().default(""),      // Stored with placeholder markup; always sanitize before render
+    bodyHtml: text("body_html").notNull().default(""), // Stored with placeholder markup; always sanitize before render
     bodyPlainText: text("body_plain_text").notNull().default(""), // Plain text for email previews
     // ── Signing Token ───────────────────────────────────────────────────────────
     signingToken: text("signing_token").unique(), // UUID generated on send; used in public signing URL
-    signingTokenExpiresAt: timestamp("signing_token_expires_at", { withTimezone: true }), // 30 days from send
+    signingTokenExpiresAt: timestamp("signing_token_expires_at", {
+      withTimezone: true,
+    }), // 30 days from send
     // ── Signer Data (populated when client signs) ───────────────────────────────
-    signerName: text("signer_name"),   // Typed full name from signing page
+    signerName: text("signer_name"), // Typed full name from signing page
     signerEmail: text("signer_email"),
     signatureImageUrl: text("signature_image_url"), // Public URL of canvas PNG in Supabase Storage
     // SHA-256 of (signerName + signerEmail + contractId + signingTimestamp)
@@ -797,7 +836,7 @@ export const contracts = pgTable(
     // E-sign legality depends on jurisdiction (ESIGN Act, eIDAS, etc.).
     signatureHash: text("signature_hash"),
     // Stores SHA-256 hash of signer IP (GDPR compliant — raw IP is never persisted).
-    signerIp: text("signer_ip"),        // AGENCY-ONLY — never expose in client-facing UI
+    signerIp: text("signer_ip"), // AGENCY-ONLY — never expose in client-facing UI
     signerUserAgent: text("signer_user_agent"),
     // ── Timestamps ──────────────────────────────────────────────────────────────
     signedAt: timestamp("signed_at", { withTimezone: true }),
@@ -806,8 +845,12 @@ export const contracts = pgTable(
     declineReason: text("decline_reason"),
     // ── Output ──────────────────────────────────────────────────────────────────
     pdfUrl: text("pdf_url"), // Public URL of signed PDF in Supabase Storage (set by Inngest)
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (t) => [
     index("contracts_org_client_idx").on(t.orgId, t.clientId),
@@ -900,5 +943,28 @@ export const projectHealth = pgTable(
   (t) => [
     index("ph_project_generated_idx").on(t.projectId, t.generatedAt.desc()),
     index("ph_org_risk_idx").on(t.orgId, t.riskScore),
+  ],
+).enableRLS();
+
+// ─── Email Bounce Tracking ────────────────────────────────────────────────────
+// Tracks emails bounced via Resend webhook so we suppress re-sends.
+
+export const bouncedEmails = pgTable(
+  "bounced_emails",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    orgId: uuid("org_id").references(() => organizations.id, {
+      onDelete: "set null",
+    }),
+    reason: text("reason"),
+    bounceType: text("bounce_type"), // 'permanent' | 'transient'
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("bounced_emails_email_idx").on(t.email),
+    index("bounced_emails_org_idx").on(t.orgId),
   ],
 ).enableRLS();
