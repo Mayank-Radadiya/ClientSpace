@@ -110,7 +110,7 @@ Daily delivery check. Let me know if this reaches you OK.
 ];
 
 function plainText(day: number): string {
-  return `${BODIES[day % BODIES.length]}
+  return `${BODIES[day % BODIES.length] ?? ""}
 
 ClientSpace Inc.
 548 Market St, PMB 72285
@@ -118,7 +118,7 @@ San Francisco, CA 94104`;
 }
 
 function htmlBody(day: number): string {
-  const body = BODIES[day % BODIES.length]
+  const body = (BODIES[day % BODIES.length] ?? "")
     .replace(/\n\n/g, "</p><p>")
     .replace(/\n-- /g, "<br>-- ");
   return `<!DOCTYPE html>
@@ -143,7 +143,7 @@ async function main() {
   const day = Math.floor(
     (Date.now() - new Date("2026-06-28").getTime()) / 86400000,
   );
-  const subject = SUBJECTS[day % SUBJECTS.length];
+  const subject = SUBJECTS[day % SUBJECTS.length] ?? "testing email delivery";
 
   console.log(`📧 Warm-up #${day + 1} — ${subject}`);
   console.log(`   From: ClientSpace <hello@clientspace.qzz.io>`);
