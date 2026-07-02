@@ -104,18 +104,10 @@ export async function loginAction(
   // Get user's org context
   const ctx = await createTRPCContext();
 
-  // If user has org membership, set active org cookie and route by MFA state
+  // If user has org membership, set active org cookie and route
   if (ctx) {
     await setActiveOrg(ctx.orgId);
-    // ponytail: route each MFA state to the right place
-    switch (ctx.mfaState) {
-      case "not_enrolled":
-        return redirect("/onboarding/mfa-setup");
-      case "enrolled_unverified":
-        return redirect("/mfa/verify");
-      default:
-        return redirect("/dashboard");
-    }
+    return redirect("/dashboard");
   }
 
   // No org membership - redirect to onboarding
@@ -157,7 +149,11 @@ export async function signupAction(
   }
 
   // ponytail: audit log for signup
-  await logAuthEvent({ event: "signup", ip, metadata: { email: parsed.data.email } });
+  await logAuthEvent({
+    event: "signup",
+    ip,
+    metadata: { email: parsed.data.email },
+  });
 
   return redirect(
     "/verify?type=signup&email=" + encodeURIComponent(parsed.data.email),
@@ -193,7 +189,11 @@ export async function resetPasswordAction(
   }
 
   // ponytail: audit log for password reset request
-  await logAuthEvent({ event: "password_reset_request", ip, metadata: { email: parsed.data.email } });
+  await logAuthEvent({
+    event: "password_reset_request",
+    ip,
+    metadata: { email: parsed.data.email },
+  });
 
   return redirect(
     "/verify?type=recovery&email=" + encodeURIComponent(parsed.data.email),
@@ -220,13 +220,19 @@ export async function updatePasswordAction(
   });
 
   if (error) {
-    await logAuthEvent({ event: "password_change", ip, metadata: { success: false } });
+    await logAuthEvent({
+      event: "password_change",
+      ip,
+      metadata: { success: false },
+    });
     return { error: error.message };
   }
 
   // ponytail: invalidate the cached session so old tokens can't ride the 55s TTL
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (session?.access_token) {
       await invalidateUserCache(session.access_token);
     }
@@ -234,7 +240,11 @@ export async function updatePasswordAction(
     console.error("[updatePasswordAction] Cache invalidation failed:", e);
   }
 
-  await logAuthEvent({ event: "password_change", ip, metadata: { success: true } });
+  await logAuthEvent({
+    event: "password_change",
+    ip,
+    metadata: { success: true },
+  });
 
   return redirect("/dashboard");
 }

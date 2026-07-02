@@ -5,16 +5,13 @@ import { headers } from "next/headers";
 import { getActiveOrgId } from "@/lib/auth/orgSwitcher";
 import { getCachedUser } from "@/lib/auth/getCachedUser";
 import { createClient } from "@/lib/supabase/server";
-import { checkMFARequirement, type MfaState } from "@/lib/auth/mfa";
 import { getOrgMemberships } from "@/lib/auth/getOrgMemberships";
-
 
 // Context shape available in all procedures
 export type TRPCContext = {
   userId: string;
   orgId: string;
   role: string;
-  mfaState: MfaState; // ponytail: expose state so callers can route
   availableOrgs: Array<{
     orgId: string;
     orgName: string;
@@ -85,15 +82,10 @@ export const createTRPCContext = cache(
       activeMembership = memberships[0]!; // Safe: we already checked memberships.length > 0
     }
 
-    // MFA enforcement: check status, include in context
-    const mfaResult = await checkMFARequirement(activeMembership.role, userId);
-    const mfaState: MfaState = mfaResult?.state ?? "not_required";
-
     return {
       userId,
       orgId: activeMembership.orgId,
       role: activeMembership.role,
-      mfaState,
       availableOrgs: memberships.map((m) => ({
         orgId: m.orgId,
         orgName: m.organization.name,
@@ -127,7 +119,6 @@ const timingMiddleware = t.middleware(async ({ path, next }) => {
   return result;
 });
 
-
 /**
  * Protected procedure — requires an authenticated session.
  * Context is built once per request (see cache() above), not once per procedure.
@@ -137,34 +128,30 @@ export const protectedProcedure = t.procedure
   .use(async ({ next }) => {
     const ctx = await createTRPCContext();
     if (!ctx) throw new TRPCError({ code: "UNAUTHORIZED" });
-    // ponytail: MFA gate — reject only if enrolled but session isn't AAL2. not_enrolled is allowed for new owner onboarding.
-    if (ctx.mfaState === "enrolled_unverified") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: `MFA required: ${ctx.mfaState}`,
-      });
-    }
     return next({ ctx });
   });
 
 /**
  * Mutation procedure that applies user-scoped rate limiting (max 30 writes/min).
  */
-export const rateLimitedProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  try {
-    const { mutationRateLimiter } = await import("@/lib/redis");
-    if (mutationRateLimiter) {
-      const { success } = await mutationRateLimiter.limit(ctx.userId);
-      if (!success) {
-        throw new TRPCError({
-          code: "TOO_MANY_REQUESTS",
-          message: "You have exceeded the rate limit of 30 writes per minute. Please try again later.",
-        });
+export const rateLimitedProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    try {
+      const { mutationRateLimiter } = await import("@/lib/redis");
+      if (mutationRateLimiter) {
+        const { success } = await mutationRateLimiter.limit(ctx.userId);
+        if (!success) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message:
+              "You have exceeded the rate limit of 30 writes per minute. Please try again later.",
+          });
+        }
       }
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      console.error("[rateLimitedProcedure] Rate limiting check error:", error);
     }
-  } catch (error) {
-    if (error instanceof TRPCError) throw error;
-    console.error("[rateLimitedProcedure] Rate limiting check error:", error);
-  }
-  return next();
-});
+    return next();
+  },
+);

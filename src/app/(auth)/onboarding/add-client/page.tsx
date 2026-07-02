@@ -28,7 +28,7 @@ export default async function AddClientPage() {
       });
     },
   );
-
+ 
   if (!existingMembership) {
     redirect("/onboarding");
   }

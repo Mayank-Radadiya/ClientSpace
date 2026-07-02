@@ -1,7 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { getActiveOrgId } from "./orgSwitcher";
-import { requireMfaSatisfied, MfaRequiredError } from "./mfa";
-export { MfaRequiredError };
 import { getOrgMemberships } from "./getOrgMemberships";
 
 /**
@@ -12,7 +10,6 @@ import { getOrgMemberships } from "./getOrgMemberships";
  * Never use the bare `db` export from @/db in Server Actions.
  *
  * Returns null if the user is unauthenticated or has no org membership.
- * Throws MfaRequiredError if MFA is required but not satisfied.
  */
 export async function getSessionContext() {
   const supabase = await createClient();
@@ -38,9 +35,6 @@ export async function getSessionContext() {
   if (!activeMembership) {
     activeMembership = memberships[0]!; // Safe: we already checked memberships.length > 0
   }
-
-  // ponytail: MFA enforcement — throws MfaRequiredError if not satisfied
-  await requireMfaSatisfied(activeMembership.role, user.id);
 
   return {
     userId: user.id,

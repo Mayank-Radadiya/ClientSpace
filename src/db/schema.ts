@@ -884,8 +884,6 @@ export const authEventEnum = pgEnum("auth_event", [
   "password_change",
   "password_reset_request",
   "password_reset_complete",
-  "mfa_enrollment",
-  "mfa_verification",
   "role_change",
   "invite_accepted",
   "account_locked",
