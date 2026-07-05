@@ -24,7 +24,7 @@ export function ProblemSection() {
   ];
 
   return (
-    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-surface border-b border-lp-border">
+    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-surface border-t border-b border-lp-border">
       <div className="max-w-7xl mx-auto px-6 lg:px-16">
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">

@@ -1,75 +1,92 @@
-"use client";
-
-import React from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+
+const LINK_COLS = {
+  PRODUCT: [
+    { name: "Features", href: "#" },
+    { name: "Pricing", href: "#pricing" },
+    { name: "Changelog", href: "#" },
+    { name: "Roadmap", href: "#" },
+  ],
+  RESOURCES: [
+    { name: "Help Center", href: "#" },
+    { name: "Guides", href: "#" },
+    { name: "Community", href: "#" },
+    { name: "Status", href: "#" },
+  ],
+  LEGAL: [
+    { name: "Privacy", href: "/privacy" },
+    { name: "Terms", href: "/terms" },
+    { name: "Security", href: "#" },
+    { name: "Cookies", href: "#" },
+  ],
+  SOCIAL: [
+    { name: "Twitter", href: "#" },
+    { name: "GitHub", href: "#" },
+    { name: "RSS", href: "#" },
+    { name: "Email", href: "#" },
+  ],
+};
 
 export function Footer() {
   return (
-    <footer className="w-full bg-lp-bg border-t border-lp-border pt-24 pb-12 px-6 lg:px-16 relative z-10">
-      <div className="max-w-7xl mx-auto">
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-24">
-          
-          {/* Brand Column */}
-          <div className="flex flex-col gap-6">
-            <Link href="/" className="font-serif text-2xl tracking-tight text-lp-text font-bold">
-              ClientSpace.
-            </Link>
-            <p className="text-lp-text-secondary text-sm font-body max-w-xs leading-relaxed">
-              The operating system for independent studios and freelance professionals. Stop chasing clients, start creating.
-            </p>
-          </div>
+    <footer className="relative overflow-hidden border-t border-[#1a1a1a] bg-[#0a0a0a]">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none">
+        <span className="font-display text-[clamp(80px,15vw,120px)] leading-none tracking-[-0.03em] text-[#fafafa] italic opacity-[0.03]">
+          ClientSpace
+        </span>
+      </div>
 
-          {/* Product Links */}
-          <div className="flex flex-col gap-4">
-            <h4 className="text-lp-text font-bold uppercase tracking-wider text-xs mb-2">Product</h4>
-            <Link href="#features" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Features</Link>
-            <Link href="#pricing" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Pricing</Link>
-            <Link href="#" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Security</Link>
-            <Link href="#" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Changelog</Link>
+      <div className="relative mx-auto max-w-[960px] px-6 py-20">
+        <div className="mb-16">
+          <div className="flex max-w-md gap-3">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 border border-[#333] bg-transparent px-4 py-3 font-mono text-[12px] text-[#fafafa] transition-colors outline-none placeholder:text-[#555] focus:border-[#555]"
+            />
+            <button className="border border-[#333] px-6 py-3 font-mono text-[11px] tracking-widest text-[#a0a0a0] uppercase transition-all duration-200 hover:border-[#555] hover:text-[#fafafa]">
+              Subscribe
+            </button>
           </div>
+        </div>
 
-          {/* Resources Links */}
-          <div className="flex flex-col gap-4">
-            <h4 className="text-lp-text font-bold uppercase tracking-wider text-xs mb-2">Resources</h4>
-            <Link href="#" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Help Center</Link>
-            <Link href="#" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Agency Guides</Link>
-            <Link href="#" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Templates</Link>
-            <Link href="#" className="text-lp-text-secondary hover:text-lp-text text-sm font-body transition-colors">Community</Link>
-          </div>
+        <p className="mb-16 max-w-xl font-sans text-[14px] leading-[1.7] text-[#a0a0a0]">
+          Quiet is the product. Forty-one teams have run ClientSpace for ninety
+          days. None of them have asked to go back.
+        </p>
 
-          {/* Newsletter */}
-          <div className="flex flex-col gap-4">
-            <h4 className="text-lp-text font-bold uppercase tracking-wider text-xs mb-2">The Studio Letter</h4>
-            <p className="text-lp-text-secondary text-sm font-body leading-relaxed mb-2">
-              Essays on pricing, positioning, and running a profitable creative practice.
-            </p>
-            <div className="flex gap-2 relative border-b border-lp-text pb-2">
-              <input 
-                type="email" 
-                placeholder="Email address" 
-                className="bg-transparent border-none p-0 text-sm text-lp-text font-body w-full focus:outline-none focus:ring-0 placeholder:text-lp-text-secondary/50"
-              />
-              <button className="text-lp-text hover:text-lp-accent transition-colors">
-                <ArrowRight className="w-4 h-4" />
-              </button>
+        <div className="mb-12 border-b border-[#1a1a1a]" />
+
+        <div className="mb-16 grid grid-cols-2 gap-8 md:grid-cols-4">
+          {Object.entries(LINK_COLS).map(([section, links]) => (
+            <div key={section} className="space-y-4">
+              <h4 className="font-mono text-[10px] tracking-[0.15em] text-[#555] uppercase">
+                {section}
+              </h4>
+              {links.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="block font-sans text-[13px] text-[#a0a0a0] transition-colors hover:text-[#fafafa]"
+                >
+                  {link.name}
+                </Link>
+              ))}
             </div>
-          </div>
-
+          ))}
         </div>
 
-        {/* Bottom Row */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 border-t border-lp-border pt-8">
-          <div className="text-lp-text-secondary text-xs font-body">
-            &copy; {new Date().getFullYear()} ClientSpace Inc. All rights reserved.
-          </div>
-          <div className="flex gap-6 text-xs text-lp-text-secondary font-body">
-            <Link href="/terms" className="hover:text-lp-text transition-colors">Terms of Service</Link>
-            <Link href="/privacy" className="hover:text-lp-text transition-colors">Privacy Policy</Link>
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-[#1a1a1a] pt-6 md:flex-row">
+          <span className="font-mono text-[10px] text-[#555]">
+            © {new Date().getFullYear()} ClientSpace. All rights reserved.
+          </span>
+          <div className="flex gap-6 font-mono text-[10px] text-[#555]">
+            <span>EMAIL</span>
+            <span>TWITTER</span>
+            <span>GITHUB</span>
+            <span>RSS</span>
           </div>
         </div>
-
       </div>
     </footer>
   );

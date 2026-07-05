@@ -929,6 +929,41 @@ body {
   animation: page-enter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Grid pattern overlay ──────────────────────────────────── */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+.dark .bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+}
+
+/* ── Dashboard card hover ──────────────────────────────────── */
+.dashboard-card {
+  @apply rounded-xl border border-lp-border bg-lp-bg/60 p-3 transition-all hover:border-lp-text/10 hover:shadow-sm;
+}
+
+/* ── Spec-sheet zone background ────────────────────────────── */
+.spec-zone {
+  @apply relative bg-lp-bg p-8 transition-colors md:p-10;
+}
+.spec-zone:hover {
+  background-color: var(--lp-surface);
+}
+
+/* ── Scroll-reveal utility ─────────────────────────────────── */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-reveal-up {
+  animation: reveal-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ── Skeleton shimmer ──────────────────────────────────────── */
 @keyframes skeleton-shimmer {
   0% {
@@ -991,4 +1026,136 @@ body {
   .pd-pulse-critical {
     animation: none !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LANDING PAGE — Meridian-style layout utilities
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Container — centered, max-width, padded */
+.container {
+  width: 100%;
+  max-width: 80rem; /* 1280px */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+/* Hero gradient overlay references lp-text via CSS var */
+:root {
+  --color-lp-text: var(--lp-text);
+  --color-lp-bg: var(--lp-bg);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MERIDIAN — Monochrome dark editorial theme
+   ═══════════════════════════════════════════════════════════════ */
+
+.meridian {
+  --meridian-bg: #0a0a0a;
+  --meridian-card: #111111;
+  --meridian-card-hover: #181818;
+  --meridian-border: #222222;
+  --meridian-border-hover: #3a3a3a;
+  --meridian-text-primary: #fafafa;
+  --meridian-text-secondary: #a0a0a0;
+  --meridian-text-muted: #555555;
+  --meridian-cta-bg: #fafafa;
+  --meridian-cta-text: #0a0a0a;
+}
+
+.meridian {
+  background-color: var(--meridian-bg);
+  color: var(--meridian-text-primary);
+}
+
+/* Scroll-snap carousel */
+.meridian .carousel-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+.meridian .carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animated counter text */
+.meridian .stat-number {
+  font-size: 80px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #fafafa;
+}
+
+@media (max-width: 768px) {
+  .meridian .stat-number {
+    font-size: 56px;
+  }
+}
+
+/* Dotted leader lines for pricing */
+.meridian .leader-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #a0a0a0;
+}
+.meridian .leader-row::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px dotted #333;
+  margin: 0 4px;
+  position: relative;
+  top: -3px;
+}
+
+/* Section wrapper */
+.meridian .section-wrapper {
+  border-top: 1px solid #1a1a1a;
+  padding: 80px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .meridian .section-wrapper {
+    padding: 48px 20px;
+  }
+}
+
+/* Nav bracket links */
+.meridian .nav-link::before {
+  content: "[ ";
+  opacity: 0;
+  transition: opacity 150ms;
+}
+.meridian .nav-link::after {
+  content: " ]";
+  opacity: 0;
+  transition: opacity 150ms;
+}
+.meridian .nav-link:hover::before,
+.meridian .nav-link:hover::after {
+  opacity: 1;
+}
+
+/* Nav link active state */
+.meridian .nav-link.active::before,
+.meridian .nav-link.active::after {
+  opacity: 1;
 }

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Nav } from "@/components/landing/Nav";
+import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "ClientSpace | The client portal for agencies",
-  description: "Replace scattered email chains and PDF invoices with a single, beautiful client portal.",
+  title: "ClientSpace | The client portal for design studios",
+  description:
+    "Replace scattered email chains and PDF invoices with a single, beautiful client portal for your design studio.",
 };
 
 export default function MarketingLayout({
@@ -13,8 +14,8 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-indigo-500/30">
-      <Nav />
+    <div className="meridian flex min-h-screen flex-col bg-[#0a0a0a] text-[#fafafa] antialiased selection:bg-[#fafafa]/20 selection:text-[#fafafa]">
+      <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>

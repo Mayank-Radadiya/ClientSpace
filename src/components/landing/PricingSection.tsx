@@ -1,101 +1,234 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { Check } from "lucide-react";
+import Link from "next/link";
+
+const TIERS = [
+  {
+    name: "Studio",
+    slug: "studio",
+    price: { monthly: 29, annual: 24 },
+    description: "For independent freelancers getting started.",
+    cta: "Start free trial",
+    href: "/signup",
+    popular: false,
+    features: [
+      "Up to 5 active projects",
+      "Branded client portal",
+      "File upload & proofing",
+      "Invoice generation",
+      "Stripe & ACH payments",
+      "Email support",
+      "50GB file storage",
+    ],
+  },
+  {
+    name: "Pro",
+    slug: "pro",
+    price: { monthly: 79, annual: 65 },
+    description: "For growing studios with multiple clients.",
+    cta: "Start free trial",
+    href: "/signup",
+    popular: true,
+    features: [
+      "Unlimited active projects",
+      "Custom domain & white-label",
+      "Smart approvals & sign-offs",
+      "Automated payment reminders",
+      "Team collaboration (unlimited)",
+      "Priority support channel",
+      "500GB file storage",
+      "API access & webhooks",
+    ],
+  },
+  {
+    name: "Agency",
+    slug: "agency",
+    price: { monthly: 199, annual: 165 },
+    description: "For agencies at scale with custom needs.",
+    cta: "Talk to us",
+    href: "/contact",
+    popular: false,
+    features: [
+      "Everything in Pro",
+      "SSO & SCIM provisioning",
+      "Custom contract templates",
+      "Dedicated account manager",
+      "99.99% SLA guarantee",
+      "Unlimited storage",
+      "Custom integrations",
+      "Onboarding concierge",
+    ],
+  },
+];
 
 export function PricingSection() {
   const [isAnnual, setIsAnnual] = useState(true);
 
   return (
-    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-bg border-t border-lp-border" id="pricing">
-      <div className="max-w-7xl mx-auto px-6 lg:px-16 relative z-10">
-        
-        <div className="text-center mb-16">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl md:text-5xl font-serif text-lp-text mb-6"
-          >
-            Honest pricing. <span className="italic text-lp-text-secondary">No hidden fees.</span>
-          </motion.h2>
-          <motion.p
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true, margin: "-100px" }}
-             transition={{ duration: 0.5, delay: 0.1 }}
-             className="text-lp-text-secondary text-lg max-w-xl mx-auto font-body mb-10"
-          >
-            A single straightforward plan designed for independent professionals and boutique studios.
-          </motion.p>
+    <section
+      className="relative w-full border-t border-lp-border bg-lp-bg py-24 md:py-32"
+      id="pricing"
+    >
+      <div className="mx-auto max-w-7xl px-6 lg:px-16">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5 }}
+          className="mb-16 flex items-start justify-between border-b border-lp-border pb-6"
+        >
+          <div>
+            <div className="mb-3 font-mono text-[11px] font-medium tracking-[0.15em] text-[#6C63FF]">
+              § LEDGER / 04
+            </div>
+            <h2 className="font-display text-lp-text text-3xl font-bold tracking-tight md:text-5xl">
+              Simple pricing.{" "}
+              <span className="text-lp-text-secondary">No surprises.</span>
+            </h2>
+          </div>
+          <div className="hidden flex-col items-end gap-3 md:flex">
+            {/* Billing toggle */}
+            <div className="flex items-center gap-3">
+              <span className={`font-mono text-xs transition-colors ${!isAnnual ? "text-lp-text" : "text-lp-text-secondary"}`}>
+                Monthly
+              </span>
+              <button
+                onClick={() => setIsAnnual(!isAnnual)}
+                className="relative flex h-6 w-10 items-center rounded-full border border-lp-border bg-lp-surface px-0.5 transition-colors"
+              >
+                <motion.div
+                  animate={{ x: isAnnual ? 16 : 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="h-4 w-4 rounded-full bg-[#6C63FF] shadow-sm"
+                />
+              </button>
+              <span className={`font-mono text-xs transition-colors ${isAnnual ? "text-lp-text" : "text-lp-text-secondary"}`}>
+                Annually
+              </span>
+              <AnimatePresence>
+                {isAnnual && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="rounded-[2px] bg-[#6C63FF]/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#6C63FF]"
+                  >
+                    Save 20%
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
 
-          {/* Billing Toggle */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex items-center justify-center gap-4"
+        {/* Mobile toggle */}
+        <div className="mb-8 flex items-center justify-center gap-3 md:hidden">
+          <span className={`font-mono text-xs transition-colors ${!isAnnual ? "text-lp-text" : "text-lp-text-secondary"}`}>
+            Monthly
+          </span>
+          <button
+            onClick={() => setIsAnnual(!isAnnual)}
+            className="relative flex h-6 w-10 items-center rounded-full border border-lp-border bg-lp-surface px-0.5"
           >
-            <span className={`text-sm font-body ${!isAnnual ? 'text-lp-text font-medium' : 'text-lp-text-secondary'}`}>Monthly</span>
-            <button 
-              onClick={() => setIsAnnual(!isAnnual)}
-              className="w-14 h-8 rounded-full bg-lp-surface border border-lp-border relative flex items-center px-1 transition-colors hover:border-lp-text/20"
-            >
-              <div 
-                className={`w-6 h-6 rounded-full bg-lp-text transition-transform duration-300 ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`} 
-              />
-            </button>
-            <span className={`text-sm font-body flex items-center gap-2 ${isAnnual ? 'text-lp-text font-medium' : 'text-lp-text-secondary'}`}>
-              Annually <span className="text-[10px] bg-lp-accent/10 text-lp-accent px-2 py-0.5 rounded-full border border-lp-accent/20 font-bold uppercase tracking-wider">Save 20%</span>
+            <motion.div
+              animate={{ x: isAnnual ? 16 : 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="h-4 w-4 rounded-full bg-[#6C63FF] shadow-sm"
+            />
+          </button>
+          <span className={`font-mono text-xs transition-colors ${isAnnual ? "text-lp-text" : "text-lp-text-secondary"}`}>
+            Annually
+          </span>
+          {isAnnual && (
+            <span className="rounded-[2px] bg-[#6C63FF]/10 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#6C63FF]">
+              Save 20%
             </span>
-          </motion.div>
+          )}
         </div>
 
-        <div className="max-w-md mx-auto">
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative bg-lp-surface rounded-2xl border border-lp-border p-8 md:p-12 shadow-xl flex flex-col"
-          >
-            <h3 className="text-2xl font-serif text-lp-text mb-2">Professional</h3>
-            <p className="text-lp-text-secondary text-sm mb-8 font-body">Everything you need to run your client business.</p>
-            
-            <div className="mb-8 flex items-baseline gap-1 border-b border-lp-border pb-8">
-              <span className="text-6xl font-bold text-lp-text tracking-tight">${isAnnual ? '29' : '39'}</span>
-              <span className="text-lp-text-secondary font-body">/month</span>
-            </div>
-
-            <div className="flex flex-col gap-4 flex-1 mb-10">
-              {[
-                "Unlimited active projects",
-                "Custom domain & white-labeling",
-                "Smart approvals & sign-offs",
-                "Stripe integration for zero-fee invoicing",
-                "Automated email follow-ups",
-                "Up to 500GB file storage",
-                "Priority support channel"
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-lp-accent/10 flex items-center justify-center shrink-0">
-                    <Check className="w-3 h-3 text-lp-accent" />
-                  </div>
-                  <span className="text-lp-text text-sm font-body font-medium">{feature}</span>
+        {/* Cards — gap-px editorial grid */}
+        <div className="bg-lp-border grid grid-cols-1 gap-px md:grid-cols-3">
+          {TIERS.map((tier, idx) => (
+            <motion.div
+              key={tier.slug}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{
+                duration: 0.4,
+                delay: 0.08 + idx * 0.1,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className={`relative flex flex-col p-8 transition-colors md:p-10 ${
+                tier.popular
+                  ? "bg-lp-text text-lp-bg"
+                  : "bg-lp-bg hover:bg-lp-surface"
+              }`}
+            >
+              {/* Popular badge */}
+              {tier.popular && (
+                <div className="mb-4 self-start rounded-[2px] bg-[#6C63FF] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white">
+                  Teams&apos; pick
                 </div>
-              ))}
-            </div>
+              )}
 
-            <button className="w-full py-4 rounded-xl bg-lp-text text-lp-bg font-bold font-body transition-transform active:scale-[0.98] hover:bg-lp-text/90">
-              Start Free Trial
-            </button>
-            <p className="text-center text-xs text-lp-text-secondary mt-4 font-body">14-day free trial. No credit card required.</p>
-          </motion.div>
+              {/* Tier name + description */}
+              <div className="mb-6">
+                <div className="font-mono text-[11px] font-medium tracking-[0.15em] text-[#6C63FF]">
+                  {String(idx + 1).padStart(2, "0")} / {tier.slug.toUpperCase()}
+                </div>
+                <h3 className={`font-display mt-1 text-2xl font-bold ${tier.popular ? "text-lp-bg" : "text-lp-text"}`}>
+                  {tier.name}
+                </h3>
+                <p className={`font-body mt-1 text-sm ${tier.popular ? "text-lp-bg/50" : "text-lp-text-secondary"}`}>
+                  {tier.description}
+                </p>
+              </div>
 
+              {/* Price */}
+              <div className={`mb-8 flex items-baseline gap-1 border-b pb-6 ${tier.popular ? "border-lp-bg/15" : "border-lp-border"}`}>
+                <span className={`font-display text-5xl font-bold tracking-tight ${tier.popular ? "text-lp-bg" : "text-lp-text"}`}>
+                  ${isAnnual ? tier.price.annual : tier.price.monthly}
+                </span>
+                <span className={`font-body text-sm ${tier.popular ? "text-lp-bg/40" : "text-lp-text-secondary"}`}>
+                  /month
+                </span>
+              </div>
+
+              {/* Features */}
+              <div className="mb-8 flex flex-col gap-3">
+                {tier.features.map((feat, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <Check className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${tier.popular ? "text-[#6C63FF]" : "text-[#6C63FF]"}`} />
+                    <span className={`font-body text-sm ${tier.popular ? "text-lp-bg/70" : "text-lp-text"}`}>
+                      {feat}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <div className="mt-auto">
+                <Link
+                  href={tier.href}
+                  className={`flex w-full items-center justify-center rounded-[3px] py-3 text-sm font-semibold transition-all active:scale-[0.98] ${
+                    tier.popular
+                      ? "bg-[#6C63FF] text-white hover:bg-[#5B54EE]"
+                      : "border border-lp-border bg-transparent text-lp-text hover:border-lp-text/20 hover:bg-lp-surface"
+                  }`}
+                >
+                  {tier.cta}
+                </Link>
+                <p className={`font-body mt-3 text-center text-xs ${tier.popular ? "text-lp-bg/30" : "text-lp-text-secondary"}`}>
+                  {isAnnual ? "Billed annually" : "Billed monthly"} · Free trial · No card needed
+                </p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

@@ -5,75 +5,123 @@ import { motion } from "motion/react";
 
 const TESTIMONIALS = [
   {
-    content: "ClientSpace completely changed how my agency looks to our clients. We went from looking like a scattered mess of emails to a premium studio.",
+    content:
+      "ClientSpace completely changed how my agency looks to our clients. We went from looking like a scattered mess of emails to a premium studio that justifies its rates.",
     author: "Sarah Jenkins",
     role: "Founder, Studio XYZ",
-    featured: true,
+    location: "Brooklyn, NY",
+    frame: "01",
+    avatar: "SJ",
   },
   {
-    content: "My clients literally compliment the portal. I've been able to raise my rates by 30% just because the perceived value of my service is so much higher now.",
+    content:
+      "My clients literally compliment the portal. I've been able to raise my rates by 30% because the perceived value of my service is so much higher now.",
     author: "Elena Rodriguez",
     role: "Marketing Consultant",
-    featured: false,
+    location: "Austin, TX",
+    frame: "02",
+    avatar: "ER",
   },
   {
-    content: "Integrated invoicing that ties directly to project milestones is a game changer. I get paid faster and don't have to awkwardly follow up.",
+    content:
+      "Integrated invoicing that ties to project milestones is a game changer. I get paid faster and don't have to awkwardly follow up for overdue payments.",
     author: "David Kim",
     role: "Web Developer",
-    featured: false,
-  }
+    location: "Seattle, WA",
+    frame: "03",
+    avatar: "DK",
+  },
+  {
+    content:
+      "Our enterprise clients expect a polished experience. ClientSpace delivers that out of the box. We onboarded 14 clients in the first month with zero friction.",
+    author: "Marcus Webb",
+    role: "Operations Director, North Studio",
+    location: "Chicago, IL",
+    frame: "04",
+    avatar: "MW",
+  },
 ];
 
 export function SocialProof() {
-  const featured = TESTIMONIALS.find(t => t.featured);
-  const others = TESTIMONIALS.filter(t => !t.featured);
-
   return (
-    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-bg" id="testimonials">
-      <div className="max-w-7xl mx-auto px-6 lg:px-16 flex flex-col items-center">
-        
-        {/* Large Featured Pull Quote */}
-        {featured && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-4xl text-center mb-24"
-          >
-            <span className="text-lp-accent text-6xl font-serif leading-none opacity-50 block mb-6">"</span>
-            <h2 className="text-3xl md:text-5xl font-serif text-lp-text leading-[1.2] mb-10">
-              {featured.content}
-            </h2>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-lp-text font-bold uppercase tracking-widest text-xs">{featured.author}</span>
-              <span className="text-lp-text-secondary text-sm italic font-serif">{featured.role}</span>
+    <section
+      className="relative w-full bg-lp-bg py-24 md:py-32"
+      id="testimonials"
+    >
+      <div className="mx-auto max-w-7xl px-6 lg:px-16">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5 }}
+          className="mb-16 flex items-start justify-between border-b border-lp-border pb-6"
+        >
+          <div>
+            <div className="mb-3 font-mono text-[11px] font-medium tracking-[0.15em] text-[#6C63FF]">
+              § FIELD NOTES / 03
             </div>
-          </motion.div>
-        )}
+            <h2 className="font-display text-lp-text text-3xl font-bold tracking-tight md:text-5xl">
+              Trusted by studios worldwide.
+            </h2>
+          </div>
+          <div className="text-lp-text-secondary hidden text-right font-mono text-[11px] leading-relaxed md:block">
+            <div>04 accounts</div>
+            <div>Verified Q2 2026</div>
+          </div>
+        </motion.div>
 
-        {/* Secondary Testimonials */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 w-full max-w-5xl border-t border-lp-border pt-16">
-          {others.map((testimonial, idx) => (
+        {/* Testimonials — editorial 2-col grid */}
+        <div className="bg-lp-border grid grid-cols-1 gap-px md:grid-cols-2">
+          {TESTIMONIALS.map((t, idx) => (
             <motion.div
-              key={idx}
+              key={t.author}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.5, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col"
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{
+                duration: 0.5,
+                delay: idx * 0.08,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="group bg-lp-bg p-8 transition-colors hover:bg-lp-surface md:p-10"
             >
-              <p className="text-lp-text-secondary text-lg leading-relaxed font-body mb-6">
-                "{testimonial.content}"
-              </p>
-              <div className="flex flex-col gap-0.5 mt-auto">
-                <span className="text-lp-text font-bold uppercase tracking-wider text-[11px]">{testimonial.author}</span>
-                <span className="text-lp-text-secondary text-sm italic font-serif">{testimonial.role}</span>
+              {/* Frame header */}
+              <div className="mb-6 flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-lp-border bg-[#6C63FF]/8 font-mono text-sm font-bold text-[#6C63FF] ring-1 ring-[#6C63FF]/15 transition-all grayscale group-hover:grayscale-0">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-lp-text">{t.author}</div>
+                    <div className="font-body text-xs text-lp-text-secondary">{t.role}</div>
+                  </div>
+                </div>
+                <div className="text-lp-text-secondary hidden text-right font-mono text-[10px] md:block">
+                  <div>Frame {t.frame}/04</div>
+                  <div className="mt-0.5">{t.location}</div>
+                </div>
+              </div>
+
+              {/* Quote */}
+              <div className="relative">
+                <span className="absolute -top-2 -left-1 select-none font-serif text-4xl leading-none text-[#6C63FF]/15">
+                  &ldquo;
+                </span>
+                <p className="font-body relative z-10 pl-4 text-base leading-relaxed text-lp-text-secondary">
+                  {t.content}
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-6 flex items-center gap-3 border-t border-lp-border pt-4">
+                <span className="rounded-[2px] border border-lp-border bg-lp-bg px-2 py-0.5 font-mono text-[10px] text-lp-text-secondary">
+                  {t.location}
+                </span>
               </div>
             </motion.div>
           ))}
         </div>
-
       </div>
     </section>
   );

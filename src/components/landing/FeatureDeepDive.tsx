@@ -6,20 +6,31 @@ import { Palette, CheckSquare, Zap, LayoutDashboard, CheckCircle2 } from "lucide
 
 export function FeatureDeepDive() {
   return (
-    <section className="w-full py-24 md:py-32 relative z-10 bg-[#0C0D14]">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-text">
+      <div className="max-w-7xl mx-auto px-6 lg:px-16">
         
-        <div className="text-center mb-16 md:mb-24">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="text-3xl md:text-5xl font-bold text-white mb-6 font-body tracking-tight"
-          >
-            Everything you need to look like a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#34D399] to-[#10B981]">$1M agency.</span>
-          </motion.h2>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5 }}
+          className="mb-16 flex items-start justify-between border-b border-lp-bg/10 pb-6"
+        >
+          <div>
+            <div className="mb-3 font-mono text-[11px] font-medium tracking-[0.15em] text-[#6C63FF]">
+              § DEEP DIVE / 03
+            </div>
+            <h2 className="font-display text-3xl font-bold tracking-tight text-lp-bg md:text-5xl">
+              Everything you need to look
+              <br />
+              <span className="text-lp-bg/40">like a $1M agency.</span>
+            </h2>
+          </div>
+          <div className="hidden text-right font-mono text-[11px] leading-relaxed text-lp-bg/30 md:block">
+            <div>4 capabilities</div>
+            <div>Fully integrated</div>
+          </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           

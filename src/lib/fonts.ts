@@ -1,46 +1,24 @@
-import {
-  Inter,
-  JetBrains_Mono,
-  Plus_Jakarta_Sans,
-  DM_Sans,
-  DM_Mono,
-  Barlow_Condensed,
-} from "next/font/google";
+import { Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 
-export const inter = Inter({
+export const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-inter",
+  style: ["italic"],
+  weight: ["400"],
+  variable: "--font-display",
   display: "swap",
 });
 
-export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+export const geistSans = localFont({
+  src: "../../public/fonts/GeistVF.woff2",
+  variable: "--font-sans",
+  weight: "100 900",
+  display: "swap",
+});
+
+export const geistMono = localFont({
+  src: "../../public/fonts/GeistMonoVF.woff2",
   variable: "--font-mono",
-  display: "swap",
-});
-
-export const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-jakarta",
-  display: "swap",
-});
-
-export const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  display: "swap",
-});
-
-export const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-dm-mono",
-  display: "swap",
-});
-
-export const barlowCondensed = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-barlow-condensed",
+  weight: "100 900",
   display: "swap",
 });

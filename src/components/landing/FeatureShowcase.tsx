@@ -2,113 +2,146 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { Check } from "lucide-react";
+
+const zones = [
+  {
+    id: "A",
+    title: "Client Portal",
+    description:
+      "Every client gets a beautiful, branded portal with their own URL. Secure magic links — no password required.",
+    metric: "4.9★",
+    label: "avg. client satisfaction",
+  },
+  {
+    id: "B",
+    title: "Project Hub",
+    description:
+      "Timelines, milestones, and deliverables in one place. Clients see progress. Your team sees the full picture.",
+    metric: "98%",
+    label: "projects delivered on time",
+  },
+  {
+    id: "C",
+    title: "File Proofing",
+    description:
+      "Upload designs, collect frame-by-frame feedback, and get official sign-offs. No more hunting through email threads.",
+    metric: "3.2×",
+    label: "faster approval cycles",
+  },
+  {
+    id: "D",
+    title: "Smart Invoicing",
+    description:
+      "Invoices auto-generate from project milestones. Clients pay via card or ACH — right inside their portal.",
+    metric: "47%",
+    label: "faster payment collection",
+  },
+  {
+    id: "E",
+    title: "Automated Reminders",
+    description:
+      "Stop chasing. We gently nudge clients about pending approvals and unpaid invoices. Escalation flows when needed.",
+    metric: "12h",
+    label: "avg. response time saved/week",
+  },
+  {
+    id: "F",
+    title: "White-Label",
+    description:
+      "Custom domain, your brand colors, your logo. From the portal to the invoices — everything looks like your studio.",
+    metric: "30%",
+    label: "avg. rate increase reported",
+  },
+];
 
 export function FeatureShowcase() {
-  const features = [
-    {
-      id: "agency-view",
-      label: "Project Management",
-      title: "Control the chaos behind the scenes.",
-      description: "Manage timelines, assign tasks, and track internal progress without your clients seeing the messy middle. Keep your team aligned and your deadlines intact.",
-      benefits: [
-        "Internal kanban boards",
-        "Private team discussions",
-        "Time tracking and capacity planning"
-      ],
-      imagePosition: "right",
-    },
-    {
-      id: "client-view",
-      label: "Client Portals",
-      title: "A premium experience they will love.",
-      description: "Give every client a branded, white-labeled portal where they can view deliverables, leave feedback, and track project status in real-time.",
-      benefits: [
-        "Custom branding per client",
-        "One-click file approvals",
-        "Centralized feedback threads"
-      ],
-      imagePosition: "left",
-    },
-    {
-      id: "invoicing",
-      label: "Invoicing",
-      title: "Get paid faster, with zero friction.",
-      description: "Attach invoices directly to milestones. When clients approve a deliverable, they are immediately prompted to pay—securely and seamlessly via Stripe.",
-      benefits: [
-        "Automated payment reminders",
-        "Stripe & Bank transfer integration",
-        "Subscription & retainer billing"
-      ],
-      imagePosition: "right",
-    }
-  ];
-
   return (
-    <section className="w-full py-24 md:py-32 relative z-10 bg-lp-bg" id="features">
-      <div className="max-w-7xl mx-auto px-6 lg:px-16 flex flex-col gap-32">
-        
-        {features.map((feature, idx) => (
-          <div 
-            key={feature.id} 
-            className={`flex flex-col ${feature.imagePosition === "left" ? "lg:flex-row-reverse" : "lg:flex-row"} gap-12 lg:gap-24 items-center`}
-          >
-            {/* Text Content */}
-            <motion.div 
+    <section
+      className="relative w-full border-t border-lp-border bg-lp-bg py-24 md:py-32"
+      id="features"
+    >
+      {/* Section header */}
+      <div className="mx-auto mb-16 max-w-7xl px-6 lg:px-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-start justify-between border-b border-lp-border pb-6"
+        >
+          <div>
+            <div className="mb-3 font-mono text-[11px] font-medium tracking-[0.15em] text-[#6C63FF]">
+              § SPEC / 01
+            </div>
+            <h2 className="font-display text-lp-text text-3xl font-bold tracking-tight md:text-5xl">
+              ClientSpace, at a glance.
+            </h2>
+          </div>
+          <div className="text-lp-text-secondary hidden text-right font-mono text-[11px] leading-relaxed md:block">
+            <div>Issued 2026.07</div>
+            <div>Scale 1 : 1</div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Feature grid — spec sheet style with gap-px border trick */}
+      <div className="mx-auto max-w-7xl px-6 lg:px-16">
+        <div className="bg-lp-border grid grid-cols-1 gap-px md:grid-cols-2 lg:grid-cols-3">
+          {zones.map((zone, idx) => (
+            <motion.div
+              key={zone.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full lg:w-1/2 flex flex-col"
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{
+                duration: 0.5,
+                delay: idx * 0.07,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="group relative bg-lp-bg p-8 transition-colors hover:bg-lp-surface md:p-10"
             >
-              <span className="text-lp-accent text-[11px] font-bold tracking-[0.2em] uppercase mb-6">
-                {feature.label}
-              </span>
-              <h3 className="text-4xl md:text-5xl font-serif text-lp-text leading-[1.1] mb-6">
-                {feature.title}
-              </h3>
-              <p className="text-lg text-lp-text-secondary leading-relaxed font-body mb-8">
-                {feature.description}
-              </p>
-              <ul className="flex flex-col gap-4">
-                {feature.benefits.map((benefit, bIdx) => (
-                  <li key={bIdx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-lp-accent-secondary" />
-                    <span className="text-[15px] font-body text-lp-text font-medium">{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+              {/* Zone label */}
+              <div className="mb-4 flex items-center justify-between">
+                <span className="font-mono text-[13px] font-bold text-[#6C63FF]">
+                  Zone {zone.id}
+                </span>
+                <div className="border-lp-border/50 mx-4 h-px flex-1 border-t border-dashed" />
+                <span className="text-lp-text-secondary font-mono text-[10px]">
+                  0{idx + 1}
+                </span>
+              </div>
 
-            {/* Visual/Image Mockup */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full lg:w-1/2 aspect-[4/3] rounded-2xl bg-lp-surface border border-lp-border shadow-xl overflow-hidden relative flex items-center justify-center p-8"
-            >
-              {/* Abstract structural representation instead of random images */}
-              <div className="w-full h-full border border-lp-border/50 rounded-xl bg-lp-bg/50 shadow-inner flex flex-col overflow-hidden">
-                <div className="h-10 border-b border-lp-border/50 flex items-center px-4 bg-lp-surface">
-                   <div className="w-20 h-3 rounded bg-lp-border/50" />
+              <h3 className="font-display text-lp-text mb-3 text-xl font-bold">
+                {zone.title}
+              </h3>
+              <p className="text-lp-text-secondary font-body mb-8 text-sm leading-relaxed">
+                {zone.description}
+              </p>
+
+              {/* Metric */}
+              <div className="border-lp-border border-t pt-6">
+                <div className="font-display text-lp-text text-3xl font-bold">
+                  {zone.metric}
                 </div>
-                <div className="flex-1 p-6 flex gap-4">
-                   <div className="w-1/3 h-full rounded-lg bg-lp-surface border border-lp-border/50 shadow-sm flex flex-col p-4 gap-3">
-                     <div className="w-1/2 h-3 rounded bg-lp-border/50" />
-                     <div className="w-full h-16 rounded bg-lp-border/20 mt-2" />
-                     <div className="w-full h-16 rounded bg-lp-border/20" />
-                   </div>
-                   <div className="w-2/3 h-full rounded-lg bg-lp-surface border border-lp-border/50 shadow-sm flex flex-col p-4 gap-3">
-                     <div className="w-1/3 h-3 rounded bg-lp-border/50" />
-                     <div className="w-full h-24 rounded bg-lp-accent/10 border border-lp-accent/20 mt-2" />
-                   </div>
+                <div className="text-lp-text-secondary mt-0.5 font-mono text-[11px] uppercase tracking-wider">
+                  {zone.label}
                 </div>
               </div>
             </motion.div>
-          </div>
-        ))}
+          ))}
+        </div>
 
+        {/* Footer note */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="border-lp-border text-lp-text-secondary border-t py-6 text-center font-mono text-[11px]"
+        >
+          <span className="text-[#6C63FF]">✦</span> Metrics measured across
+          2,400+ customer teams as of Q2 2026
+        </motion.div>
       </div>
     </section>
   );
