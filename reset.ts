@@ -22,7 +22,7 @@ async function reset() {
     `;
     
     await db.execute(query);
-    console.log("✅ Successfully deleted all data from Supabase!");
+    console.log("✅ Successfully deleted2 all data from Supabase!");
     process.exit(0);
   } catch (error) {
     console.error("❌ Failed to delete data:", error);

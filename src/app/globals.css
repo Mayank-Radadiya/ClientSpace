@@ -58,6 +58,7 @@ body {
   --color-lp-text: var(--lp-text);
   --color-lp-text-secondary: var(--lp-text-secondary);
   --color-lp-accent: var(--lp-accent);
+  --color-lp-accent-subtle: var(--lp-accent-subtle);
   --color-lp-accent-secondary: var(--lp-accent-secondary);
   --color-lp-danger: var(--lp-danger);
 
@@ -144,6 +145,26 @@ body {
       background-position: calc(100% + var(--shiny-width)) 0;
     }
   }
+  --animate-spotlight: spotlight 2s ease 0.25s forwards;
+  @keyframes spotlight {
+    0% {
+      opacity: 0;
+      transform: translate(-72%, -62%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -40%) scale(1);
+    }
+  }
+  --animate-aurora: aurora 60s linear infinite;
+  @keyframes aurora {
+    from {
+      background-position: 50% 50%, 50% 50%;
+    }
+    to {
+      background-position: 350% 50%, 350% 50%;
+    }
+  }
 }
 
 :root {
@@ -218,12 +239,13 @@ body {
   --tracking-normal: 0em;
 
   /* Landing Page Editorial Theme (Light) */
-  --lp-bg: #fafaf9;
+  --lp-bg: #f5f2ed;
   --lp-surface: #ffffff;
-  --lp-border: #e8e4df;
+  --lp-border: #e3ddd5;
   --lp-text: #1a1714;
-  --lp-text-secondary: #6b6560;
-  --lp-accent: #d4a853;
+  --lp-text-secondary: #78716c;
+  --lp-accent: #bd7a4e;
+  --lp-accent-subtle: #f5ede6;
   --lp-accent-secondary: #2d5a3d;
   --lp-danger: #c0392b;
   --font-body: var(--font-inter);
