@@ -230,9 +230,11 @@ export const processNotification = inngest.createFunction(
               if (!emailContent) return { channel: "email", ok: true };
 
               const fromEmail =
+                process.env.DEFAULT_FROM_EMAIL ??
+                process.env.RESEND_FROM_EMAIL ??
                 process.env.NOTIFICATIONS_FROM_EMAIL ??
                 process.env.ONBOARDING_FROM_EMAIL ??
-                "notifications@resend.dev";
+                "ClientSpace <hello@clientspace.qzz.io>";
 
               const { error } = await resend.emails.send({
                 from: fromEmail,

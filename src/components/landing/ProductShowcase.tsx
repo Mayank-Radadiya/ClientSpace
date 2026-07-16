@@ -86,13 +86,13 @@ export function ProductShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-lp-bg pb-16 pt-8 md:pb-24 md:pt-16"
+      className="relative overflow-hidden pt-8 pb-16 md:pt-16 md:pb-24"
     >
       {/* ─── Full-bleed wrapper ─── */}
       <div className="mx-auto max-w-[90rem] px-4 md:px-8">
         {/* Section label */}
-        <div className="mb-12 flex items-center gap-3 px-4 text-[11px] font-medium uppercase tracking-[0.2em] text-lp-text/40 md:px-8">
-          <span className="h-px w-6 bg-lp-text/20" />
+        <div className="text-lp-text/40 mb-12 flex items-center gap-3 px-4 text-[11px] font-medium tracking-[0.2em] uppercase md:px-8">
+          <span className="bg-lp-text/20 h-px w-6" />
           Product
         </div>
 
@@ -122,21 +122,21 @@ export function ProductShowcase() {
           transition={{ type: "spring", stiffness: 200, damping: 25 }}
           className="relative w-full origin-center"
         >
-          <div className="overflow-hidden rounded-sm border border-lp-border bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.18)] lg:rounded-sm">
+          <div className="border-lp-border overflow-hidden rounded-sm border bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.18)] lg:rounded-sm">
             {/* ─── Minimal chrome ─── */}
-            <div className="flex h-10 items-center border-b border-lp-border bg-lp-surface px-4 lg:px-5">
+            <div className="border-lp-border bg-lp-surface flex h-10 items-center border-b px-4 lg:px-5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-medium tracking-wide text-lp-text/40">
+                <span className="text-lp-text/40 text-[10px] font-medium tracking-wide">
                   ClientSpace
                 </span>
               </div>
-              <div className="mx-auto flex h-5 items-center rounded-sm bg-lp-bg px-4">
-                <span className="text-[9px] text-lp-text-secondary/50">
+              <div className="bg-lp-bg mx-auto flex h-5 items-center rounded-sm px-4">
+                <span className="text-lp-text-secondary/50 text-[9px]">
                   app.clientspace.io
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-lp-text/10" />
+                <span className="bg-lp-text/10 h-2 w-2 rounded-full" />
               </div>
             </div>
 
@@ -145,14 +145,14 @@ export function ProductShowcase() {
               {/* Header */}
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-semibold text-lp-text">
+                  <h3 className="text-lp-text text-sm font-semibold">
                     Good morning, Studio
                   </h3>
-                  <p className="mt-0.5 text-xs text-lp-text-secondary">
+                  <p className="text-lp-text-secondary mt-0.5 text-xs">
                     Here&apos;s your week at a glance
                   </p>
                 </div>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-lp-accent/10 text-sm font-medium text-lp-accent">
+                <div className="bg-lp-accent/10 text-lp-accent flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium">
                   RK
                 </div>
               </div>
@@ -162,15 +162,15 @@ export function ProductShowcase() {
                 {METRICS.map((m) => (
                   <div
                     key={m.label}
-                    className="rounded-sm border border-lp-border/60 bg-lp-bg/30 p-3 transition-colors hover:border-lp-border"
+                    className="border-lp-border/60 bg-lp-bg/30 hover:border-lp-border rounded-sm border p-3 transition-colors"
                   >
-                    <div className="text-[10px] uppercase tracking-wider text-lp-text-secondary/70">
+                    <div className="text-lp-text-secondary/70 text-[10px] tracking-wider uppercase">
                       {m.label}
                     </div>
-                    <div className="mt-1 text-xl font-bold text-lp-text">
+                    <div className="text-lp-text mt-1 text-xl font-bold">
                       {m.value}
                     </div>
-                    <div className="mt-0.5 text-[10px] text-lp-text-secondary/60">
+                    <div className="text-lp-text-secondary/60 mt-0.5 text-[10px]">
                       {m.trend}
                     </div>
                   </div>
@@ -179,7 +179,7 @@ export function ProductShowcase() {
 
               {/* ─── Project table ─── */}
               <div>
-                <div className="mb-2 flex border-b border-lp-border pb-2 text-[10px] uppercase tracking-wider text-lp-text-secondary/60">
+                <div className="border-lp-border text-lp-text-secondary/60 mb-2 flex border-b pb-2 text-[10px] tracking-wider uppercase">
                   <span className="w-[30%]">Project</span>
                   <span className="w-[25%]">Client</span>
                   <span className="w-[25%]">Status</span>
@@ -188,12 +188,12 @@ export function ProductShowcase() {
                 {PROJECTS.map((row) => (
                   <div
                     key={row.name}
-                    className="flex items-center border-b border-lp-border/50 py-2.5 text-xs"
+                    className="border-lp-border/50 flex items-center border-b py-2.5 text-xs"
                   >
-                    <span className="w-[30%] font-medium text-lp-text">
+                    <span className="text-lp-text w-[30%] font-medium">
                       {row.name}
                     </span>
-                    <span className="w-[25%] text-lp-text-secondary">
+                    <span className="text-lp-text-secondary w-[25%]">
                       {row.client}
                     </span>
                     <span className="w-[25%]">
@@ -203,7 +203,7 @@ export function ProductShowcase() {
                         {row.status}
                       </span>
                     </span>
-                    <span className="w-[20%] text-right text-lp-text-secondary">
+                    <span className="text-lp-text-secondary w-[20%] text-right">
                       {row.due}
                     </span>
                   </div>
@@ -211,11 +211,11 @@ export function ProductShowcase() {
               </div>
 
               {/* ─── Quick action bar ─── */}
-              <div className="mt-5 flex gap-2 border-t border-lp-border/50 pt-4">
-                <span className="inline-flex items-center gap-1.5 rounded-sm border border-lp-border/60 px-3 py-1.5 text-[11px] font-medium text-lp-text-secondary transition-colors hover:border-lp-text/30 hover:text-lp-text">
+              <div className="border-lp-border/50 mt-5 flex gap-2 border-t pt-4">
+                <span className="border-lp-border/60 text-lp-text-secondary hover:border-lp-text/30 hover:text-lp-text inline-flex items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-medium transition-colors">
                   New project
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-sm border border-lp-border/60 px-3 py-1.5 text-[11px] font-medium text-lp-text-secondary transition-colors hover:border-lp-text/30 hover:text-lp-text">
+                <span className="border-lp-border/60 text-lp-text-secondary hover:border-lp-text/30 hover:text-lp-text inline-flex items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-medium transition-colors">
                   View reports
                 </span>
               </div>
@@ -238,10 +238,10 @@ export function ProductShowcase() {
                 className="pointer-events-none absolute hidden items-center gap-3 lg:flex"
                 style={{ top: a.top, left: a.left }}
               >
-                <span className="whitespace-nowrap text-[11px] font-medium tracking-wide text-lp-text-secondary">
+                <span className="text-lp-text-secondary text-[11px] font-medium tracking-wide whitespace-nowrap">
                   {a.label}
                 </span>
-                <div className="h-px w-5 bg-lp-accent/40" />
+                <div className="bg-lp-accent/40 h-px w-5" />
               </motion.div>
             ))}
         </motion.div>

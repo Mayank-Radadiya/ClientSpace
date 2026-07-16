@@ -44,7 +44,9 @@ export function Navbar() {
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
   return (
@@ -54,11 +56,11 @@ export function Navbar() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease }}
-        className="fixed inset-x-0 top-0 z-50 hidden md:flex justify-between items-center"
+        className="fixed inset-x-0 top-0 z-50 hidden items-center justify-between md:flex"
         style={{ pointerEvents: "none" }}
       >
         <div
-          className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 lg:px-12 py-5 transition-all duration-500"
+          className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 transition-all duration-500 lg:px-12"
           style={{ pointerEvents: "auto" }}
         >
           {/* Logo wordmark */}
@@ -72,16 +74,53 @@ export function Navbar() {
               whileHover={{ rotate: 8, scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 15 }}
               className="flex h-6 w-6 items-center justify-center rounded-md"
-              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <rect x="0" y="0" width="5.4" height="5.4" rx="1.2" fill="rgba(255,255,255,0.6)" />
-                <rect x="6.6" y="0" width="5.4" height="5.4" rx="1.2" fill="rgba(255,255,255,0.25)" />
-                <rect x="0" y="6.6" width="5.4" height="5.4" rx="1.2" fill="rgba(255,255,255,0.25)" />
-                <rect x="6.6" y="6.6" width="5.4" height="5.4" rx="1.2" fill="#bd7a4e" />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                aria-hidden
+              >
+                <rect
+                  x="0"
+                  y="0"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="rgba(255,255,255,0.6)"
+                />
+                <rect
+                  x="6.6"
+                  y="0"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="rgba(255,255,255,0.25)"
+                />
+                <rect
+                  x="0"
+                  y="6.6"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="rgba(255,255,255,0.25)"
+                />
+                <rect
+                  x="6.6"
+                  y="6.6"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="#bd7a4e"
+                />
               </svg>
             </motion.span>
-            <span className="text-[15px] font-semibold tracking-[-0.02em] text-white/85 group-hover:text-white transition-colors duration-200">
+            <span className="text-[15px] font-semibold tracking-[-0.02em] text-white/85 transition-colors duration-200 group-hover:text-white">
               ClientSpace
             </span>
           </Link>
@@ -120,7 +159,7 @@ export function Navbar() {
             </Link>
             <Link
               href="/signup"
-              className="group relative inline-flex h-9 items-center gap-1.5 overflow-hidden rounded-full bg-white px-5 text-[13px] font-semibold text-black transition-all duration-300 hover:bg-white/90 hover:-translate-y-px"
+              className="group relative inline-flex h-9 items-center gap-1.5 overflow-hidden rounded-full bg-white px-5 text-[13px] font-semibold text-black transition-all duration-300 hover:-translate-y-px hover:bg-white/90"
             >
               <span className="relative z-10">Get started</span>
               <motion.span
@@ -143,21 +182,64 @@ export function Navbar() {
           transition={{ duration: 0.5, ease }}
           className="flex h-[60px] items-center justify-between px-5 transition-all duration-300"
           style={{
-            background: scrolled ? "rgba(8,8,7,0.9)" : "transparent",
+            background: scrolled ? "var(--meridian-card)" : "transparent",
             backdropFilter: scrolled ? "blur(16px)" : "none",
-            borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "none",
+            borderBottom: scrolled
+              ? "1px solid rgba(255,255,255,0.06)"
+              : "none",
           }}
         >
-          <Link href="/" className="flex items-center gap-1.5" aria-label="ClientSpace home">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5"
+            aria-label="ClientSpace home"
+          >
             <span
               className="flex h-6 w-6 items-center justify-center rounded-md"
-              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.08)" }}
+              style={{
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <rect x="0" y="0" width="5.4" height="5.4" rx="1.2" fill="rgba(255,255,255,0.6)" />
-                <rect x="6.6" y="0" width="5.4" height="5.4" rx="1.2" fill="rgba(255,255,255,0.25)" />
-                <rect x="0" y="6.6" width="5.4" height="5.4" rx="1.2" fill="rgba(255,255,255,0.25)" />
-                <rect x="6.6" y="6.6" width="5.4" height="5.4" rx="1.2" fill="#bd7a4e" />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                aria-hidden
+              >
+                <rect
+                  x="0"
+                  y="0"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="rgba(255,255,255,0.6)"
+                />
+                <rect
+                  x="6.6"
+                  y="0"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="rgba(255,255,255,0.25)"
+                />
+                <rect
+                  x="0"
+                  y="6.6"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="rgba(255,255,255,0.25)"
+                />
+                <rect
+                  x="6.6"
+                  y="6.6"
+                  width="5.4"
+                  height="5.4"
+                  rx="1.2"
+                  fill="#bd7a4e"
+                />
               </svg>
             </span>
             <span className="text-[15px] font-semibold tracking-[-0.02em] text-white/85">
@@ -171,8 +253,19 @@ export function Navbar() {
             aria-label="Open menu"
             aria-expanded={mobileOpen}
           >
-            <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden>
-              <path d="M0 1h18M0 7h12M0 13h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <svg
+              width="18"
+              height="14"
+              viewBox="0 0 18 14"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M0 1h18M0 7h12M0 13h18"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </motion.div>
@@ -189,7 +282,10 @@ export function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               className="fixed inset-0 z-40 md:hidden"
-              style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+              style={{
+                background: "rgba(0,0,0,0.7)",
+                backdropFilter: "blur(4px)",
+              }}
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
@@ -198,9 +294,9 @@ export function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.35, ease }}
-              className="fixed right-0 top-0 bottom-0 z-50 flex w-[80vw] max-w-sm flex-col md:hidden"
+              className="fixed top-0 right-0 bottom-0 z-50 flex w-[80vw] max-w-sm flex-col md:hidden"
               style={{
-                background: "#111110",
+                background: "var(--meridian-card, #111111)",
                 borderLeft: "1px solid rgba(255,255,255,0.07)",
               }}
             >
@@ -208,19 +304,35 @@ export function Navbar() {
                 className="flex h-[60px] items-center justify-between px-5"
                 style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
               >
-                <span className="text-[14px] font-semibold text-white/70">Menu</span>
+                <span className="text-[14px] font-semibold text-white/70">
+                  Menu
+                </span>
                 <button
                   onClick={() => setMobileOpen(false)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/[0.05]"
                   aria-label="Close menu"
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                    <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <path
+                      d="M1 1l12 12M13 1L1 13"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </button>
               </div>
 
-              <nav className="flex flex-col px-5 pt-6 pb-4 gap-1" aria-label="Mobile navigation">
+              <nav
+                className="flex flex-col gap-1 px-5 pt-6 pb-4"
+                aria-label="Mobile navigation"
+              >
                 {NAV_LINKS.map((link, i) => (
                   <motion.div
                     key={link.name}
@@ -234,14 +346,14 @@ export function Navbar() {
                       className="flex items-center justify-between rounded-lg px-3 py-3 text-[15px] font-medium text-white/50 transition-colors hover:bg-white/[0.04] hover:text-white/80"
                     >
                       {link.name}
-                      <span className="text-white/20 text-xs">→</span>
+                      <span className="text-xs text-white/20">→</span>
                     </Link>
                   </motion.div>
                 ))}
               </nav>
 
               <div
-                className="mt-auto p-5 flex flex-col gap-3"
+                className="mt-auto flex flex-col gap-3 p-5"
                 style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
               >
                 <Link

@@ -14,7 +14,7 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-lp-bg text-lp-text antialiased selection:bg-lp-accent/20">
+    <div className="meridian selection:bg-lp-accent/20 flex min-h-screen flex-col antialiased">
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />

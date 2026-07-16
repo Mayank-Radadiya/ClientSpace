@@ -159,7 +159,11 @@ export const processSignedContract = inngest.createFunction(
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       await resend.emails.send({
-        from: process.env.CONTRACTS_FROM_EMAIL ?? process.env.ONBOARDING_FROM_EMAIL ?? "onboarding@resend.dev",
+        from:
+          process.env.DEFAULT_FROM_EMAIL ??
+          process.env.CONTRACTS_FROM_EMAIL ??
+          process.env.ONBOARDING_FROM_EMAIL ??
+          "ClientSpace <hello@clientspace.qzz.io>",
         to: contract.signerEmail ?? (contract.client as any)?.email ?? "",
         subject: `Your signed copy: ${contract.title}`,
         react: ContractSignedClientCopy({
@@ -181,7 +185,10 @@ export const processSignedContract = inngest.createFunction(
         process.env.SYSTEM_NOTIFICATION_EMAIL ?? "hello@example.com";
 
       await resend.emails.send({
-        from: process.env.CONTRACTS_FROM_EMAIL ?? "onboarding@resend.dev",
+        from:
+          process.env.DEFAULT_FROM_EMAIL ??
+          process.env.CONTRACTS_FROM_EMAIL ??
+          "ClientSpace <hello@clientspace.qzz.io>",
         to: toEmail,
         subject: `✅ ${contract.signerName ?? "Client"} signed: ${contract.title}`,
         react: ContractSignedAgencyNotification({
@@ -244,7 +251,10 @@ export const sendContractEmail = inngest.createFunction(
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       await resend.emails.send({
-        from: process.env.CONTRACTS_FROM_EMAIL ?? "onboarding@resend.dev",
+        from:
+          process.env.DEFAULT_FROM_EMAIL ??
+          process.env.CONTRACTS_FROM_EMAIL ??
+          "ClientSpace <hello@clientspace.qzz.io>",
         to: clientEmail,
         subject: `${orgName} sent you a contract: ${contract.title}`,
         react: ContractSigningRequest({

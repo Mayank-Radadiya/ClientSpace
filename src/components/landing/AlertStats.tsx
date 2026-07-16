@@ -37,7 +37,7 @@ function AnimatedCounter({
 export function AlertStats() {
   return (
     <section className="border-y border-[#1a1a1a] bg-[#111] py-20">
-      <div className="section-wrapper border-t-0">
+      <div className="mx-auto max-w-[960px] px-6 pt-0 md:px-10">
         <SectionMeta
           code="BULLETIN # 01"
           sheet="1"

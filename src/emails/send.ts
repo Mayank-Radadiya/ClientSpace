@@ -7,12 +7,11 @@
  *
  * Fallback chain:
  *   1. org.customEmailVerified && org.customEmailDomain → "AgencyName <hello@theirdomain.com>"
- *   2. Otherwise → "ClientSpace <onboarding@resend.dev>" (Resend default — good reputation)
+ * Fallback chain:
+ *   1. org.customEmailVerified && org.customEmailDomain → "AgencyName <hello@theirdomain.com>"
+ *   2. Otherwise → DEFAULT_FROM_EMAIL env variable or "ClientSpace <hello@clientspace.qzz.io>"
  *
  * Reply-To is always set to the agency owner's email when orgId is provided.
- *
- * TEMP: using onboarding@resend.dev while clientspace.qzz.io builds Gmail reputation.
- * Switch back to hello@clientspace.qzz.io once warmed up (2+ weeks).
  */
 
 import crypto from "crypto";
@@ -22,8 +21,13 @@ import { FirstClientAddedEmail } from "./FirstClientAddedEmail";
 import { pool } from "@/db/pool";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const SENDING_EMAIL = "[EMAIL_ADDRESS]";
-// ponytail: can't use onboarding@resend.dev — it's restricted to sender's own email on free plan
+const DEFAULT_SENDER =
+  process.env.DEFAULT_FROM_EMAIL ??
+  process.env.RESEND_FROM_EMAIL ??
+  process.env.ONBOARDING_FROM_EMAIL ??
+  process.env.INVITE_FROM_EMAIL ??
+  "ClientSpace <hello@clientspace.qzz.io>";
+
 const PHYSICAL_ADDRESS = "548 Market St, PMB 72285, San Francisco, CA 94104";
 // ponytail: physical address added for CAN-SPAM compliance — update if office moves
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -62,10 +66,7 @@ async function resolveOrgEmailConfig(
   orgId: string | undefined,
   fallbackFromName?: string,
 ): Promise<OrgEmailConfig> {
-  const envEmail =
-    process.env.ONBOARDING_FROM_EMAIL ??
-    process.env.INVITE_FROM_EMAIL ??
-    SENDING_EMAIL;
+  const envEmail = DEFAULT_SENDER;
 
   // Ensure the default from address has a display name to prevent spam flagging
   const defaultFrom = envEmail.includes("<")
@@ -74,7 +75,7 @@ async function resolveOrgEmailConfig(
 
   // Extract just the raw email address for the 'via' formatting
   const rawEmail = envEmail.includes("<")
-    ? (envEmail.match(/<([^>]+)>/)?.[1] ?? SENDING_EMAIL)
+    ? (envEmail.match(/<([^>]+)>/)?.[1] ?? "hello@clientspace.qzz.io")
     : envEmail;
 
   if (!orgId) {

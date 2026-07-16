@@ -36,13 +36,14 @@ async function main() {
     process.exit(1);
   }
 
+  const from = process.env.DEFAULT_FROM_EMAIL ?? "ClientSpace <hello@clientspace.qzz.io>";
   console.log("Sending bare-minimum plain-text email...");
-  console.log(`  From: ClientSpace <onboarding@resend.dev>`);
+  console.log(`  From: ${from}`);
   console.log(`  To:   ${TO}`);
 
   const resend = new Resend(apiKey);
   const { data, error } = await resend.emails.send({
-    from: "ClientSpace <hello@clientspace.qzz.io>",
+    from,
     to: TO,
     subject: "quick check",
     text: TEXT,

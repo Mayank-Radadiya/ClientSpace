@@ -75,7 +75,14 @@ function AnimatedGrid() {
     /* ── Radial spotlight that follows mouse (dampened) ── */
     const mx = mouseRef.current.x * W;
     const my = mouseRef.current.y * H;
-    const grad = ctx.createRadialGradient(mx, my, 0, mx, my, Math.max(W, H) * 0.55);
+    const grad = ctx.createRadialGradient(
+      mx,
+      my,
+      0,
+      mx,
+      my,
+      Math.max(W, H) * 0.55,
+    );
     grad.addColorStop(0, "rgba(180,130,80,0.07)");
     grad.addColorStop(0.4, "rgba(180,130,80,0.02)");
     grad.addColorStop(1, "transparent");
@@ -84,8 +91,12 @@ function AnimatedGrid() {
 
     /* ── Subtle corner vignette ── */
     const vignette = ctx.createRadialGradient(
-      W / 2, H / 2, H * 0.2,
-      W / 2, H / 2, H * 0.9
+      W / 2,
+      H / 2,
+      H * 0.2,
+      W / 2,
+      H / 2,
+      H * 0.9,
     );
     vignette.addColorStop(0, "transparent");
     vignette.addColorStop(1, "rgba(0,0,0,0.55)");
@@ -146,10 +157,30 @@ function DashboardScreen() {
   const reduced = useReducedMotion();
 
   const PROJECTS = [
-    { name: "Brand Refresh", client: "Luminary Co.", pct: 78, color: "#4ade80" },
-    { name: "Website Redesign", client: "Arc Studio", pct: 45, color: "#fb923c" },
-    { name: "Campaign Assets", client: "Bloom Agency", pct: 92, color: "#60a5fa" },
-    { name: "Annual Report", client: "Kova Partners", pct: 31, color: "#a78bfa" },
+    {
+      name: "Brand Refresh",
+      client: "Luminary Co.",
+      pct: 78,
+      color: "#4ade80",
+    },
+    {
+      name: "Website Redesign",
+      client: "Arc Studio",
+      pct: 45,
+      color: "#fb923c",
+    },
+    {
+      name: "Campaign Assets",
+      client: "Bloom Agency",
+      pct: 92,
+      color: "#60a5fa",
+    },
+    {
+      name: "Annual Report",
+      client: "Kova Partners",
+      pct: 31,
+      color: "#a78bfa",
+    },
   ];
 
   const RECENT = [
@@ -174,15 +205,15 @@ function DashboardScreen() {
         <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
         <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
         <div className="mx-auto flex h-5 w-44 items-center justify-center rounded-md bg-white/[0.04] px-3">
-          <span className="text-[9px] font-mono text-white/20">
+          <span className="font-mono text-[9px] text-white/20">
             app.clientspace.io · dashboard
           </span>
         </div>
-        <div className="flex gap-3 ml-2">
+        <div className="ml-2 flex gap-3">
           {["OVERVIEW", "ANALYTICS", "CLIENTS", "SETTINGS"].map((t) => (
             <span
               key={t}
-              className={`text-[9px] font-medium tracking-wider ${t === "OVERVIEW" ? "text-white/60 underline underline-offset-4 decoration-white/20" : "text-white/20"}`}
+              className={`text-[9px] font-medium tracking-wider ${t === "OVERVIEW" ? "text-white/60 underline decoration-white/20 underline-offset-4" : "text-white/20"}`}
             >
               {t}
             </span>
@@ -194,29 +225,37 @@ function DashboardScreen() {
       <div className="flex">
         {/* Sidebar */}
         <div className="hidden w-36 shrink-0 flex-col border-r border-white/[0.05] bg-white/[0.01] py-4 sm:flex">
-          <div className="px-4 mb-3">
+          <div className="mb-3 px-4">
             <div className="flex items-center gap-2 rounded-lg bg-white/[0.06] px-2.5 py-2">
-              <div className="h-4 w-4 rounded-md bg-[#bd7a4e]/80 flex items-center justify-center">
+              <div className="flex h-4 w-4 items-center justify-center rounded-md bg-[#bd7a4e]/80">
                 <span className="text-[7px] font-bold text-white">CS</span>
               </div>
-              <span className="text-[10px] font-semibold text-white/70">Acme Inc.</span>
+              <span className="text-[10px] font-semibold text-white/70">
+                Acme Inc.
+              </span>
             </div>
           </div>
-          {["Dashboard", "Projects", "Invoices", "Files", "Contracts", "Team", "Settings"].map(
-            (item, i) => (
-              <div
-                key={item}
-                className={`flex items-center gap-2 px-4 py-1.5 text-[10px] font-medium ${
-                  i === 0
-                    ? "bg-white/[0.05] text-white/80 border-r-2 border-[#bd7a4e]"
-                    : "text-white/25 hover:text-white/50"
-                }`}
-              >
-                <span className="h-1 w-1 rounded-full bg-current opacity-50" />
-                {item}
-              </div>
-            )
-          )}
+          {[
+            "Dashboard",
+            "Projects",
+            "Invoices",
+            "Files",
+            "Contracts",
+            "Team",
+            "Settings",
+          ].map((item, i) => (
+            <div
+              key={item}
+              className={`flex items-center gap-2 px-4 py-1.5 text-[10px] font-medium ${
+                i === 0
+                  ? "border-r-2 border-[#bd7a4e] bg-white/[0.05] text-white/80"
+                  : "text-white/25 hover:text-white/50"
+              }`}
+            >
+              <span className="h-1 w-1 rounded-full bg-current opacity-50" />
+              {item}
+            </div>
+          ))}
         </div>
 
         {/* Main panel */}
@@ -224,18 +263,30 @@ function DashboardScreen() {
           {/* KPI row */}
           <div className="mb-5 grid grid-cols-3 gap-3">
             {[
-              { label: "TOTAL REVENUE", value: "$45,231", delta: "+28.3% from last month" },
-              { label: "SUBSCRIPTIONS", value: "2,350", delta: "+12.3% from last month" },
-              { label: "ACTIVE USERS", value: "18,942", delta: "+4.6% from last month" },
+              {
+                label: "TOTAL REVENUE",
+                value: "$45,231",
+                delta: "+28.3% from last month",
+              },
+              {
+                label: "SUBSCRIPTIONS",
+                value: "2,350",
+                delta: "+12.3% from last month",
+              },
+              {
+                label: "ACTIVE USERS",
+                value: "18,942",
+                delta: "+4.6% from last month",
+              },
             ].map((kpi) => (
               <div
                 key={kpi.label}
                 className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3"
               >
-                <div className="text-[8px] font-semibold uppercase tracking-widest text-white/25 mb-1">
+                <div className="mb-1 text-[8px] font-semibold tracking-widest text-white/25 uppercase">
                   {kpi.label}
                 </div>
-                <div className="text-[18px] font-bold tracking-tight text-white/85 leading-none">
+                <div className="text-[18px] leading-none font-bold tracking-tight text-white/85">
                   {kpi.value}
                 </div>
                 <div className="mt-1 text-[8px] text-white/30">{kpi.delta}</div>
@@ -248,7 +299,9 @@ function DashboardScreen() {
             {/* Projects */}
             <div className="col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-white/70">Active Projects</span>
+                <span className="text-[10px] font-semibold text-white/70">
+                  Active Projects
+                </span>
                 <span className="text-[8px] text-white/25">REVENUE · 2025</span>
               </div>
               <div className="flex flex-col gap-2">
@@ -256,10 +309,16 @@ function DashboardScreen() {
                   <div key={p.name}>
                     <div className="mb-0.5 flex items-center justify-between">
                       <div>
-                        <span className="text-[9px] font-medium text-white/60">{p.name}</span>
-                        <span className="ml-1.5 text-[8px] text-white/25">{p.client}</span>
+                        <span className="text-[9px] font-medium text-white/60">
+                          {p.name}
+                        </span>
+                        <span className="ml-1.5 text-[8px] text-white/25">
+                          {p.client}
+                        </span>
                       </div>
-                      <span className="text-[8px] font-semibold text-white/40">{p.pct}%</span>
+                      <span className="text-[8px] font-semibold text-white/40">
+                        {p.pct}%
+                      </span>
                     </div>
                     <div className="h-0.5 w-full overflow-hidden rounded-full bg-white/[0.05]">
                       <motion.div
@@ -274,34 +333,49 @@ function DashboardScreen() {
                 ))}
               </div>
               {/* Revenue chart placeholder */}
-              <div className="mt-3 flex items-end gap-px h-10">
-                {[22, 35, 28, 48, 38, 56, 44, 62, 52, 70, 58, 75].map((h, i) => (
-                  <motion.div
-                    key={i}
-                    className="flex-1 rounded-sm"
-                    style={{ backgroundColor: "rgba(189,122,78,0.4)" }}
-                    initial={{ height: 0 }}
-                    animate={{ height: `${h}%` }}
-                    transition={{ delay: 0.9 + i * 0.04, duration: 0.5, ease }}
-                  />
-                ))}
+              <div className="mt-3 flex h-10 items-end gap-px">
+                {[22, 35, 28, 48, 38, 56, 44, 62, 52, 70, 58, 75].map(
+                  (h, i) => (
+                    <motion.div
+                      key={i}
+                      className="flex-1 rounded-sm"
+                      style={{ backgroundColor: "rgba(189,122,78,0.4)" }}
+                      initial={{ height: 0 }}
+                      animate={{ height: `${h}%` }}
+                      transition={{
+                        delay: 0.9 + i * 0.04,
+                        duration: 0.5,
+                        ease,
+                      }}
+                    />
+                  ),
+                )}
               </div>
             </div>
 
             {/* Recent activity */}
             <div className="col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <div className="mb-3 text-[10px] font-semibold text-white/70">Recent Activity</div>
+              <div className="mb-3 text-[10px] font-semibold text-white/70">
+                Recent Activity
+              </div>
               <div className="flex flex-col gap-2.5">
                 {RECENT.map((r) => (
                   <div key={r.name} className="flex items-center gap-2">
-                    <div className="h-5 w-5 shrink-0 rounded-full bg-white/[0.08] flex items-center justify-center text-[7px] font-bold text-white/40">
-                      {r.name.split(" ").map((n) => n[0]).join("")}
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-[7px] font-bold text-white/40">
+                      {r.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[9px] font-medium text-white/60 truncate">{r.name}</div>
+                      <div className="truncate text-[9px] font-medium text-white/60">
+                        {r.name}
+                      </div>
                       <div className="text-[8px] text-white/25">{r.action}</div>
                     </div>
-                    <span className="shrink-0 text-[8px] text-white/20">{r.time}ago</span>
+                    <span className="shrink-0 text-[8px] text-white/20">
+                      {r.time}ago
+                    </span>
                   </div>
                 ))}
               </div>
@@ -321,7 +395,7 @@ function DashboardScreen() {
                   </span>
                 ))}
               </div>
-              <div className="mt-2 flex items-end gap-px h-8">
+              <div className="mt-2 flex h-8 items-end gap-px">
                 {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
                   <motion.div
                     key={i}
@@ -365,24 +439,26 @@ export function Hero() {
       ref={sectionRef}
       className="relative min-h-screen overflow-hidden"
       id="hero"
-      style={{ background: "#080807" }}
+      style={{ background: "var(--meridian-bg, #0a0a0a)" }}
     >
       {/* ── Animated grid background ── */}
       <AnimatedGrid />
 
       {/* ── Bottom fade to black (for dashboard bleed) ── */}
       <div
-        className="pointer-events-none absolute bottom-0 inset-x-0 z-10 h-32"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32"
         style={{
-          background: "linear-gradient(to top, #080807, transparent)",
+          background:
+            "linear-gradient(to top, var(--meridian-bg, #0a0a0a), transparent)",
         }}
       />
 
       {/* ── Top fade from black (for navbar blend) ── */}
       <div
-        className="pointer-events-none absolute top-0 inset-x-0 z-10 h-28"
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28"
         style={{
-          background: "linear-gradient(to bottom, rgba(8,8,7,0.7), transparent)",
+          background:
+            "linear-gradient(to bottom, rgba(10,10,10,0.7), transparent)",
         }}
       />
 
@@ -398,14 +474,14 @@ export function Hero() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#bd7a4e] opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#bd7a4e]" />
             </span>
-            <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">
+            <span className="text-[11px] font-medium tracking-[0.18em] text-white/35 uppercase">
               Built for creative agencies
             </span>
           </div>
         </FadeUp>
 
         {/* ── Headline ── */}
-        <h1 className="text-[clamp(3rem,7vw,6rem)] font-bold leading-[1.01] tracking-[-0.04em] text-white">
+        <h1 className="text-[clamp(3rem,7vw,6rem)] leading-[1.01] font-bold tracking-[-0.04em] text-white">
           {LINES.map((line, li) => (
             <span key={li} className="block overflow-hidden">
               <motion.span
@@ -421,7 +497,7 @@ export function Hero() {
                 {li === 2 ? (
                   <>
                     <span
-                      className="italic font-normal"
+                      className="font-normal italic"
                       style={{
                         fontFamily: "var(--font-display, Georgia, serif)",
                         color: "#bd7a4e",
@@ -443,8 +519,8 @@ export function Hero() {
         <FadeUp delay={0.58} className="mt-7">
           <p className="max-w-[46ch] text-[15px] leading-[1.75] text-white/40">
             Stop emailing PDFs and chasing approvals. Every client gets a
-            branded portal with live project tracking, one-click sign-off,
-            and milestone-tied invoices.
+            branded portal with live project tracking, one-click sign-off, and
+            milestone-tied invoices.
           </p>
         </FadeUp>
 
@@ -454,7 +530,7 @@ export function Hero() {
             {/* Primary */}
             <Link
               href="/signup"
-              className="group relative inline-flex h-11 items-center gap-2 overflow-hidden rounded-full bg-white px-7 text-[13px] font-semibold text-black transition-all duration-300 hover:bg-white/90 hover:-translate-y-px"
+              className="group relative inline-flex h-11 items-center gap-2 overflow-hidden rounded-full bg-white px-7 text-[13px] font-semibold text-black transition-all duration-300 hover:-translate-y-px hover:bg-white/90"
             >
               <span className="relative z-10">Start free trial</span>
               <motion.span
@@ -472,7 +548,7 @@ export function Hero() {
               className="group inline-flex h-11 items-center gap-2 text-[13px] font-medium text-white/45 transition-colors duration-200 hover:text-white/80"
             >
               <span>See how it works</span>
-              <span className="inline-block transition-transform duration-300 group-hover:translate-x-1 text-white/25">
+              <span className="inline-block text-white/25 transition-transform duration-300 group-hover:translate-x-1">
                 →
               </span>
             </Link>
@@ -481,10 +557,7 @@ export function Hero() {
 
         {/* ── Dashboard bleed ── */}
         <FadeUp delay={0.9} className="mt-16">
-          <motion.div
-            style={reduced ? {} : { y: dashY }}
-            className="relative"
-          >
+          <motion.div style={reduced ? {} : { y: dashY }} className="relative">
             {/* Perspective container */}
             <div
               style={{
@@ -512,7 +585,7 @@ export function Hero() {
 
             {/* Reflection / glow beneath */}
             <div
-              className="pointer-events-none absolute inset-x-0 -bottom-20 z-0 h-40 blur-2xl opacity-30"
+              className="pointer-events-none absolute inset-x-0 -bottom-20 z-0 h-40 opacity-30 blur-2xl"
               style={{
                 background:
                   "linear-gradient(to bottom, rgba(189,122,78,0.15), transparent)",
