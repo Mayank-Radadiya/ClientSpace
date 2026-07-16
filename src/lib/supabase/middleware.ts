@@ -47,9 +47,13 @@ export async function updateSession(request: NextRequest): Promise<{
   // IMPORTANT: Always use getUser() instead of getSession() in middleware.
   // getUser() validates the token against the Supabase Auth server,
   // which prevents spoofed JWTs from bypassing middleware checks.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: User | null = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    console.error("[Supabase Middleware] Failed to reach auth server:", err);
+  }
 
   // 1. Protect Dashboard & Settings Routes — redirect unauthenticated users to login
   if (

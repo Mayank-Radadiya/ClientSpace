@@ -22,7 +22,7 @@ import { FirstClientAddedEmail } from "./FirstClientAddedEmail";
 import { pool } from "@/db/pool";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const SENDING_EMAIL = "hello@clientspace.qzz.io";
+const SENDING_EMAIL = "[EMAIL_ADDRESS]";
 // ponytail: can't use onboarding@resend.dev — it's restricted to sender's own email on free plan
 const PHYSICAL_ADDRESS = "548 Market St, PMB 72285, San Francisco, CA 94104";
 // ponytail: physical address added for CAN-SPAM compliance — update if office moves
