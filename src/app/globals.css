@@ -159,10 +159,14 @@ body {
   --animate-aurora: aurora 60s linear infinite;
   @keyframes aurora {
     from {
-      background-position: 50% 50%, 50% 50%;
+      background-position:
+        50% 50%,
+        50% 50%;
     }
     to {
-      background-position: 350% 50%, 350% 50%;
+      background-position:
+        350% 50%,
+        350% 50%;
     }
   }
 }
@@ -281,13 +285,15 @@ body {
   --inv-backdrop: rgba(15, 15, 25, 0.6);
 
   /* ═══ ClientSpace Design System ═══ */
-  --cs-primary: #6C63FF;
-  --cs-primary-light: #8B85FF;
-  --cs-accent-teal: #00F5D4;
-  --cs-surface-page: #F0F0F5;
+  --cs-primary: #6c63ff;
+  --cs-primary-light: #8b85ff;
+  --cs-accent-teal: #00f5d4;
+  --cs-surface-page: #f0f0f5;
   --cs-radius-card: 16px;
-  --cs-shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-  --cs-shadow-elevated: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --cs-shadow-card:
+    0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --cs-shadow-elevated:
+    0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
 
   /* Semantic colors */
   --cs-success: #22c55e;
@@ -404,7 +410,7 @@ body {
   --inv-backdrop: rgba(0, 0, 0, 0.75);
 
   /* ═══ ClientSpace Design System (dark) ═══ */
-  --cs-surface-page: #08090D;
+  --cs-surface-page: #08090d;
 }
 
 :root {
@@ -954,24 +960,24 @@ body {
 /* ── Grid pattern overlay ──────────────────────────────────── */
 .bg-grid-pattern {
   background-image:
-    linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 64px 64px;
 }
 .dark .bg-grid-pattern {
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 
 /* ── Dashboard card hover ──────────────────────────────────── */
 .dashboard-card {
-  @apply rounded-xl border border-lp-border bg-lp-bg/60 p-3 transition-all hover:border-lp-text/10 hover:shadow-sm;
+  @apply border-lp-border bg-lp-bg/60 hover:border-lp-text/10 rounded-xl border p-3 transition-all hover:shadow-sm;
 }
 
 /* ── Spec-sheet zone background ────────────────────────────── */
 .spec-zone {
-  @apply relative bg-lp-bg p-8 transition-colors md:p-10;
+  @apply bg-lp-bg relative p-8 transition-colors md:p-10;
 }
 .spec-zone:hover {
   background-color: var(--lp-surface);
@@ -979,8 +985,14 @@ body {
 
 /* ── Scroll-reveal utility ─────────────────────────────────── */
 @keyframes reveal-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .animate-reveal-up {
   animation: reveal-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -1008,12 +1020,24 @@ body {
 }
 
 /* ── Animation stagger delays ──────────────────────────────── */
-.stagger-1 { animation-delay: 50ms; }
-.stagger-2 { animation-delay: 100ms; }
-.stagger-3 { animation-delay: 150ms; }
-.stagger-4 { animation-delay: 200ms; }
-.stagger-5 { animation-delay: 250ms; }
-.stagger-6 { animation-delay: 300ms; }
+.stagger-1 {
+  animation-delay: 50ms;
+}
+.stagger-2 {
+  animation-delay: 100ms;
+}
+.stagger-3 {
+  animation-delay: 150ms;
+}
+.stagger-4 {
+  animation-delay: 200ms;
+}
+.stagger-5 {
+  animation-delay: 250ms;
+}
+.stagger-6 {
+  animation-delay: 300ms;
+}
 
 /* ── Focus ring utility ────────────────────────────────────── */
 .focus-ring:focus-visible {
@@ -1179,4 +1203,121 @@ body {
 .meridian .nav-link.active::before,
 .meridian .nav-link.active::after {
   opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LANDING PAGE v3 — ClientSpace Editorial Tokens (dark field report)
+   ═══════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  --color-cs-bg: #0B0B0C;
+  --color-cs-bg-raised: #141416;
+  --color-cs-ink: #F4F3EF;
+  --color-cs-ink-muted: #9A9A9E;
+  --color-cs-line: #232326;
+  --color-cs-accent: #E2793D;
+  --color-cs-ok: #7FBF8F;
+  --color-cs-warn: #E2793D;
+}
+
+/* ── Noise grain overlay ──────────────────────────────────── */
+.cs-noise::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: cs-noise-shift 0.3s steps(4) infinite;
+}
+
+@keyframes cs-noise-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+.cs-scrollbar::-webkit-scrollbar { width: 4px; }
+.cs-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.cs-scrollbar::-webkit-scrollbar-thumb { background: #232326; border-radius: 2px; }
+.cs-scrollbar { scrollbar-width: thin; scrollbar-color: #232326 transparent; }
+
+/* ── Container (max 1280px) ───────────────────────────────── */
+.cs-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .cs-container { padding-left: 3rem; padding-right: 3rem; }
+}
+
+/* ── Section border top ───────────────────────────────────── */
+.cs-section {
+  border-top: 1px solid #1a1a1a;
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+@media (max-width: 768px) {
+  .cs-section { padding-top: 3rem; padding-bottom: 3rem; }
+}
+
+/* ── Marquee animation ────────────────────────────────────── */
+@keyframes cs-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50%)); }
+}
+.cs-marquee {
+  animation: cs-marquee 40s linear infinite;
+}
+.cs-marquee-pause:hover {
+  animation-play-state: paused;
+}
+
+/* ── Pulse for status dots ─────────────────────────────────── */
+@keyframes cs-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.cs-pulse-dot {
+  animation: cs-pulse 2s ease-in-out infinite;
+}
+
+/* ── Number ticker ─────────────────────────────────────────── */
+@keyframes cs-count-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cs-count-enter {
+  animation: cs-count-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Reduced motion overrides ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .cs-noise::before { animation: none; opacity: 0.015; }
+  .cs-marquee { animation: none; }
+  .cs-pulse-dot { animation: none; }
+}
+
+/* ── Accordion animations (for FaqSection) ────────────────── */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+.animate-accordion-down {
+  animation: accordion-down 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-accordion-up {
+  animation: accordion-up 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }

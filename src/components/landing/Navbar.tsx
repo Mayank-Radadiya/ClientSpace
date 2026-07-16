@@ -57,19 +57,27 @@ export function Navbar() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease }}
         className="fixed inset-x-0 top-0 z-50 hidden items-center justify-between md:flex"
-        style={{ pointerEvents: "none" }}
+        style={{
+          pointerEvents: "none",
+          background: scrolled ? "#141416" : "transparent",
+          borderBottom: scrolled
+            ? "1px solid #232326"
+            : "1px solid transparent",
+          backdropFilter: scrolled ? "blur(20px)" : "none",
+          transition:
+            "background 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
       >
         <div
           className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 transition-all duration-500 lg:px-12"
           style={{ pointerEvents: "auto" }}
         >
-          {/* Logo wordmark */}
+          {/* Logo wordmark + live status chip */}
           <Link
             href="/"
             className="group flex items-center gap-2"
             aria-label="ClientSpace home"
           >
-            {/* Logo mark */}
             <motion.span
               whileHover={{ rotate: 8, scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 15 }}
@@ -116,12 +124,22 @@ export function Navbar() {
                   width="5.4"
                   height="5.4"
                   rx="1.2"
-                  fill="#bd7a4e"
+                  fill="#E2793D"
                 />
               </svg>
             </motion.span>
             <span className="text-[15px] font-semibold tracking-[-0.02em] text-white/85 transition-colors duration-200 group-hover:text-white">
               ClientSpace
+            </span>
+            {/* Live status ticker — desktop only */}
+            <span className="ml-2 hidden items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-2.5 py-0.5 lg:inline-flex">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E2793D] opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#E2793D]" />
+              </span>
+              <span className="font-mono text-[9px] tracking-wider text-white/35">
+                41 studios online
+              </span>
             </span>
           </Link>
 

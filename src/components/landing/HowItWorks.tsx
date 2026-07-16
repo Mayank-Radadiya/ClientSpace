@@ -85,25 +85,28 @@ function TypewriterLog({ stepIndex }: { stepIndex: number }) {
   }, [stepIndex]);
 
   return (
-    <>
+    <div className="space-y-0.5 p-4 font-mono text-[11px] leading-[1.8]">
       {LOG_LINES.slice(0, visible).map((line, i) => (
         <motion.div
           key={i}
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.2, delay: i * 0.05 }}
-          className={`font-mono text-[11px] ${line.highlight ? "-mx-3 bg-[#1a1a1a] px-3 py-0.5 text-[#fafafa]" : "text-[#555]"}`}
+          className={`h-5 whitespace-nowrap ${line.highlight ? "-mx-3 bg-[#1a1a1a] px-3 text-[#fafafa]" : "text-[#555]"}`}
+          style={{ lineHeight: "20px" }}
         >
           <span className="text-[#444]">{line.time}</span> {line.msg}
         </motion.div>
       ))}
-    </>
+      {Array.from({ length: Math.max(0, 8 - visible) }).map((_, i) => (
+        <div key={`fill-${i}`} className="h-5" style={{ lineHeight: "20px" }} />
+      ))}
+    </div>
   );
 }
 
 export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0);
-  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   return (
     <section id="how-it-works" className="section-wrapper">
@@ -123,12 +126,7 @@ export function HowItWorks() {
       <div className="grid gap-16 md:grid-cols-2">
         <div className="space-y-24">
           {STEPS.map((step, i) => (
-            <div
-              key={step.num}
-              ref={(el) => {
-                stepRefs.current[i] = el;
-              }}
-            >
+            <div key={step.num}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -169,11 +167,10 @@ export function HowItWorks() {
                 [LIVE]
               </span>
             </div>
-            <div className="min-h-[320px] space-y-1 p-4">
+            <div className="min-h-[176px]">
               <TypewriterLog stepIndex={activeStep} />
             </div>
           </div>
-
           <div className="mt-4 text-center font-mono text-[10px] tracking-[0.15em] text-[#555] uppercase">
             NOW SHOWING · {STEPS[activeStep]?.code ?? "PAGE"} &nbsp;&nbsp; STEP{" "}
             {activeStep + 1} / 4

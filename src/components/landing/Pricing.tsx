@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { SectionMeta } from "./SectionMeta";
@@ -9,7 +10,8 @@ const plans = [
     name: "STARTER",
     ref: "MRD-LK-2026-01",
     tagline: "For the solo studio just getting started.",
-    price: "29",
+    monthly: { price: "29", unit: "/mo" },
+    annual: { price: "290", unit: "/yr · save ~17%" },
     features: [
       "Up to 5 active projects",
       "1 client dashboard",
@@ -22,8 +24,9 @@ const plans = [
   {
     name: "STUDIO",
     ref: "MRD-LK-2026-02",
-    tagline: "For the team that just stood up on-call.",
-    price: "79",
+    tagline: "For the team scaling client operations.",
+    monthly: { price: "79", unit: "/mo" },
+    annual: { price: "790", unit: "/yr · save ~17%" },
     features: [
       "Unlimited projects",
       "White-label dashboards",
@@ -39,7 +42,8 @@ const plans = [
     name: "AGENCY",
     ref: "MRD-LK-2026-03",
     tagline: "For the firm running client ops at scale.",
-    price: "199",
+    monthly: { price: "199", unit: "/mo" },
+    annual: { price: "1,990", unit: "/yr · save ~17%" },
     features: [
       "Everything in Studio",
       "Custom subdomain",
@@ -52,21 +56,9 @@ const plans = [
   },
 ];
 
-function Barcode() {
-  return (
-    <div className="mt-4 mb-6 flex gap-[2px]">
-      {Array.from({ length: 24 }, (_, i) => (
-        <span
-          key={i}
-          className="bg-[#555]"
-          style={{ width: 2 + (i % 4), height: 20 }}
-        />
-      ))}
-    </div>
-  );
-}
-
 export function Pricing() {
+  const [annual, setAnnual] = useState(false);
+
   return (
     <section id="pricing" className="section-wrapper">
       <SectionMeta
@@ -76,7 +68,7 @@ export function Pricing() {
         location="2026.04"
       />
 
-      <div className="mt-16 mb-16 text-center">
+      <div className="mt-16 mb-10 text-center">
         <h2 className="font-display text-[clamp(36px,5vw,56px)] leading-[1.05] tracking-[-0.01em] text-[#fafafa] italic">
           Pick a plan.
         </h2>
@@ -85,102 +77,123 @@ export function Pricing() {
         </p>
       </div>
 
-      <div className="grid items-start gap-6 md:grid-cols-3">
-        {plans.map((plan, i) => (
-          <motion.div
-            key={plan.name}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: i * 0.08 }}
-            className={`relative border p-6 transition-all duration-200 ${
-              plan.recommended
-                ? "scale-[1.02] border-[#555]"
-                : "border-[#222] hover:-translate-y-[3px] hover:border-[#555]"
+      {/* Monthly/Annual toggle */}
+      <div className="mb-12 flex items-center justify-center gap-4">
+        <span
+          className={`font-mono text-[11px] tracking-wider transition-colors ${
+            !annual ? "text-[#fafafa]" : "text-[#555]"
+          }`}
+        >
+          Monthly
+        </span>
+        <button
+          onClick={() => setAnnual(!annual)}
+          className="relative h-6 w-11 rounded-full border border-[#333] transition-colors hover:border-[#555]"
+          role="switch"
+          aria-checked={annual}
+          aria-label="Toggle annual billing"
+        >
+          <motion.span
+            layout
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className={`absolute top-0.5 left-0.5 h-[18px] w-[18px] rounded-full ${
+              annual ? "bg-[#E2793D]" : "bg-[#555]"
             }`}
-          >
-            {plan.recommended && (
-              <div className="absolute -top-2.5 right-4 rotate-[15deg] border border-[#555] bg-transparent px-2 py-0.5">
-                <span className="font-mono text-[8px] tracking-[0.1em] text-[#a0a0a0] uppercase">
-                  TEAMS&apos; PICK
-                </span>
-              </div>
-            )}
+            style={{ translateX: annual ? "18px" : "0px" }}
+          />
+        </button>
+        <span
+          className={`font-mono text-[11px] tracking-wider transition-colors ${
+            annual ? "text-[#fafafa]" : "text-[#555]"
+          }`}
+        >
+          Annual <span className="text-[9px] text-[#E2793D]">save ~17%</span>
+        </span>
+      </div>
 
-            <div className="mb-4 flex items-baseline justify-between">
-              <span className="font-mono text-[11px] tracking-[0.1em] text-[#fafafa] uppercase">
-                ClientSpace · {plan.name}
-              </span>
-              <span className="font-mono text-[8px] text-[#555]">
-                # {plan.ref}
-              </span>
-            </div>
+      <div className="grid items-start gap-6 md:grid-cols-3">
+        {plans.map((plan, i) => {
+          const pricing = annual ? plan.annual : plan.monthly;
 
-            <div className="mb-4 border-b border-dotted border-[#333]" />
-            <p className="mb-6 font-sans text-[16px] text-[#a0a0a0]">
-              {plan.tagline}
-            </p>
-
-            <div className="mb-6 space-y-2">
-              {plan.features.map((f) => (
-                <div key={f} className="leader-row">
-                  <span>{f}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mb-4 border-b border-dotted border-[#333]" />
-
-            <div className="mb-4 space-y-1 font-mono text-[10px] text-[#555]">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${plan.price},000.00</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Per-seat tax</span>
-                <span>$0.00</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Overage fees</span>
-                <span>$0.00</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Hidden charges</span>
-                <span>$0.00</span>
-              </div>
-            </div>
-
-            <div className="mb-4 border-b border-dotted border-[#333]" />
-            <div className="mb-4 flex items-baseline justify-between">
-              <span className="font-mono text-[10px] text-[#555]">
-                TOTAL DUE
-              </span>
-              <span className="font-mono text-[clamp(24px,3vw,36px)] font-medium text-[#fafafa]">
-                ${plan.price}
-                <span className="text-[12px] text-[#555]">/yr</span>
-              </span>
-            </div>
-            <div className="mb-4 border-b border-dotted border-[#333]" />
-
-            <div className="mb-4 flex justify-between font-mono text-[8px] text-[#555]">
-              <span>AUTH · 0{plan.ref.replace(/[^0-9]/g, "")}</span>
-              <span>HOLDER · YOUR TEAM</span>
-            </div>
-
-            <Barcode />
-
-            <Link
-              href={plan.href}
-              className={`block py-3 text-center text-[11px] font-medium tracking-tight transition-all duration-200 ${
+          return (
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className={`relative border p-6 transition-all duration-200 ${
                 plan.recommended
-                  ? "bg-[#fafafa] text-[#0a0a0a] hover:border hover:border-[#fafafa] hover:bg-[#0a0a0a] hover:text-[#fafafa]"
-                  : "border border-[#333] text-[#a0a0a0] hover:border-[#555] hover:text-[#fafafa]"
+                  ? "scale-[1.02] border-[#E2793D]"
+                  : "border-[#222] hover:-translate-y-[3px] hover:border-[#555]"
               }`}
             >
-              {plan.cta}
-            </Link>
-          </motion.div>
-        ))}
+              {/* "MOST POPULAR" badge — fixed from "TEAMS' PICK" */}
+              {plan.recommended && (
+                <div className="absolute -top-2.5 right-4 border border-[#E2793D] bg-transparent px-2 py-0.5">
+                  <span className="font-mono text-[8px] tracking-[0.1em] text-[#E2793D] uppercase">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+
+              <div className="mb-4 flex items-baseline justify-between">
+                <span className="font-mono text-[11px] tracking-[0.1em] text-[#fafafa] uppercase">
+                  ClientSpace · {plan.name}
+                </span>
+                <span className="font-mono text-[8px] text-[#555]">
+                  # {plan.ref}
+                </span>
+              </div>
+
+              <div className="mb-4 border-b border-dotted border-[#333]" />
+              <p className="mb-6 font-sans text-[16px] text-[#a0a0a0]">
+                {plan.tagline}
+              </p>
+
+              <div className="mb-6 space-y-2">
+                {plan.features.map((f) => (
+                  <div key={f} className="leader-row">
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-4 border-b border-dotted border-[#333]" />
+
+              {/* Price — now shows correct unit label */}
+              <div className="mb-4 flex items-baseline justify-between">
+                <span className="font-mono text-[10px] text-[#555]">
+                  TOTAL DUE
+                </span>
+                <span className="font-mono text-[clamp(24px,3vw,36px)] font-medium text-[#fafafa]">
+                  ${pricing.price}
+                  <span className="text-[12px] text-[#555]">
+                    {pricing.unit}
+                  </span>
+                </span>
+              </div>
+
+              <div className="mb-4 border-b border-dotted border-[#333]" />
+
+              {/* Barcode removed — replaced with billing line */}
+              <p className="mb-4 text-center font-mono text-[9px] text-[#555]">
+                Billed {annual ? "annually" : "monthly"} · cancel anytime
+              </p>
+
+              <Link
+                href={plan.href}
+                className={`block py-3 text-center text-[11px] font-medium tracking-tight transition-all duration-200 ${
+                  plan.recommended
+                    ? "bg-[#fafafa] text-[#0a0a0a] hover:border hover:border-[#fafafa] hover:bg-[#0a0a0a] hover:text-[#fafafa]"
+                    : "border border-[#333] text-[#a0a0a0] hover:border-[#555] hover:text-[#fafafa]"
+                }`}
+              >
+                {plan.cta}
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ import {
   useScroll,
   useTransform,
   useSpring,
+  useMotionValue,
 } from "motion/react";
 import Link from "next/link";
 import { useRef, useEffect, useCallback } from "react";
@@ -434,6 +435,31 @@ export function Hero() {
 
   const LINES = ["The client portal", "your studio", "actually deserves."];
 
+  /* ── Mouse parallax for dashboard tilt ── */
+  const mouseX = useMotionValue(0.5);
+  const mouseY = useMotionValue(0.5);
+  const rotateY = useTransform(
+    mouseX,
+    [0, 1],
+    [reduced ? 0 : 4, reduced ? 0 : -4],
+  );
+  const rotateX = useTransform(
+    mouseY,
+    [0, 1],
+    [reduced ? 0 : -3, reduced ? 0 : 3],
+  );
+  const dampedRotateY = useSpring(rotateY, { stiffness: 120, damping: 20 });
+  const dampedRotateX = useSpring(rotateX, { stiffness: 120, damping: 20 });
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      mouseX.set((e.clientX - rect.left) / rect.width);
+      mouseY.set((e.clientY - rect.top) / rect.height);
+    },
+    [mouseX, mouseY],
+  );
+
   return (
     <section
       ref={sectionRef}
@@ -558,18 +584,30 @@ export function Hero() {
         {/* ── Dashboard bleed ── */}
         <FadeUp delay={0.9} className="mt-16">
           <motion.div style={reduced ? {} : { y: dashY }} className="relative">
-            {/* Perspective container */}
+            {/* Perspective container with mouse parallax */}
             <div
-              style={{
-                perspective: "1200px",
-                perspectiveOrigin: "50% 20%",
+              style={{ perspective: "1200px", perspectiveOrigin: "50% 20%" }}
+              onMouseMove={reduced ? undefined : handleMouseMove}
+              onMouseLeave={() => {
+                if (!reduced) {
+                  mouseX.set(0.5);
+                  mouseY.set(0.5);
+                }
               }}
             >
               <motion.div
-                initial={reduced ? {} : { rotateX: 18, opacity: 0, y: 40 }}
-                animate={{ rotateX: 8, opacity: 1, y: 0 }}
+                initial={reduced ? {} : { opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.2, delay: 1.0, ease }}
-                style={{ transformStyle: "preserve-3d" }}
+                style={
+                  reduced
+                    ? {}
+                    : {
+                        rotateX: dampedRotateX,
+                        rotateY: dampedRotateY,
+                        transformStyle: "preserve-3d",
+                      }
+                }
               >
                 {/* Top highlight edge */}
                 <div

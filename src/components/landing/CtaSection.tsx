@@ -7,7 +7,7 @@ import Link from "next/link";
 export function CtaSection() {
   return (
     <section
-      className="relative w-full overflow-hidden bg-lp-text py-28 md:py-40"
+      className="bg-lp-text relative w-full overflow-hidden py-28 md:py-40"
       id="demo"
     >
       {/* Grid overlay */}
@@ -27,13 +27,13 @@ export function CtaSection() {
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-16">
         {/* Editorial header — left aligned like Meridian */}
-        <div className="mb-12 border-b border-lp-bg/10 pb-8">
+        <div className="border-lp-bg/10 mb-12 border-b pb-8">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5 }}
-            className="mb-4 font-mono text-[11px] font-medium tracking-[0.2em] text-lp-bg/30"
+            className="text-lp-bg/30 mb-4 font-mono text-[11px] font-medium tracking-[0.2em]"
           >
             § END OF DISPATCH
           </motion.div>
@@ -43,7 +43,7 @@ export function CtaSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.55, delay: 0.08 }}
-            className="font-display max-w-3xl text-4xl font-bold leading-[1.05] tracking-tight text-lp-bg md:text-6xl lg:text-7xl"
+            className="font-display text-lp-bg max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight md:text-6xl lg:text-7xl"
           >
             Ready to look like the{" "}
             <span className="text-lp-bg/35">studio you are.</span>
@@ -57,7 +57,7 @@ export function CtaSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="font-body max-w-md text-lg leading-relaxed text-lp-bg/50"
+            className="font-body text-lp-bg/50 max-w-md text-lg leading-relaxed"
           >
             Join 2,400+ independent studios who have upgraded their workflow and
             client experience. Start free — no credit card needed.
@@ -72,13 +72,13 @@ export function CtaSection() {
           >
             <Link
               href="/signup"
-              className="inline-flex items-center rounded-[3px] bg-lp-bg px-8 py-4 text-[15px] font-semibold text-lp-text shadow-lg shadow-black/20 transition-all hover:opacity-90 active:scale-[0.98]"
+              className="bg-lp-bg text-lp-text inline-flex items-center rounded-[3px] px-8 py-4 text-[15px] font-semibold shadow-lg shadow-black/20 transition-all hover:opacity-90 active:scale-[0.98]"
             >
               Start your free trial
             </Link>
             <Link
               href="#features"
-              className="inline-flex items-center rounded-[3px] border border-lp-bg/20 px-8 py-4 text-[15px] font-medium text-lp-bg transition-all hover:bg-lp-bg/10"
+              className="border-lp-bg/20 text-lp-bg hover:bg-lp-bg/10 inline-flex items-center rounded-[3px] border px-8 py-4 text-[15px] font-medium transition-all"
             >
               View features
             </Link>
@@ -91,7 +91,7 @@ export function CtaSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="font-body mt-10 font-mono text-xs text-lp-bg/25"
+          className="font-body text-lp-bg/25 mt-10 font-mono text-xs"
         >
           14-day free trial · No credit card required · Cancel anytime
         </motion.p>

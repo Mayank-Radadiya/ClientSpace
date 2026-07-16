@@ -28,11 +28,11 @@ const testimonials = [
   {
     num: "03",
     name: "Priya K.",
-    role: "Studio Lead",
-    company: "CMYK Collective",
+    role: "Studio Director",
+    company: "Halcyon Creative",
     date: "Q1 2026",
     quote:
-      "For the first time, our clients actually use the portal. The branded dashboard makes them feel like they've upgraded agencies overnight.",
+      "For the first time, our clients feel like they're inside a real product, not a shared folder. That alone changed how prospects see us before we've done any work.",
     gradient: "from-[#0a1628] via-[#1a1a2e] to-[#0f0f1a]",
   },
 ];
@@ -75,7 +75,7 @@ export function Testimonials() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="scroll-snap-align-start relative h-[520px] w-[380px] flex-shrink-0 overflow-hidden border border-[#222]"
+              className="scroll-snap-align-start relative w-[380px] flex-shrink-0 overflow-hidden border border-[#222]"
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${t.gradient} opacity-60`}

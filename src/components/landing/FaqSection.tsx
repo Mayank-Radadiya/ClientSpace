@@ -1,125 +1,99 @@
 "use client";
 
-import React from "react";
+import * as Accordion from "@radix-ui/react-accordion";
 import { motion } from "motion/react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { SectionMeta } from "./SectionMeta";
 
-const faqs = [
+const FAQS = [
   {
-    question: "Can I use my own domain?",
-    answer:
-      "Yes, on the Pro and Agency plans you can map your client portal to a custom domain like clients.youragency.com. DNS setup takes about 2 minutes.",
+    q: "Do my clients need to create an account?",
+    a: "No. They get a branded link and land straight on their dashboard — no signup, no password, no friction.",
   },
   {
-    question: "How do clients pay invoices?",
-    answer:
-      "We integrate directly with Stripe. Your clients can pay via credit card, ACH, or Apple Pay — directly from their portal, in one click.",
+    q: "Can I use my own domain?",
+    a: "Yes, on Studio and Agency plans — portal.youragency.com instead of a ClientSpace subdomain. We handle the SSL certificate automatically.",
   },
   {
-    question: "Do clients need to create an account?",
-    answer:
-      "No. Clients access their portal via secure magic links sent to their email. No passwords to remember or lose — ever.",
+    q: "What happens to projects if I downgrade?",
+    a: "Your projects stay safe and accessible. If you downgrade from Studio to Starter, active projects beyond the Starter limit become read-only. You can re-activate them by upgrading again. No data is ever deleted.",
   },
   {
-    question: "Can I invite my whole team?",
-    answer:
-      "Yes, all plans include unlimited team members. You pay based on active projects, not seat count.",
+    q: "Is there an API?",
+    a: "Yes — Agency tier includes full API access and webhooks. You can programmatically create projects, manage users, trigger invoices, and sync with your existing stack.",
   },
   {
-    question: "What happens if I go over my project limit?",
-    answer:
-      "We'll gently notify you to upgrade. Your clients will never be locked out or experience any interruptions during transitions.",
-  },
-  {
-    question: "Is there a free trial?",
-    answer:
-      "Yes — every plan includes a 14-day free trial, no credit card required. You can invite clients and test the full experience before committing.",
+    q: "Can I cancel anytime?",
+    a: "Yes, no contracts or commitments. Your dashboards stay live through the end of the current billing period. After that, we export a full archive of everything.",
   },
 ];
 
 export function FaqSection() {
   return (
-    <section className="relative w-full border-t border-lp-border bg-lp-bg py-24 md:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-16">
-        {/* Section header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.5 }}
-          className="mb-16 flex items-start justify-between border-b border-lp-border pb-6"
+    <section
+      id="faq"
+      className="cs-section border-t border-[#1a1a1a] bg-[#0B0B0C]"
+    >
+      <div className="cs-container max-w-3xl">
+        <SectionMeta
+          code="FAQ · KNOWLEDGE BASE"
+          sheet="1"
+          total="1"
+          location="UPDATED · 2026.04"
+        />
+
+        <h2 className="font-display mt-12 mb-8 text-[clamp(28px,4vw,40px)] leading-[1.05] tracking-[-0.01em] text-[#F4F3EF] italic">
+          Questions, <span className="text-[#555]">answered.</span>
+        </h2>
+
+        <Accordion.Root
+          type="single"
+          collapsible
+          className="flex flex-col gap-2"
         >
-          <div>
-            <div className="mb-3 font-mono text-[11px] font-medium tracking-[0.15em] text-[#6C63FF]">
-              § QUERIES / 05
-            </div>
-            <h2 className="font-display text-lp-text text-3xl font-bold tracking-tight md:text-5xl">
-              Frequently asked.
-            </h2>
-          </div>
-          <div className="text-lp-text-secondary hidden text-right font-mono text-[11px] leading-relaxed md:block">
-            <div>{faqs.length} questions</div>
-            <div>Updated Q2 2026</div>
-          </div>
-        </motion.div>
-
-        {/* FAQ accordion — editorial left-right two-column on large screens */}
-        <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1fr_1fr]">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5 }}
-            className="lg:pr-16"
-          >
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.slice(0, Math.ceil(faqs.length / 2)).map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
-                  className="border-b border-lp-border"
-                >
-                  <AccordionTrigger className="py-5 text-left text-base font-semibold text-lp-text hover:text-[#6C63FF] hover:no-underline transition-colors">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-5 text-sm leading-relaxed text-lp-text-secondary">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: 0.08 }}
-            className="lg:pl-16 lg:border-l lg:border-lp-border"
-          >
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.slice(Math.ceil(faqs.length / 2)).map((faq, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-right-${index}`}
-                  className="border-b border-lp-border"
-                >
-                  <AccordionTrigger className="py-5 text-left text-base font-semibold text-lp-text hover:text-[#6C63FF] hover:no-underline transition-colors">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-5 text-sm leading-relaxed text-lp-text-secondary">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </motion.div>
-        </div>
+          {FAQS.map((faq, i) => (
+            <motion.div
+              key={faq.q}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+            >
+              <Accordion.Item
+                value={`item-${i}`}
+                className="overflow-hidden rounded-lg border border-[#232326]"
+              >
+                <Accordion.Header>
+                  <Accordion.Trigger className="group flex w-full items-center justify-between px-5 py-4 text-left transition-colors duration-200 hover:bg-[#141416]">
+                    <span className="font-mono text-[13px] text-[#F4F3EF] transition-colors group-hover:text-white">
+                      {faq.q}
+                    </span>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      className="shrink-0 text-[#555] transition-transform duration-200 group-data-[state=open]:rotate-45"
+                    >
+                      <path
+                        d="M7 1v12M1 7h12"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </Accordion.Trigger>
+                </Accordion.Header>
+                <Accordion.Content className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
+                  <div className="border-t border-[#232326] px-5 py-4">
+                    <p className="font-mono text-[12px] leading-[1.7] text-[#9A9A9E]">
+                      {faq.a}
+                    </p>
+                  </div>
+                </Accordion.Content>
+              </Accordion.Item>
+            </motion.div>
+          ))}
+        </Accordion.Root>
       </div>
     </section>
   );

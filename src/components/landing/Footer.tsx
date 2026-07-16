@@ -1,8 +1,11 @@
+"use client";
+
+import { motion } from "motion/react";
 import Link from "next/link";
 
 const LINK_COLS = {
   PRODUCT: [
-    { name: "Features", href: "#" },
+    { name: "Features", href: "#features" },
     { name: "Pricing", href: "#pricing" },
     { name: "Changelog", href: "#" },
     { name: "Roadmap", href: "#" },
@@ -30,34 +33,26 @@ const LINK_COLS = {
 export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-[#1a1a1a] bg-[#0a0a0a]">
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none">
-        <span className="font-display text-[clamp(80px,15vw,120px)] leading-none tracking-[-0.03em] text-[#fafafa] italic opacity-[0.03]">
+      {/* Ghost wordmark — positioned above and behind link columns so it never collides */}
+      <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-12 select-none">
+        <motion.span
+          animate={{ x: [0, 12, 0, -8, 0] }}
+          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+          className="font-display text-[clamp(80px,15vw,120px)] leading-none tracking-[-0.03em] text-[#fafafa] italic opacity-[0.03]"
+        >
           ClientSpace
-        </span>
+        </motion.span>
       </div>
 
-      <div className="relative mx-auto max-w-[960px] px-6 py-20">
-        <div className="mb-16">
-          <div className="flex max-w-md gap-3">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 border border-[#333] bg-transparent px-4 py-3 font-mono text-[12px] text-[#fafafa] transition-colors outline-none placeholder:text-[#555] focus:border-[#555]"
-            />
-            <button className="border border-[#333] px-6 py-3 font-mono text-[11px] tracking-widest text-[#a0a0a0] uppercase transition-all duration-200 hover:border-[#555] hover:text-[#fafafa]">
-              Subscribe
-            </button>
-          </div>
-        </div>
-
-        <p className="mb-16 max-w-xl font-sans text-[14px] leading-[1.7] text-[#a0a0a0]">
+      <div className="relative mx-auto max-w-[960px] px-6 py-16">
+        <p className="mb-12 max-w-xl font-sans text-[14px] leading-[1.7] text-[#a0a0a0]">
           Quiet is the product. Forty-one teams have run ClientSpace for ninety
           days. None of them have asked to go back.
         </p>
 
         <div className="mb-12 border-b border-[#1a1a1a]" />
 
-        <div className="mb-16 grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="relative z-10 mb-16 grid grid-cols-2 gap-8 md:grid-cols-4">
           {Object.entries(LINK_COLS).map(([section, links]) => (
             <div key={section} className="space-y-4">
               <h4 className="font-mono text-[10px] tracking-[0.15em] text-[#555] uppercase">
