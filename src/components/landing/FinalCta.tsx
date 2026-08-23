@@ -15,7 +15,7 @@ export function FinalCta() {
   };
 
   return (
-    <section className="cs-section border-t border-[#1a1a1a] bg-[#0B0B0C]">
+    <section className="cs-section">
       <div className="cs-container max-w-3xl text-center">
         <SectionMeta
           code="SIGNAL · CLOSING"
@@ -24,7 +24,7 @@ export function FinalCta() {
           location="TRANSMISSION · 2026.04"
         />
 
-        <blockquote className="font-display mt-12 text-[clamp(20px,3vw,32px)] leading-[1.2] tracking-[-0.01em] text-[#F4F3EF] italic">
+        <blockquote className="font-display mt-12 text-[clamp(20px,3vw,32px)] leading-[1.2] tracking-[-0.01em] text-cs-ink italic">
           &ldquo;Quiet is the product. Forty-one teams have run ClientSpace for
           ninety days. None of them have asked to go back.&rdquo;
         </blockquote>
@@ -34,19 +34,19 @@ export function FinalCta() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-2 font-mono text-[13px] text-[#7FBF8F]"
+              className="inline-flex items-center gap-2 font-data text-[13px] text-cs-ok"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <circle
                   cx="8"
                   cy="8"
                   r="7"
-                  stroke="#7FBF8F"
+                  stroke="var(--ld-ok)"
                   strokeWidth="1.5"
                 />
                 <path
                   d="M5 8l2 2 4-4"
-                  stroke="#7FBF8F"
+                  stroke="var(--ld-ok)"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -65,11 +65,11 @@ export function FinalCta() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="flex-1 border border-[#232326] bg-transparent px-4 py-3 font-mono text-[12px] text-[#F4F3EF] transition-colors outline-none placeholder:text-[#555] focus:border-[#555]"
+                className="flex-1 border border-cs-line bg-transparent px-4 py-3 font-data text-[12px] text-cs-ink transition-colors outline-none placeholder:text-cs-faint focus:border-cs-faint"
               />
               <button
                 type="submit"
-                className="border border-[#232326] px-6 py-3 font-mono text-[11px] tracking-widest text-[#9A9A9E] uppercase transition-all duration-200 hover:border-[#555] hover:text-[#F4F3EF]"
+                className="border border-cs-line px-6 py-3 font-data text-[11px] tracking-widest text-cs-ink-muted uppercase transition-all duration-200 hover:border-cs-faint hover:text-cs-ink"
               >
                 Subscribe
               </button>

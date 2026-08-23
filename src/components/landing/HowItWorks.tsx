@@ -85,17 +85,17 @@ function TypewriterLog({ stepIndex }: { stepIndex: number }) {
   }, [stepIndex]);
 
   return (
-    <div className="space-y-0.5 p-4 font-mono text-[11px] leading-[1.8]">
+    <div className="space-y-0.5 p-4 font-data text-[11px] leading-[1.8]">
       {LOG_LINES.slice(0, visible).map((line, i) => (
         <motion.div
           key={i}
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.2, delay: i * 0.05 }}
-          className={`h-5 whitespace-nowrap ${line.highlight ? "-mx-3 bg-[#1a1a1a] px-3 text-[#fafafa]" : "text-[#555]"}`}
+          className={`h-5 whitespace-nowrap ${line.highlight ? "-mx-3 bg-cs-hairline px-3 text-cs-ink" : "text-cs-faint"}`}
           style={{ lineHeight: "20px" }}
         >
-          <span className="text-[#444]">{line.time}</span> {line.msg}
+          <span className="text-cs-faint/70">{line.time}</span> {line.msg}
         </motion.div>
       ))}
       {Array.from({ length: Math.max(0, 8 - visible) }).map((_, i) => (
@@ -117,7 +117,7 @@ export function HowItWorks() {
         location="03:17 UTC"
       />
 
-      <h2 className="font-display mt-16 mb-16 text-[clamp(36px,5vw,64px)] leading-[1] tracking-[-0.01em] text-[#fafafa] italic">
+      <h2 className="font-display mt-16 mb-16 text-[clamp(36px,5vw,64px)] leading-[1] tracking-[-0.01em] text-cs-ink italic">
         Six minutes, one page,
         <br />
         no laptop.
@@ -135,35 +135,35 @@ export function HowItWorks() {
                 className="space-y-3"
               >
                 <div className="flex items-baseline gap-4">
-                  <span className="font-mono text-[12px] text-[#555]">
+                  <span className="font-data text-[12px] text-cs-faint">
                     {step.num} ·
                   </span>
-                  <span className="font-mono text-[10px] tracking-[0.1em] text-[#555] uppercase">
+                  <span className="font-data text-[10px] tracking-[0.1em] text-cs-faint uppercase">
                     {step.code}
                   </span>
                 </div>
-                <h3 className="font-sans text-[22px] font-medium text-[#fafafa]">
+                <h3 className="font-sans text-[22px] font-medium text-cs-ink">
                   {step.title}
                 </h3>
-                <p className="text-[14px] leading-[1.7] text-[#a0a0a0]">
+                <p className="text-[14px] leading-[1.7] text-cs-ink-muted">
                   {step.desc}
                 </p>
-                <div className="border-b border-[#1a1a1a] pt-4" />
+                <div className="border-b border-cs-hairline pt-4" />
               </motion.div>
             </div>
           ))}
         </div>
 
         <div className="md:sticky md:top-24 md:self-start">
-          <div className="border border-[#222] bg-[#0a0a0a]">
-            <div className="flex items-center justify-between border-b border-[#222] px-4 py-3">
+          <div className="border border-cs-line-strong bg-cs-bg">
+            <div className="flex items-center justify-between border-b border-cs-line-strong px-4 py-3">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#555]" />
-                <span className="font-mono text-[9px] tracking-[0.15em] text-[#555] uppercase">
+                <span className="h-2 w-2 rounded-full bg-cs-line-strong" />
+                <span className="font-data text-[9px] tracking-[0.15em] text-cs-faint uppercase">
                   meridian/log · api.payments · sev-2
                 </span>
               </div>
-              <span className="font-mono text-[8px] tracking-[0.15em] text-[#a0a0a0] uppercase">
+              <span className="font-data text-[8px] tracking-[0.15em] text-cs-ink-muted uppercase">
                 [LIVE]
               </span>
             </div>
@@ -171,7 +171,7 @@ export function HowItWorks() {
               <TypewriterLog stepIndex={activeStep} />
             </div>
           </div>
-          <div className="mt-4 text-center font-mono text-[10px] tracking-[0.15em] text-[#555] uppercase">
+          <div className="mt-4 text-center font-data text-[10px] tracking-[0.15em] text-cs-faint uppercase">
             NOW SHOWING · {STEPS[activeStep]?.code ?? "PAGE"} &nbsp;&nbsp; STEP{" "}
             {activeStep + 1} / 4
           </div>

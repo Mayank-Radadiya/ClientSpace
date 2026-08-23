@@ -46,7 +46,7 @@ export default function MarketingLayout({
   }, [reduced]);
 
   return (
-    <div className="meridian selection:bg-lp-accent/20 flex min-h-screen flex-col antialiased">
+    <div className="landing cs-noise selection:bg-cs-accent/20 flex min-h-screen flex-col antialiased">
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />

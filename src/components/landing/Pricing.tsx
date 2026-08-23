@@ -69,10 +69,10 @@ export function Pricing() {
       />
 
       <div className="mt-16 mb-10 text-center">
-        <h2 className="font-display text-[clamp(36px,5vw,56px)] leading-[1.05] tracking-[-0.01em] text-[#fafafa] italic">
+        <h2 className="font-display text-[clamp(36px,5vw,56px)] leading-[1.05] tracking-[-0.01em] text-cs-ink italic">
           Pick a plan.
         </h2>
-        <p className="mt-2 font-sans text-[16px] text-[#555]">
+        <p className="mt-2 font-sans text-[16px] text-cs-faint">
           Simple pricing, no per-seat fees.
         </p>
       </div>
@@ -80,15 +80,15 @@ export function Pricing() {
       {/* Monthly/Annual toggle */}
       <div className="mb-12 flex items-center justify-center gap-4">
         <span
-          className={`font-mono text-[11px] tracking-wider transition-colors ${
-            !annual ? "text-[#fafafa]" : "text-[#555]"
+          className={`font-data text-[11px] tracking-wider transition-colors ${
+            !annual ? "text-cs-ink" : "text-cs-faint"
           }`}
         >
           Monthly
         </span>
         <button
           onClick={() => setAnnual(!annual)}
-          className="relative h-6 w-11 rounded-full border border-[#333] transition-colors hover:border-[#555]"
+          className="relative h-6 w-11 rounded-full border border-cs-line-strong transition-colors hover:border-cs-faint"
           role="switch"
           aria-checked={annual}
           aria-label="Toggle annual billing"
@@ -97,17 +97,17 @@ export function Pricing() {
             layout
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
             className={`absolute top-0.5 left-0.5 h-[18px] w-[18px] rounded-full ${
-              annual ? "bg-[#E2793D]" : "bg-[#555]"
+              annual ? "bg-cs-accent" : "bg-cs-line-strong"
             }`}
             style={{ translateX: annual ? "18px" : "0px" }}
           />
         </button>
         <span
-          className={`font-mono text-[11px] tracking-wider transition-colors ${
-            annual ? "text-[#fafafa]" : "text-[#555]"
+          className={`font-data text-[11px] tracking-wider transition-colors ${
+            annual ? "text-cs-ink" : "text-cs-faint"
           }`}
         >
-          Annual <span className="text-[9px] text-[#E2793D]">save ~17%</span>
+          Annual <span className="text-[9px] text-cs-accent">save ~17%</span>
         </span>
       </div>
 
@@ -124,30 +124,30 @@ export function Pricing() {
               transition={{ duration: 0.4, delay: i * 0.08 }}
               className={`relative border p-6 transition-all duration-200 ${
                 plan.recommended
-                  ? "scale-[1.02] border-[#E2793D]"
-                  : "border-[#222] hover:-translate-y-[3px] hover:border-[#555]"
+                  ? "scale-[1.02] border-cs-accent"
+                  : "border-cs-line-strong hover:-translate-y-[3px] hover:border-cs-faint"
               }`}
             >
               {/* "MOST POPULAR" badge — fixed from "TEAMS' PICK" */}
               {plan.recommended && (
-                <div className="absolute -top-2.5 right-4 border border-[#E2793D] bg-transparent px-2 py-0.5">
-                  <span className="font-mono text-[8px] tracking-[0.1em] text-[#E2793D] uppercase">
+                <div className="absolute -top-2.5 right-4 border border-cs-accent bg-transparent px-2 py-0.5">
+                  <span className="font-data text-[8px] tracking-[0.1em] text-cs-accent uppercase">
                     Most Popular
                   </span>
                 </div>
               )}
 
               <div className="mb-4 flex items-baseline justify-between">
-                <span className="font-mono text-[11px] tracking-[0.1em] text-[#fafafa] uppercase">
+                <span className="font-data text-[11px] tracking-[0.1em] text-cs-ink uppercase">
                   ClientSpace · {plan.name}
                 </span>
-                <span className="font-mono text-[8px] text-[#555]">
+                <span className="font-data text-[8px] text-cs-faint">
                   # {plan.ref}
                 </span>
               </div>
 
-              <div className="mb-4 border-b border-dotted border-[#333]" />
-              <p className="mb-6 font-sans text-[16px] text-[#a0a0a0]">
+              <div className="mb-4 border-b border-dotted border-cs-leader" />
+              <p className="mb-6 font-sans text-[16px] text-cs-ink-muted">
                 {plan.tagline}
               </p>
 
@@ -159,25 +159,25 @@ export function Pricing() {
                 ))}
               </div>
 
-              <div className="mb-4 border-b border-dotted border-[#333]" />
+              <div className="mb-4 border-b border-dotted border-cs-leader" />
 
               {/* Price — now shows correct unit label */}
               <div className="mb-4 flex items-baseline justify-between">
-                <span className="font-mono text-[10px] text-[#555]">
+                <span className="font-data text-[10px] text-cs-faint">
                   TOTAL DUE
                 </span>
-                <span className="font-mono text-[clamp(24px,3vw,36px)] font-medium text-[#fafafa]">
+                <span className="font-data text-[clamp(24px,3vw,36px)] font-medium text-cs-ink">
                   ${pricing.price}
-                  <span className="text-[12px] text-[#555]">
+                  <span className="text-[12px] text-cs-faint">
                     {pricing.unit}
                   </span>
                 </span>
               </div>
 
-              <div className="mb-4 border-b border-dotted border-[#333]" />
+              <div className="mb-4 border-b border-dotted border-cs-leader" />
 
               {/* Barcode removed — replaced with billing line */}
-              <p className="mb-4 text-center font-mono text-[9px] text-[#555]">
+              <p className="mb-4 text-center font-data text-[9px] text-cs-faint">
                 Billed {annual ? "annually" : "monthly"} · cancel anytime
               </p>
 
@@ -185,8 +185,8 @@ export function Pricing() {
                 href={plan.href}
                 className={`block py-3 text-center text-[11px] font-medium tracking-tight transition-all duration-200 ${
                   plan.recommended
-                    ? "bg-[#fafafa] text-[#0a0a0a] hover:border hover:border-[#fafafa] hover:bg-[#0a0a0a] hover:text-[#fafafa]"
-                    : "border border-[#333] text-[#a0a0a0] hover:border-[#555] hover:text-[#fafafa]"
+                    ? "bg-cs-cta-bg text-cs-cta-text hover:opacity-90"
+                    : "border border-cs-line-strong text-cs-ink-muted hover:border-cs-faint hover:text-cs-accent-ink"
                 }`}
               >
                 {plan.cta}

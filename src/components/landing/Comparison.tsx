@@ -59,10 +59,10 @@ export function Comparison() {
       />
 
       <div className="mt-16 mb-12 grid grid-cols-3 items-end gap-8">
-        <h3 className="font-display col-span-2 text-[clamp(36px,6vw,80px)] leading-[0.95] tracking-[-0.02em] text-[#fafafa] italic">
+        <h3 className="font-display col-span-2 text-[clamp(36px,6vw,80px)] leading-[0.95] tracking-[-0.02em] text-cs-ink italic">
           ClientSpace.
         </h3>
-        <h3 className="font-display col-span-1 text-right text-[clamp(36px,6vw,80px)] leading-[0.95] tracking-[-0.02em] text-[#555] italic line-through">
+        <h3 className="font-display col-span-1 text-right text-[clamp(36px,6vw,80px)] leading-[0.95] tracking-[-0.02em] text-cs-faint italic line-through">
           Legacy.
         </h3>
       </div>
@@ -75,20 +75,20 @@ export function Comparison() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: i * 0.06 }}
-            className="-mx-3 grid cursor-default grid-cols-[60px_1fr_1fr] gap-6 border-b border-[#1a1a1a] px-3 py-4 transition-all duration-200 hover:border-l-2 hover:border-l-[#fafafa] hover:bg-[#111] hover:pl-[10px]"
+            className="-mx-3 grid cursor-default grid-cols-[60px_1fr_1fr] gap-6 border-b border-cs-hairline px-3 py-4 transition-all duration-200 hover:border-l-2 hover:border-l-cs-ink hover:bg-cs-bg-raised hover:pl-[10px]"
           >
-            <span className="pt-0.5 font-mono text-[11px] text-[#555]">
+            <span className="pt-0.5 font-data text-[11px] text-cs-faint">
               {row.num}
             </span>
-            <span className="pt-0.5 font-mono text-[10px] tracking-[0.1em] text-[#555] uppercase">
+            <span className="pt-0.5 font-data text-[10px] tracking-[0.1em] text-cs-faint uppercase">
               {row.category}
             </span>
             <div>
-              <span className="font-sans text-[14px] text-[#fafafa]">
+              <span className="font-sans text-[14px] text-cs-ink">
                 {row.ours}
               </span>
               <br />
-              <span className="font-sans text-[13px] text-[#555]">
+              <span className="font-sans text-[13px] text-cs-faint">
                 {row.theirs}
               </span>
             </div>

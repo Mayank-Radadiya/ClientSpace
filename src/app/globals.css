@@ -1102,29 +1102,75 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MERIDIAN — Monochrome dark editorial theme
+   LANDING PAGE v4 — ClientSpace Editorial Tokens (dual-theme)
+   Dark default; light overrides under html.light (.landing scope).
+   Tailwind cs-* utilities resolve through --ld-* semantic vars so
+   every landing component adapts to theme with zero class churn.
    ═══════════════════════════════════════════════════════════════ */
 
-.meridian {
-  --meridian-bg: #0a0a0a;
-  --meridian-card: #111111;
-  --meridian-card-hover: #181818;
-  --meridian-border: #222222;
-  --meridian-border-hover: #3a3a3a;
-  --meridian-text-primary: #fafafa;
-  --meridian-text-secondary: #a0a0a0;
-  --meridian-text-muted: #555555;
-  --meridian-cta-bg: #fafafa;
-  --meridian-cta-text: #0a0a0a;
+@theme inline {
+  --color-cs-bg: var(--ld-bg);
+  --color-cs-bg-raised: var(--ld-raised);
+  --color-cs-ink: var(--ld-ink);
+  --color-cs-ink-muted: var(--ld-muted);
+  --color-cs-faint: var(--ld-faint);
+  --color-cs-line: var(--ld-line);
+  --color-cs-line-strong: var(--ld-line-strong);
+  --color-cs-hairline: var(--ld-hairline);
+  --color-cs-leader: var(--ld-leader);
+  --color-cs-accent-ink: var(--ld-accent-ink);
+  --color-cs-accent: var(--ld-accent);
+  --color-cs-ok: var(--ld-ok);
+  --color-cs-warn: var(--ld-warn);
+  --color-cs-cta-bg: var(--ld-cta-bg);
+  --color-cs-cta-text: var(--ld-cta-text);
 }
 
-.meridian {
-  background-color: var(--meridian-bg);
-  color: var(--meridian-text-primary);
+.landing {
+  /* Dark editorial (default) */
+  --ld-bg: #0b0b0c;
+  --ld-raised: #141416;
+  --ld-raised-hover: #1b1b1e;
+  --ld-ink: #f4f3ef;
+  --ld-muted: #9a9a9e;
+  --ld-faint: #5c5c60;
+  --ld-line: #232326;
+  --ld-line-strong: #3a3a3f;
+  --ld-hairline: #1a1a1d;
+  --ld-leader: #333338;
+  --ld-accent: #e2793d;
+  --ld-accent-ink: #16110c;
+  --ld-ok: #7fbf8f;
+  --ld-warn: #e2793d;
+  --ld-cta-bg: #f4f3ef;
+  --ld-cta-text: #0b0b0c;
+
+  background-color: var(--ld-bg);
+  color: var(--ld-ink);
+}
+
+html.light .landing {
+  /* Paper editorial (light) */
+  --ld-bg: #f5f2ed;
+  --ld-raised: #fbfaf6;
+  --ld-raised-hover: #ffffff;
+  --ld-ink: #17150f;
+  --ld-muted: #6b685f;
+  --ld-faint: #98948a;
+  --ld-line: #e4e0d8;
+  --ld-line-strong: #cfcbc2;
+  --ld-hairline: #eae6df;
+  --ld-leader: #d6d2c9;
+  --ld-accent: #bd7a4e;
+  --ld-accent-ink: #fbfaf6;
+  --ld-ok: #2d7a45;
+  --ld-warn: #bd7a4e;
+  --ld-cta-bg: #17150f;
+  --ld-cta-text: #f5f2ed;
 }
 
 /* Scroll-snap carousel */
-.meridian .carousel-track {
+.landing .carousel-track {
   display: flex;
   gap: 16px;
   overflow-x: auto;
@@ -1133,12 +1179,12 @@ body {
   -ms-overflow-style: none;
   padding-bottom: 2px;
 }
-.meridian .carousel-track::-webkit-scrollbar {
+.landing .carousel-track::-webkit-scrollbar {
   display: none;
 }
 
-/* Animated counter text */
-.meridian .stat-number {
+/* Display numerals (stats / hero anchor) */
+.landing .stat-number {
   font-size: 80px;
   font-weight: 400;
   line-height: 1;
@@ -1146,78 +1192,63 @@ body {
 }
 
 @media (max-width: 768px) {
-  .meridian .stat-number {
+  .landing .stat-number {
     font-size: 56px;
   }
 }
 
 /* Dotted leader lines for pricing */
-.meridian .leader-row {
+.landing .leader-row {
   display: flex;
   align-items: baseline;
   gap: 4px;
   font-family: var(--font-mono);
   font-size: 13px;
-  color: #a0a0a0;
+  color: var(--ld-muted);
 }
-.meridian .leader-row::after {
+.landing .leader-row::after {
   content: "";
   flex: 1;
-  border-bottom: 1px dotted #333;
+  border-bottom: 1px dotted var(--ld-leader);
   margin: 0 4px;
   position: relative;
   top: -3px;
 }
 
 /* Section wrapper */
-.meridian .section-wrapper {
-  border-top: 1px solid #1a1a1a;
+.landing .section-wrapper {
+  border-top: 1px solid var(--ld-hairline);
   padding: 80px 40px;
   max-width: 960px;
   margin: 0 auto;
 }
 
 @media (max-width: 768px) {
-  .meridian .section-wrapper {
+  .landing .section-wrapper {
     padding: 48px 20px;
   }
 }
 
 /* Nav bracket links */
-.meridian .nav-link::before {
+.landing .nav-link::before {
   content: "[ ";
   opacity: 0;
   transition: opacity 150ms;
 }
-.meridian .nav-link::after {
+.landing .nav-link::after {
   content: " ]";
   opacity: 0;
   transition: opacity 150ms;
 }
-.meridian .nav-link:hover::before,
-.meridian .nav-link:hover::after {
+.landing .nav-link:hover::before,
+.landing .nav-link:hover::after {
   opacity: 1;
 }
 
 /* Nav link active state */
-.meridian .nav-link.active::before,
-.meridian .nav-link.active::after {
+.landing .nav-link.active::before,
+.landing .nav-link.active::after {
   opacity: 1;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   LANDING PAGE v3 — ClientSpace Editorial Tokens (dark field report)
-   ═══════════════════════════════════════════════════════════════ */
-
-@theme inline {
-  --color-cs-bg: #0B0B0C;
-  --color-cs-bg-raised: #141416;
-  --color-cs-ink: #F4F3EF;
-  --color-cs-ink-muted: #9A9A9E;
-  --color-cs-line: #232326;
-  --color-cs-accent: #E2793D;
-  --color-cs-ok: #7FBF8F;
-  --color-cs-warn: #E2793D;
 }
 
 /* ── Noise grain overlay ──────────────────────────────────── */
@@ -1234,17 +1265,35 @@ body {
 }
 
 @keyframes cs-noise-shift {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-1px, 1px); }
-  50% { transform: translate(1px, -1px); }
-  75% { transform: translate(-1px, -1px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-1px, 1px);
+  }
+  50% {
+    transform: translate(1px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -1px);
+  }
 }
 
 /* ── Scrollbar ────────────────────────────────────────────── */
-.cs-scrollbar::-webkit-scrollbar { width: 4px; }
-.cs-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.cs-scrollbar::-webkit-scrollbar-thumb { background: #232326; border-radius: 2px; }
-.cs-scrollbar { scrollbar-width: thin; scrollbar-color: #232326 transparent; }
+.cs-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.cs-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cs-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--ld-line);
+  border-radius: 2px;
+}
+.cs-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ld-line) transparent;
+}
 
 /* ── Container (max 1280px) ───────────────────────────────── */
 .cs-container {
@@ -1256,23 +1305,33 @@ body {
   padding-right: 1.5rem;
 }
 @media (min-width: 1024px) {
-  .cs-container { padding-left: 3rem; padding-right: 3rem; }
+  .cs-container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
 }
 
 /* ── Section border top ───────────────────────────────────── */
 .cs-section {
-  border-top: 1px solid #1a1a1a;
+  border-top: 1px solid var(--ld-hairline);
   padding-top: 6rem;
   padding-bottom: 6rem;
 }
 @media (max-width: 768px) {
-  .cs-section { padding-top: 3rem; padding-bottom: 3rem; }
+  .cs-section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
 }
 
 /* ── Marquee animation ────────────────────────────────────── */
 @keyframes cs-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(-50%)); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50%));
+  }
 }
 .cs-marquee {
   animation: cs-marquee 40s linear infinite;
@@ -1283,8 +1342,13 @@ body {
 
 /* ── Pulse for status dots ─────────────────────────────────── */
 @keyframes cs-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 .cs-pulse-dot {
   animation: cs-pulse 2s ease-in-out infinite;
@@ -1292,8 +1356,14 @@ body {
 
 /* ── Number ticker ─────────────────────────────────────────── */
 @keyframes cs-count-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .cs-count-enter {
   animation: cs-count-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1301,19 +1371,34 @@ body {
 
 /* ── Reduced motion overrides ─────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .cs-noise::before { animation: none; opacity: 0.015; }
-  .cs-marquee { animation: none; }
-  .cs-pulse-dot { animation: none; }
+  .cs-noise::before {
+    animation: none;
+    opacity: 0.015;
+  }
+  .cs-marquee {
+    animation: none;
+  }
+  .cs-pulse-dot {
+    animation: none;
+  }
 }
 
 /* ── Accordion animations (for FaqSection) ────────────────── */
 @keyframes accordion-down {
-  from { height: 0; }
-  to { height: var(--radix-accordion-content-height); }
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
 }
 @keyframes accordion-up {
-  from { height: var(--radix-accordion-content-height); }
-  to { height: 0; }
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
 }
 .animate-accordion-down {
   animation: accordion-down 200ms cubic-bezier(0.22, 1, 0.36, 1);

@@ -31,7 +31,7 @@ export function FaqSection() {
   return (
     <section
       id="faq"
-      className="cs-section border-t border-[#1a1a1a] bg-[#0B0B0C]"
+      className="cs-section"
     >
       <div className="cs-container max-w-3xl">
         <SectionMeta
@@ -41,8 +41,8 @@ export function FaqSection() {
           location="UPDATED · 2026.04"
         />
 
-        <h2 className="font-display mt-12 mb-8 text-[clamp(28px,4vw,40px)] leading-[1.05] tracking-[-0.01em] text-[#F4F3EF] italic">
-          Questions, <span className="text-[#555]">answered.</span>
+        <h2 className="font-display mt-12 mb-8 text-[clamp(28px,4vw,40px)] leading-[1.05] tracking-[-0.01em] text-cs-ink italic">
+          Questions, <span className="text-cs-faint">answered.</span>
         </h2>
 
         <Accordion.Root
@@ -60,11 +60,11 @@ export function FaqSection() {
             >
               <Accordion.Item
                 value={`item-${i}`}
-                className="overflow-hidden rounded-lg border border-[#232326]"
+                className="overflow-hidden rounded-lg border border-cs-line"
               >
                 <Accordion.Header>
-                  <Accordion.Trigger className="group flex w-full items-center justify-between px-5 py-4 text-left transition-colors duration-200 hover:bg-[#141416]">
-                    <span className="font-mono text-[13px] text-[#F4F3EF] transition-colors group-hover:text-white">
+                  <Accordion.Trigger className="group flex w-full items-center justify-between px-5 py-4 text-left transition-colors duration-200 hover:bg-cs-bg-raised">
+                    <span className="font-data text-[13px] text-cs-ink transition-colors group-hover:text-cs-ink">
                       {faq.q}
                     </span>
                     <svg
@@ -72,7 +72,7 @@ export function FaqSection() {
                       height="14"
                       viewBox="0 0 14 14"
                       fill="none"
-                      className="shrink-0 text-[#555] transition-transform duration-200 group-data-[state=open]:rotate-45"
+                      className="shrink-0 text-cs-faint transition-transform duration-200 group-data-[state=open]:rotate-45"
                     >
                       <path
                         d="M7 1v12M1 7h12"
@@ -84,8 +84,8 @@ export function FaqSection() {
                   </Accordion.Trigger>
                 </Accordion.Header>
                 <Accordion.Content className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up overflow-hidden">
-                  <div className="border-t border-[#232326] px-5 py-4">
-                    <p className="font-mono text-[12px] leading-[1.7] text-[#9A9A9E]">
+                  <div className="border-t border-cs-line px-5 py-4">
+                    <p className="font-data text-[12px] leading-[1.7] text-cs-ink-muted">
                       {faq.a}
                     </p>
                   </div>

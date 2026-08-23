@@ -13,7 +13,7 @@ const testimonials = [
     date: "Q1 2026",
     quote:
       "No more burning a Friday afternoon exporting and emailing files. It sounds small, but it changed how we spend our week.",
-    gradient: "from-[#1a1a2e] via-[#16213e] to-[#0f3460]",
+    gradient: "from-cs-bg-raised via-cs-bg to-cs-bg",
   },
   {
     num: "02",
@@ -23,7 +23,7 @@ const testimonials = [
     date: "Q1 2026",
     quote:
       "We had clients in Basecamp, Trello, and two different Slack workspaces. This is the first thing that actually replaced all of it.",
-    gradient: "from-[#2d1b00] via-[#4a2c0a] to-[#1a1a0a]",
+    gradient: "from-cs-accent/15 via-cs-bg to-cs-bg",
   },
   {
     num: "03",
@@ -33,7 +33,7 @@ const testimonials = [
     date: "Q1 2026",
     quote:
       "For the first time, our clients feel like they're inside a real product, not a shared folder. That alone changed how prospects see us before we've done any work.",
-    gradient: "from-[#0a1628] via-[#1a1a2e] to-[#0f0f1a]",
+    gradient: "from-cs-bg-raised via-cs-bg to-cs-bg",
   },
 ];
 
@@ -58,12 +58,12 @@ export function Testimonials() {
       />
 
       <h2 className="font-display mt-16 mb-12 text-[clamp(32px,5vw,64px)] leading-[1] tracking-[-0.01em] italic">
-        <span className="text-[#fafafa]">Quieter, </span>
-        <span className="text-[#555]">
+        <span className="text-cs-ink">Quieter, </span>
+        <span className="text-cs-faint">
           according to the teams who&apos;ve used it
         </span>
         <br />
-        <span className="text-[#555]">for a full quarter.</span>
+        <span className="text-cs-faint">for a full quarter.</span>
       </h2>
 
       <div className="relative">
@@ -75,25 +75,25 @@ export function Testimonials() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="scroll-snap-align-start relative w-[380px] flex-shrink-0 overflow-hidden border border-[#222]"
+              className="scroll-snap-align-start relative w-[380px] flex-shrink-0 overflow-hidden border border-cs-line-strong"
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${t.gradient} opacity-60`}
               />
               <div className="absolute top-4 left-4 z-10">
-                <span className="font-mono text-[10px] text-[#fafafa]">
+                <span className="font-data text-[10px] text-cs-ink">
                   ● № {t.num}
                 </span>
               </div>
-              <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-3/5 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent" />
+              <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-3/5 bg-gradient-to-t from-cs-bg via-cs-bg/80 to-transparent" />
               <div className="absolute right-0 bottom-0 left-0 z-10 p-6">
-                <div className="mb-2 text-[20px] leading-none text-[#a0a0a0]">
+                <div className="mb-2 text-[20px] leading-none text-cs-ink-muted">
                   ❝
                 </div>
-                <p className="mb-4 text-[14px] leading-[1.6] text-[#fafafa] italic">
+                <p className="mb-4 text-[14px] leading-[1.6] text-cs-ink italic">
                   {t.quote}
                 </p>
-                <div className="font-mono text-[10px] leading-relaxed text-[#a0a0a0]">
+                <div className="font-data text-[10px] leading-relaxed text-cs-ink-muted">
                   {t.name} · {t.role} · {t.company} · FILED · {t.date} · FRAME{" "}
                   {t.num}/{testimonials.length.toString().padStart(2, "0")}
                 </div>
@@ -113,7 +113,7 @@ export function Testimonials() {
                     behavior: "smooth",
                   })
                 }
-                className="h-[2px] w-8 bg-[#333] transition-colors hover:bg-[#555]"
+                className="h-[2px] w-8 bg-[#333] transition-colors hover:bg-cs-line-strong"
                 aria-label={`Go to testimonial ${i + 1}`}
               />
             ))}
@@ -121,14 +121,14 @@ export function Testimonials() {
           <div className="flex gap-3">
             <button
               onClick={() => scroll("left")}
-              className="flex h-8 w-8 items-center justify-center border border-[#333] font-mono text-[12px] text-[#a0a0a0] transition-all duration-200 hover:border-[#555] hover:text-[#fafafa]"
+              className="flex h-8 w-8 items-center justify-center border border-cs-line-strong font-data text-[12px] text-cs-ink-muted transition-all duration-200 hover:border-cs-faint hover:text-cs-accent-ink"
               aria-label="Previous"
             >
               ←
             </button>
             <button
               onClick={() => scroll("right")}
-              className="flex h-8 w-8 items-center justify-center border border-[#333] font-mono text-[12px] text-[#a0a0a0] transition-all duration-200 hover:border-[#555] hover:text-[#fafafa]"
+              className="flex h-8 w-8 items-center justify-center border border-cs-line-strong font-data text-[12px] text-cs-ink-muted transition-all duration-200 hover:border-cs-faint hover:text-cs-accent-ink"
               aria-label="Next"
             >
               →
